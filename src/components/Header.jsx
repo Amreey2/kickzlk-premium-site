@@ -1,0 +1,67 @@
+import { useEffect, useState } from 'react';
+import { logoWordmarkWhite } from '../assets';
+
+const navItems = [
+  ['drops', 'New Drops'],
+  ['brands', 'Brands'],
+  ['preorder', 'Pre-Order'],
+  ['why', 'Why Kickz'],
+  ['social', 'Community'],
+];
+
+export default function Header({ productPage = false, bagCount = 0 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const homePrefix = productPage ? 'index.html' : '';
+
+  useEffect(() => {
+    document.body.classList.toggle('nav-open', menuOpen);
+    return () => document.body.classList.remove('nav-open');
+  }, [menuOpen]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!menuOpen) setHasScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
+  return (
+    <header className={`site-header${hasScrolled ? ' site-header--scrolled' : ''}`} id="top">
+      <div className="container header__inner">
+        <a href="index.html" className="brand" aria-label="KICKZ.LK home">
+          <img src={logoWordmarkWhite} alt="KICKZ.LK" />
+        </a>
+        <nav className="desktop-nav" aria-label="Primary navigation">
+          {navItems.map(([id, label]) => <a href={`${homePrefix}#${id}`} key={id}>{label}</a>)}
+        </nav>
+        <div className="header-actions">
+          <button className="icon-btn" aria-label="Search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
+          </button>
+          <button className="icon-btn bag-btn" aria-label="Shopping bag">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z" /><path d="M9 8a3 3 0 0 1 6 0" /></svg>
+            <span className="bag-count">{bagCount}</span>
+          </button>
+          <button
+            className="menu-toggle"
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span /><span />
+          </button>
+        </div>
+      </div>
+      <div className={`mobile-drawer${menuOpen ? ' open' : ''}`} aria-hidden={!menuOpen}>
+        <nav aria-label="Mobile navigation">
+          {navItems.map(([id, label]) => <a href={`${homePrefix}#${id}`} key={id} onClick={closeMenu}>{label}</a>)}
+        </nav>
+        <div className="mobile-drawer__meta"><span>Colombo, Sri Lanka</span><span>Online · Islandwide</span></div>
+      </div>
+    </header>
+  );
+}
