@@ -29,6 +29,16 @@ npm run preview
 
 The production build outputs both page entries to `dist/`.
 
+## Mobile Responsive Audit
+
+With Google Chrome installed on macOS, run the reproducible mobile simulation audit:
+
+```bash
+npm run audit:mobile
+```
+
+The audit renders both pages at 320px, 375px, 390px, 430px, and 768px. It checks document overflow, clipped text, console errors, mobile navigation, product filtering, size selection, preorder state, and product tabs. Reference screenshots are written to `/tmp/kickz-{page}-{width}.png`.
+
 ## Project Structure
 
 ```text

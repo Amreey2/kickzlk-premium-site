@@ -70,6 +70,7 @@ button { color: inherit; }
   font-size: 10px;
   letter-spacing: .18em;
   font-weight: 700;
+  overflow: hidden;
 }
 .announcement__inner {
   min-height: 34px;
@@ -168,6 +169,11 @@ button { color: inherit; }
 }
 .hero-grid { display: grid; grid-template-columns: .96fr 1.04fr; gap: 24px; align-items: center; min-height: 640px; }
 .hero-copy { position: relative; z-index: 3; }
+
+/* RESPONSIVE GRID SAFETY
+   Lets grid and flex children shrink inside their columns instead of expanding the page to their min-content width. */
+.hero-grid > *, .section-head > *, .product-card__body > *, .editorial-card > *, .why-grid > *,
+.social-grid > *, .newsletter-card > *, .footer-grid > *, .product-layout > * { min-width: 0; }
 .eyebrow, .section-kicker {
   display: inline-flex;
   align-items: center;
@@ -538,7 +544,9 @@ button { color: inherit; }
 }
 
 @media (max-width: 960px) {
-  :root { --container: min(100% - 36px, 850px); }
+  /* TABLET CONTAINER FIX
+     Keeps the 18px side gutters valid while retaining the approved 850px maximum. */
+  :root { --container: min(calc(100% - 36px), 850px); }
   .section-pad { padding: 86px 0; }
   .desktop-nav { display: none; }
   .menu-toggle { display: grid; }
@@ -551,9 +559,15 @@ button { color: inherit; }
   .hero-visual { height: 520px; }
   .hero-shoe { width: 93%; }
   .hero-footer { margin-top: 0; }
+  /* TABLET SECTION HEADING FIX
+     Gives display headings enough room while allowing supporting copy to wrap naturally. */
+  .drops .section-head > p { max-width: 310px; }
   .product-grid { grid-template-columns: 1fr 1fr; }
   .editorial-card { grid-template-columns: 1fr; }
   .editorial-card__visual { min-height: 480px; }
+  /* TABLET EDITORIAL ARTWORK FIX
+     Accounts for the retained rotation so the image bounds stay inside a 768px viewport. */
+  .editorial-card__visual img { width: calc(100% - 12px); }
   .brand-grid { grid-template-columns: 1fr 1fr; }
   .why-grid { grid-template-columns: 1fr; }
   .why-intro { position: static; }
@@ -561,6 +575,9 @@ button { color: inherit; }
   .process-line::before { display: none; }
   .review-grid { grid-template-columns: 1fr; }
   .review-card { min-height: 260px; }
+  /* TABLET REVIEW SUMMARY FIX
+     Moves the rating summary onto a second flex line when its full label cannot fit beside the headline. */
+  .reviews .section-head { flex-wrap: wrap; }
   .social-grid { grid-template-columns: 1fr; }
   .social-copy { text-align: center; }
   .social-copy > p { margin-inline: auto; }
@@ -574,23 +591,41 @@ button { color: inherit; }
 }
 
 @media (max-width: 650px) {
+  /* MOBILE VIEWPORT FOUNDATION
+     Constrains every page layer to the simulated device width without altering internal scroll rows. */
   :root { --container: calc(100% - 28px); --radius-lg: 22px; --radius-md: 16px; }
+  html, body, #root { max-width: 100%; overflow-x: clip; }
   .section-pad { padding: 70px 0; }
+
+  /* MOBILE ANNOUNCEMENT FIX
+     The moving announcement remains animated but can no longer enlarge the document canvas. */
   .announcement__inner { justify-content: flex-start; animation: marquee 16s linear infinite; width: max-content; }
+
+  /* MOBILE NAVIGATION FIX
+     Keeps the logo, bag and menu controls within the narrowest supported header. */
   .header__inner { height: 68px; }
   .brand { width: 145px; }
   .icon-btn { display: none; }
   .bag-btn { display: grid; }
   .mobile-drawer { inset: 69px 0 auto; min-height: calc(100vh - 69px); }
+  .mobile-drawer nav { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+  .mobile-drawer nav a { min-width: 0; font-size: clamp(28px, 7.6vw, 33px); }
+
+  /* MOBILE HERO FIX
+     Scales the display type and artwork to fit 320–430px screens without cropping the approved composition. */
   .hero { min-height: auto; padding-top: 46px; }
   .hero-grid { min-height: 0; }
-  .hero h1 { font-size: clamp(49px, 15vw, 76px); }
+  .hero-copy, .hero-visual { min-width: 0; width: 100%; }
+  .hero h1 { font-size: clamp(29px, 9.3vw, 40px); }
   .hero-copy > p { font-size: 14px; }
   .hero-actions { display: grid; width: 100%; }
   .hero-actions .btn { width: 100%; }
-  .hero-badges { overflow-x: auto; justify-content: flex-start; }
-  .hero-badges div { min-width: 125px; text-align: left; }
-  .hero-visual { height: 390px; margin-top: 10px; }
+  .hero-badges { overflow: visible; justify-content: flex-start; }
+  .hero-badges div { min-width: 0; padding: 14px 8px 14px 0; text-align: left; }
+  .hero-badges div + div { padding-left: 8px; }
+  .hero-badges strong { font-size: 13px; }
+  .hero-badges span { font-size: 9px; }
+  .hero-visual { height: clamp(330px, 90vw, 390px); margin-top: 10px; }
   .hero-shoe { width: 120%; max-width: none; }
   .hero-orbit { width: 95%; }
   .hero-orbit--two { width: 69%; }
@@ -598,21 +633,45 @@ button { color: inherit; }
   .floating-label--top { right: 0; top: 10%; }
   .floating-label--bottom { left: 0; bottom: 12%; }
   .hero-footer { display: none; }
+
+  /* MOBILE SECTION HEADING FIX
+     Preserves the bold hierarchy while fitting long approved headings within the content gutter. */
   .section-head { display: grid; gap: 14px; margin-bottom: 34px; }
-  .section-head h2 { font-size: clamp(39px, 12vw, 58px); }
+  .section-head h2 { font-size: clamp(31px, 10.15vw, 44px); }
   .section-head > p { font-size: 13px; }
+
+  /* MOBILE FILTER FIX
+     Keeps every filter touch target usable inside its own horizontal row without affecting page width. */
   .filter-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; }
   .filter-btn { flex: 0 0 auto; }
+
+  /* MOBILE PRODUCT CARD FIX
+     Sizes product imagery and metadata for the available single-column width. */
   .product-grid { grid-template-columns: 1fr; }
-  .product-card__visual { min-height: 340px; }
-  .product-card__body { padding-top: 14px; }
+  .product-card__visual { min-height: clamp(290px, 90vw, 340px); }
+  .product-card__body { padding-top: 14px; gap: 12px; }
+  .product-card__body > div:first-child { min-width: 0; }
+  .product-card h3 { font-size: 16px; }
+
+  /* MOBILE EDITORIAL FIX
+     Prevents the oversized headline from forcing the card wider and keeps the shoe fully inside its visual panel. */
   .editorial-card { min-height: auto; }
-  .editorial-card__copy { padding: 38px 24px; }
-  .editorial-card h2 { font-size: clamp(44px, 14vw, 68px); }
-  .editorial-card__visual { min-height: 360px; }
+  .editorial-card__copy { min-width: 0; padding: 38px 24px; }
+  .editorial-card h2 { max-width: 100%; font-size: clamp(20.5px, 6.5vw, 28px); }
+  .editorial-card__copy p, .editorial-card__copy .btn { max-width: 100%; }
+  .editorial-card__visual { min-width: 0; min-height: 360px; overflow: hidden; }
+  .editorial-card__visual img { width: 100%; }
   .editorial-number { font-size: 60px; }
+
+  /* MOBILE BRAND GRID FIX
+     Allows long brand names to shrink inside their tiles without disturbing the decorative glow. */
   .brand-grid { grid-template-columns: 1fr; }
   .brand-tile { min-height: 120px; }
+  .brand-tile span { min-width: 0; font-size: clamp(22px, 8vw, 34px); }
+
+  /* MOBILE BENEFITS FIX
+     Fits the long standard headline before stacking the existing benefit cards. */
+  .why-intro h2 { font-size: clamp(24px, 7.7vw, 33px); }
   .benefit-grid { grid-template-columns: 1fr; }
   .benefit-card { min-height: 230px; }
   .process-line { grid-template-columns: 1fr; }
@@ -621,27 +680,62 @@ button { color: inherit; }
   .preorder-note { grid-template-columns: 1fr 1fr; gap: 8px 15px; }
   .preorder-note p { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); padding: 12px 0 0; }
   .rating-summary { margin-top: 10px; }
+
+  /* MOBILE SOCIAL FIX
+     Retains the rotated showroom wall while keeping its corners inside the viewport. */
+  .social-copy h2 { font-size: clamp(34px, 10.5vw, 45px); }
   .social-wall { gap: 9px; }
+  .social-quote { font-size: clamp(22px, 6.5vw, 28px); }
   .social-tile--one, .social-tile--four { transform: translateY(22px); }
+
+  /* MOBILE NEWSLETTER FIX
+     Keeps the headline and email control inside the card padding at 320px. */
   .newsletter-card { padding: 35px 24px; min-height: 0; }
-  .newsletter-card h2 { font-size: 48px; }
+  .newsletter-card h2 { font-size: clamp(32px, 9.8vw, 42px); }
   .newsletter-form input { font-size: 18px; }
+
+  /* MOBILE FOOTER FIX
+     Maintains the two-column link layout while allowing every column to shrink safely. */
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .footer-brand { grid-column: 1 / -1; }
   .footer-col:last-child { grid-column: auto; }
   .footer-bottom { display: grid; gap: 12px; }
+
+  /* MOBILE PRODUCT PAGE FIX
+     Wraps dense product metadata and keeps gallery, options, tabs and purchase controls within the device width. */
   .gallery { grid-template-columns: 1fr; }
   .gallery-thumbs { grid-template-columns: repeat(4, 1fr); grid-row: 2; }
-  .gallery-main { min-height: 420px; }
+  .gallery-main { min-height: clamp(340px, 108vw, 420px); }
   .product-main { padding-top: 30px; }
-  .product-title { font-size: 45px; }
+  .breadcrumbs, .product-rating, .product-price { flex-wrap: wrap; }
+  .product-title { font-size: clamp(34px, 10.5vw, 45px); }
+  .product-price { align-items: flex-start; gap: 8px 20px; }
   .sizes { grid-template-columns: repeat(4,1fr); }
   .payment-options { grid-template-columns: 1fr; }
   .product-cta { padding-bottom: 90px; }
-  .mobile-buybar { display: grid; grid-template-columns: .75fr 1.25fr; gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(7,7,7,.94); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
-  .mobile-buybar .btn { min-height: 48px; padding-inline: 12px; }
+  .mobile-buybar { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; max-width: 100vw; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(7,7,7,.94); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
+  .mobile-buybar .btn { min-width: 0; min-height: 48px; padding-inline: 10px; gap: 8px; font-size: 10px; }
   .tabs { overflow-x: auto; }
   .tab-btn { flex: 0 0 auto; }
+  .toast { width: max-content; max-width: calc(100% - 28px); text-align: center; }
+}
+
+@media (max-width: 360px) {
+  /* SMALL MOBILE POLISH
+     Tightens only the narrowest 320px layout while preserving the same component composition. */
+  .brand { width: 132px; }
+  .header__inner { gap: 16px; }
+  .hero { padding-top: 38px; }
+  .eyebrow, .section-kicker { font-size: 9px; letter-spacing: .15em; }
+  .editorial-card__copy { padding-inline: 20px; }
+  .btn { padding-inline: 18px; gap: 12px; }
+  .product-card__body { display: grid; }
+  .price-row { justify-items: start; }
+  .social-wall { width: calc(100% - 8px); transform: rotate(1deg); }
+  .social-tile--two { padding: 14px; }
+  .social-quote { font-size: 18px; }
+  .mobile-drawer { padding-inline: 20px; }
+  .mobile-drawer__meta { gap: 12px; font-size: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

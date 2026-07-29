@@ -22,4 +22,12 @@ export default [
       ...reactRefresh.configs.vite.rules,
     },
   },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: { ...globals.node, ...globals.browser },
+    },
+  },
 ];
