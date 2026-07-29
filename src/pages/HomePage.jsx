@@ -4,10 +4,10 @@ import Header from '../components/Header';
 import Toast from '../components/Toast';
 import {
   BrandsSection,
+  CultureTicker,
   EditorialSection,
   FeaturedDrops,
   HeroSection,
-  MarqueeSection,
   NewsletterSection,
   PreorderSection,
   ReviewsSection,
@@ -26,9 +26,9 @@ export default function HomePage() {
       <div className="noise" aria-hidden="true" />
       <AnnouncementBar />
       <Header />
-      <main>
+      <main className="home-main">
         <HeroSection />
-        <MarqueeSection />
+        <CultureTicker />
         <FeaturedDrops showToast={toast.showToast} />
         <EditorialSection />
         <BrandsSection />

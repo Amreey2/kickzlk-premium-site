@@ -23,10 +23,35 @@
   --radius-md: 20px;
   --radius-sm: 12px;
   --shadow: 0 30px 90px rgba(0,0,0,.45);
+  --header-height: 78px;
+  --top-chrome-height: 112px;
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+
+/* PREMIUM HOMEPAGE SCROLL EXPERIENCE
+   Proximity snapping settles near major sections without trapping users inside content taller than the viewport. */
+html:has(.home-main) {
+  scroll-padding-top: var(--header-height);
+  scroll-snap-type: y proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* HIDDEN ROOT SCROLLBAR
+   Removes browser chrome on the homepage while preserving wheel, keyboard, touch and programmatic scrolling. */
+html:has(.home-main)::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+.home-main .snap-section {
+  min-height: calc(100svh - var(--header-height));
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+/* INITIAL HERO SNAP OFFSET
+   Includes the announcement height in the first snap target so loading the page never scrolls it out of view. */
+.home-main .hero { scroll-margin-top: calc(var(--top-chrome-height) - var(--header-height)); }
 body {
   margin: 0;
   background:
@@ -155,7 +180,18 @@ button { color: inherit; }
 .mobile-drawer nav a { font-family: var(--display); font-size: clamp(32px, 10vw, 58px); font-weight: 800; border-bottom: 1px solid var(--line); padding: 12px 0; }
 .mobile-drawer__meta { margin-top: 38px; display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
 
-.hero { padding-top: 76px; min-height: calc(100vh - 112px); position: relative; overflow: hidden; }
+/* PREMIUM VIEWPORT HERO
+   Uses the available first-screen height after the announcement and header, with flexible rows to prevent cropping. */
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: calc(100svh - var(--top-chrome-height));
+  min-height: 650px;
+  padding: clamp(30px, 5svh, 56px) 0 clamp(18px, 2.8svh, 30px);
+  overflow: hidden;
+}
+.home-main .hero { min-height: 650px; }
 .hero::after {
   content: "KICKZ";
   position: absolute;
@@ -167,7 +203,7 @@ button { color: inherit; }
   pointer-events: none;
   white-space: nowrap;
 }
-.hero-grid { display: grid; grid-template-columns: .96fr 1.04fr; gap: 24px; align-items: center; min-height: 640px; }
+.hero-grid { display: grid; grid-template-columns: .96fr 1.04fr; gap: 24px; align-items: center; height: 100%; min-height: 0; }
 .hero-copy { position: relative; z-index: 3; }
 
 /* RESPONSIVE GRID SAFETY
@@ -223,7 +259,7 @@ button { color: inherit; }
 .hero-badges strong { font-family: var(--display); font-size: 16px; letter-spacing: -.02em; }
 .hero-badges span { color: var(--muted); font-size: 11px; }
 
-.hero-visual { height: 620px; position: relative; display: grid; place-items: center; isolation: isolate; }
+.hero-visual { height: min(620px, calc(100svh - 230px)); min-height: 0; position: relative; display: grid; place-items: center; isolation: isolate; }
 .hero-glow {
   position: absolute;
   width: 66%;
@@ -255,7 +291,19 @@ button { color: inherit; }
 .floating-label--bottom { left: 3%; bottom: 17%; }
 .hero-index { position: absolute; right: 3%; bottom: 9%; font-family: var(--display); font-weight: 700; font-size: 32px; color: var(--acid); }
 .hero-index span { color: var(--faint); font-size: 15px; margin-left: 4px; }
-.hero-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; position: relative; z-index: 2; }
+
+/* DESKTOP VIEWPORT RHYTHM
+   Clamps only the hero's vertical spacing and display scale so every approved cue remains inside shorter laptop screens. */
+@media (min-width: 961px) {
+  .hero h1 { font-size: clamp(58px, 5.5vw, 96px); margin-block: clamp(16px, 2.4svh, 24px); }
+  .hero-copy > p { margin-bottom: clamp(20px, 3svh, 34px); }
+  .hero-badges { margin-top: clamp(22px, 3.5svh, 38px); }
+}
+.hero-footer { display: flex; align-items: center; justify-content: space-between; margin-top: clamp(0px, 1svh, 10px); position: relative; z-index: 2; }
+/* HERO FOOTER REVEAL FIT
+   Uses a shorter entrance distance so the observer can reveal the trust and scroll cues at the first fold. */
+.hero-footer.reveal { transform: translateY(6px); }
+.hero-footer.reveal.is-visible { transform: translateY(0); }
 .trust-chip { display: flex; gap: 12px; align-items: center; max-width: 560px; color: var(--muted); font-size: 12px; }
 .trust-chip strong { color: var(--text); }
 .trust-chip svg { width: 26px; flex: 0 0 auto; fill: none; stroke: var(--acid); stroke-width: 1.6; }
@@ -264,10 +312,14 @@ button { color: inherit; }
 @keyframes float { 0%,100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(-2deg) translateY(-18px); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.marquee { border-block: 1px solid var(--line); overflow: hidden; background: #0a0a0b; }
-.marquee__track { width: max-content; display: flex; align-items: center; gap: 24px; padding: 15px 0; animation: marquee 24s linear infinite; }
-.marquee span { font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .12em; }
-.marquee i { color: var(--acid); font-style: normal; }
+/* PREMIUM CULTURE TICKER
+   Two equal groups move as one continuous luxury-fashion strip with no visible seam. */
+.culture-ticker { border-block: 1px solid var(--line); overflow: hidden; background: #0a0a0b; }
+.culture-ticker__track { width: max-content; display: flex; align-items: center; padding: 15px 0; animation: culture-ticker 32s linear infinite; will-change: transform; }
+.culture-ticker__group { display: flex; align-items: center; padding-right: 24px; }
+.culture-ticker__group span { display: inline-flex; align-items: center; gap: 24px; margin-right: 24px; white-space: nowrap; font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+.culture-ticker__group i { color: var(--acid); font-style: normal; }
+@keyframes culture-ticker { to { transform: translateX(-50%); } }
 @keyframes marquee { to { transform: translateX(-50%); } }
 
 .section-head { display: flex; justify-content: space-between; align-items: end; gap: 40px; margin-bottom: 48px; }
@@ -398,6 +450,9 @@ button { color: inherit; }
 .preorder-note p { color: var(--muted); font-size: 12px; margin: 0; border-left: 1px solid var(--line); padding-left: 24px; }
 
 .rating-summary { display: flex; align-items: center; gap: 13px; }
+/* RESPONSIVE REVIEW HEADING
+   Allows the existing score block to move below its oversized heading before it can widen the page. */
+.reviews .section-head { flex-wrap: wrap; }
 .rating-summary > strong { font: 800 54px/1 var(--display); }
 .rating-summary > span { color: var(--acid); letter-spacing: .08em; display: grid; }
 .rating-summary small { color: var(--muted); letter-spacing: 0; font-size: 10px; margin-top: 4px; }
@@ -551,13 +606,15 @@ button { color: inherit; }
   .desktop-nav { display: none; }
   .menu-toggle { display: grid; }
   .mobile-drawer { display: block; }
-  .hero { padding-top: 52px; }
-  .hero-grid { grid-template-columns: 1fr; }
+  /* TABLET VIEWPORT HERO
+     Compresses vertical artwork space so the complete showroom composition meets the first fold at 768px tablets. */
+  .hero { padding: clamp(24px, 3.5svh, 38px) 0 clamp(16px, 2svh, 24px); }
+  .hero-grid { grid-template-columns: 1fr; gap: clamp(8px, 1.5svh, 18px); }
   .hero-copy { text-align: center; }
   .hero-copy > p { margin-inline: auto; }
   .hero-actions, .hero-badges { justify-content: center; margin-inline: auto; }
-  .hero-visual { height: 520px; }
-  .hero-shoe { width: 93%; }
+  .hero-visual { height: clamp(210px, 22svh, 250px); }
+  .hero-shoe { width: 84%; }
   .hero-footer { margin-top: 0; }
   /* TABLET SECTION HEADING FIX
      Gives display headings enough room while allowing supporting copy to wrap naturally. */
@@ -575,9 +632,6 @@ button { color: inherit; }
   .process-line::before { display: none; }
   .review-grid { grid-template-columns: 1fr; }
   .review-card { min-height: 260px; }
-  /* TABLET REVIEW SUMMARY FIX
-     Moves the rating summary onto a second flex line when its full label cannot fit beside the headline. */
-  .reviews .section-head { flex-wrap: wrap; }
   .social-grid { grid-template-columns: 1fr; }
   .social-copy { text-align: center; }
   .social-copy > p { margin-inline: auto; }
@@ -590,10 +644,16 @@ button { color: inherit; }
   .gallery { position: static; }
 }
 
+@media (min-width: 651px) and (max-width: 960px) {
+  /* TABLET HERO ARTWORK FIT
+     Centers the complete sneaker independently of its intrinsic height so the sole and footer cue stay inside the fold. */
+  .hero-shoe { position: absolute; top: 50%; left: 50%; width: 68%; translate: -50% -60%; }
+}
+
 @media (max-width: 650px) {
   /* MOBILE VIEWPORT FOUNDATION
      Constrains every page layer to the simulated device width without altering internal scroll rows. */
-  :root { --container: calc(100% - 28px); --radius-lg: 22px; --radius-md: 16px; }
+  :root { --container: calc(100% - 28px); --radius-lg: 22px; --radius-md: 16px; --header-height: 68px; --top-chrome-height: 102px; }
   html, body, #root { max-width: 100%; overflow-x: clip; }
   .section-pad { padding: 70px 0; }
 
@@ -613,7 +673,7 @@ button { color: inherit; }
 
   /* MOBILE HERO FIX
      Scales the display type and artwork to fit 320–430px screens without cropping the approved composition. */
-  .hero { min-height: auto; padding-top: 46px; }
+  .home-main .hero { display: block; height: auto; min-height: calc(100svh - var(--top-chrome-height)); padding-top: 46px; }
   .hero-grid { min-height: 0; }
   .hero-copy, .hero-visual { min-width: 0; width: 100%; }
   .hero h1 { font-size: clamp(29px, 9.3vw, 40px); }
@@ -633,6 +693,12 @@ button { color: inherit; }
   .floating-label--top { right: 0; top: 10%; }
   .floating-label--bottom { left: 0; bottom: 12%; }
   .hero-footer { display: none; }
+
+  /* MOBILE CULTURE TICKER
+     Tightens rhythm without changing the message, typography family or seamless motion. */
+  .culture-ticker__track { padding-block: 13px; animation-duration: 28s; }
+  .culture-ticker__group { padding-right: 16px; }
+  .culture-ticker__group span { gap: 16px; margin-right: 16px; font-size: 11px; }
 
   /* MOBILE SECTION HEADING FIX
      Preserves the bold hierarchy while fitting long approved headings within the content gutter. */
@@ -741,4 +807,8 @@ button { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
   .reveal { opacity: 1; transform: none; }
+  /* REDUCED-MOTION UX
+     Disables automatic snapping and ticker translation while retaining all content and manual scrolling. */
+  html:has(.home-main) { scroll-snap-type: none; scroll-behavior: auto; }
+  .culture-ticker__track { animation: none !important; transform: none; }
 }

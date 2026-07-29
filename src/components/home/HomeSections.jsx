@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   heroSneaker,
   productBlue,
@@ -37,7 +37,7 @@ export function HeroSection() {
   };
 
   return (
-    <section className="hero section-pad">
+    <section className="hero section-pad snap-section">
       <div className="hero-grid container">
         <div className="hero-copy reveal">
           <div className="eyebrow"><span className="pulse" /> CURATED GLOBAL DROPS · SRI LANKA</div>
@@ -72,12 +72,20 @@ export function HeroSection() {
   );
 }
 
-export function MarqueeSection() {
-  const promises = ['AUTHENTIC ONLY', 'GLOBAL DROPS', 'ISLANDWIDE', 'SECURE PRE-ORDERS'];
+/* PREMIUM CULTURE TICKER
+   Two identical groups create a seamless loop while the duplicate stays hidden from assistive technology. */
+export function CultureTicker() {
+  const messages = ['AUTHENTIC SNEAKERS', 'GLOBAL DROPS', 'PRE ORDER AVAILABLE', 'KICKZ.LK'];
+  const renderGroup = (hidden = false) => (
+    <div className="culture-ticker__group" aria-hidden={hidden || undefined}>
+      {messages.map((message) => <span key={message}>{message}<i aria-hidden="true">★</i></span>)}
+    </div>
+  );
+
   return (
-    <section className="marquee" aria-label="Brand promise"><div className="marquee__track">
-      {[0, 1].map((group) => <Fragment key={group}>{promises.map((promise) => <Fragment key={`${group}-${promise}`}><span>{promise}</span><i>✦</i></Fragment>)}</Fragment>)}
-    </div></section>
+    <section className="culture-ticker" aria-label="Authentic sneakers, global drops, pre order available, KICKZ.LK">
+      <div className="culture-ticker__track">{renderGroup()}{renderGroup(true)}</div>
+    </section>
   );
 }
 
@@ -85,7 +93,7 @@ export function FeaturedDrops({ showToast }) {
   const [filter, setFilter] = useState('all');
   const filters = [['all', 'ALL DROPS'], ['jordan', 'JORDAN'], ['nike', 'NIKE'], ['adidas', 'ADIDAS'], ['luxury', 'LUXURY']];
   return (
-    <section className="drops section-pad" id="drops">
+    <section className="drops section-pad snap-section" id="drops">
       <div className="container">
         <div className="section-head reveal"><div><span className="section-kicker">CURATED RELEASES</span><h2>FEATURED DROPS</h2></div><p>High-demand silhouettes and luxury pairs selected for the Sri Lankan market.</p></div>
         <div className="filter-row reveal delay-80" role="group" aria-label="Filter products">
@@ -102,7 +110,7 @@ export function FeaturedDrops({ showToast }) {
 
 export function EditorialSection() {
   return (
-    <section className="editorial section-pad"><div className="container editorial-card reveal">
+    <section className="editorial section-pad snap-section"><div className="container editorial-card reveal">
       <div className="editorial-card__copy"><span className="section-kicker">THE PRE-ORDER EDIT</span><h2>YOUR SIZE.<br />YOUR PAIR.<br /><em>NO COMPROMISE.</em></h2><p>Access rare colorways, exclusive releases and hard-to-find sizing without settling for what is locally available.</p><a href="#preorder" className="btn btn--light">HOW PRE-ORDERS WORK <span>→</span></a></div>
       <div className="editorial-card__visual"><span className="editorial-number">02</span><img src={productDunk} alt="Premium sneaker floating in editorial layout" loading="lazy" /><div className="editorial-note">CURATED FOR<br />SRI LANKA</div></div>
     </div></section>
@@ -112,7 +120,7 @@ export function EditorialSection() {
 export function BrandsSection() {
   const brands = [['NIKE', '01', 0], ['JORDAN', '02', 50], ['ADIDAS', '03', 100], ['NEW BALANCE', '04', 150], ['BALMAIN', '05', 0], ['LOUBOUTIN', '06', 50]];
   return (
-    <section className="brands section-pad" id="brands"><div className="container">
+    <section className="brands section-pad snap-section" id="brands"><div className="container">
       <div className="section-head reveal"><div><span className="section-kicker">GLOBAL LABELS</span><h2>SHOP BY BRAND</h2></div><p>From iconic sportswear to statement luxury, sourced to match your rotation.</p></div>
       <div className="brand-grid">{brands.map(([brand, number, delay]) => <a href="#drops" className={`brand-tile reveal${delay ? ` delay-${delay}` : ''}`} key={brand}><span>{brand}</span><small>{number}</small></a>)}</div>
     </div></section>
@@ -127,7 +135,7 @@ export function WhySection() {
     ['04', 'Human Support', 'Real guidance through WhatsApp—from sizing to order updates.', 240],
   ];
   return (
-    <section className="why section-pad" id="why"><div className="container why-grid">
+    <section className="why section-pad snap-section" id="why"><div className="container why-grid">
       <div className="why-intro reveal"><span className="section-kicker">THE KICKZ STANDARD</span><h2>HYPE WITHOUT<br />THE UNCERTAINTY.</h2><p>Designed around trust, clarity and access—because buying your next grail should feel exciting, not risky.</p><div className="micro-stat"><strong>1,000+</strong><span>Pairs sourced for the community</span></div></div>
       <div className="benefit-grid">{benefits.map(([number, title, copy, delay]) => <article className={`benefit-card reveal${delay ? ` delay-${delay}` : ''}`} key={number}><div className="benefit-card__icon">{number}</div><h3>{title}</h3><p>{copy}</p></article>)}</div>
     </div></section>
@@ -137,7 +145,7 @@ export function WhySection() {
 export function PreorderSection() {
   const steps = [['01', 'Select Your Pair', 'Choose the style, colorway and size you want.'], ['02', 'Pay the Deposit', 'Secure your order with the displayed deposit.'], ['03', 'We Import It', 'We source, verify and arrange international shipping.'], ['04', 'Delivered to You', 'Pay the balance and receive it islandwide.']];
   return (
-    <section className="preorder section-pad" id="preorder"><div className="container">
+    <section className="preorder section-pad snap-section" id="preorder"><div className="container">
       <div className="section-head section-head--center reveal"><div><span className="section-kicker">SIMPLE. CLEAR. SECURE.</span><h2>HOW PRE-ORDER WORKS</h2></div><p>Four simple steps between you and your next pair.</p></div>
       <div className="process-line reveal delay-100">{steps.map(([number, title, copy]) => <article className="process-step" key={number}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}</div>
       <div className="preorder-note reveal"><span>AVERAGE TIMELINE</span><strong>14–28 DAYS</strong><p>Exact delivery estimates are shown on each product page.</p></div>
@@ -152,7 +160,7 @@ export function ReviewsSection() {
     ['“Found my exact size when nobody else had it locally. WhatsApp support was fast and genuinely helpful.”', 'RM', 'Raveen M.', 'Nike Dunk Low · Galle', 160],
   ];
   return (
-    <section className="reviews section-pad"><div className="container">
+    <section className="reviews section-pad snap-section"><div className="container">
       <div className="section-head reveal"><div><span className="section-kicker">COMMUNITY VERIFIED</span><h2>TRUSTED BY THE ROTATION</h2></div><div className="rating-summary"><strong>4.9</strong><span>★★★★★<small>Based on verified orders</small></span></div></div>
       <div className="review-grid">{reviews.map(([quote, initials, name, product, delay]) => <article className={`review-card reveal${delay ? ` delay-${delay}` : ''}`} key={name}><div className="review-card__top"><span>★★★★★</span><small>VERIFIED BUYER</small></div><blockquote>{quote}</blockquote><div className="review-person"><b>{initials}</b><span><strong>{name}</strong><small>{product}</small></span></div></article>)}</div>
     </div></section>
@@ -161,7 +169,7 @@ export function ReviewsSection() {
 
 export function SocialSection() {
   return (
-    <section className="social section-pad" id="social"><div className="container social-grid">
+    <section className="social section-pad snap-section" id="social"><div className="container social-grid">
       <div className="social-copy reveal"><span className="section-kicker">@KICKZ.LK</span><h2>FOLLOW THE<br /><em>CULTURE.</em></h2><p>Drop alerts, unboxings, styling inspiration and community fits—daily on Instagram and TikTok.</p><div className="social-actions"><a href="#" className="btn btn--acid">INSTAGRAM <span>↗</span></a><a href="#" className="btn btn--ghost">TIKTOK <span>↗</span></a></div></div>
       <div className="social-wall reveal delay-120"><div className="social-tile social-tile--one"><img src={productJordan} alt="Sneaker community post" loading="lazy" /><span>12.4K</span></div><div className="social-tile social-tile--two"><span className="social-quote">“WEAR<br />THE HYPE.”</span><small>KICKZ.LK</small></div><div className="social-tile social-tile--three"><img src={productLuxury} alt="Luxury sneaker social post" loading="lazy" /><span>8.7K</span></div><div className="social-tile social-tile--four"><img src={productNewBalance} alt="New Balance sneaker social post" loading="lazy" /><span>9.1K</span></div></div>
     </div></section>
@@ -179,7 +187,7 @@ export function NewsletterSection({ showToast }) {
     }
   };
   return (
-    <section className="newsletter section-pad"><div className="container newsletter-card reveal">
+    <section className="newsletter section-pad snap-section"><div className="container newsletter-card reveal">
       <div><span className="section-kicker">PRIVATE DROP LIST</span><h2>GET THE DROP<br />BEFORE IT DROPS.</h2></div>
       <form className="newsletter-form" onSubmit={handleSubmit}><label htmlFor="email">Email address</label><div><input type="email" id="email" name="email" placeholder="you@email.com" required /><button type="submit" aria-label="Join newsletter">→</button></div><small>No spam. Only new arrivals, price updates and limited releases.</small></form>
     </div></section>
