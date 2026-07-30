@@ -1,10 +1,13 @@
 import PageHero from '../components/PageHero';
 import PageShell from '../components/PageShell';
-import { BrandsSection } from '../components/home/HomeSections';
+import ShopCatalog from '../components/shop/ShopCatalog';
+import Toast from '../components/Toast';
 import useReveal from '../hooks/useReveal';
+import useToast from '../hooks/useToast';
 
 export default function BrandsPage() {
   useReveal();
+  const toast = useToast('Added to your saved list.');
 
   return (
     <PageShell>
@@ -14,7 +17,8 @@ export default function BrandsPage() {
         title="BRANDS"
         copy="From iconic sportswear to statement luxury, sourced to match your rotation."
       />
-      <BrandsSection />
+      <ShopCatalog initialView="brands" onSaved={(product, saved) => toast.showToast(saved ? `${product.name} saved.` : `${product.name} removed.`)} />
+      <Toast message={toast.message} visible={toast.visible} />
     </PageShell>
   );
 }

@@ -1,23 +1,13 @@
 import { useRef, useState } from 'react';
 import {
   heroSneaker,
-  productBlue,
   productDunk,
   productJordan,
   productLuxury,
   productNewBalance,
-  productYeezy,
 } from '../../assets';
+import { products } from '../../data/products';
 import ProductCard from '../ProductCard';
-
-const products = [
-  { category: 'jordan', badge: 'NEW DROP', badgeClass: 'badge--acid', image: productJordan, alt: 'Red and black high-top sneaker', code: 'KZ-024 / 01', brand: 'JORDAN', name: 'Air Jordan 1 Retro High OG', price: 'LKR 64,900', sizes: 'US 7–12', ariaLabel: 'View Air Jordan 1 Retro High OG', loading: 'lazy' },
-  { category: 'nike', badge: 'LIMITED', image: productDunk, alt: 'Grey and neon low-top sneaker', code: 'KZ-024 / 02', brand: 'NIKE', name: 'Dunk Low Premium', price: 'LKR 47,500', sizes: 'US 6–11', ariaLabel: 'View Nike Dunk Low Premium', loading: 'lazy', delay: 70 },
-  { category: 'adidas', badge: 'PRE-ORDER', badgeClass: 'badge--sand', image: productYeezy, alt: 'Beige lifestyle sneaker', code: 'KZ-024 / 03', brand: 'ADIDAS', name: 'Yeezy 500 Utility', price: 'LKR 58,900', sizes: 'US 7–12', ariaLabel: 'View Adidas Yeezy 500 Utility', loading: 'lazy', delay: 140 },
-  { category: 'nike', badge: 'JUST IN', image: productBlue, alt: 'Blue performance sneaker', code: 'KZ-024 / 04', brand: 'NIKE', name: 'Air Max Pulse', price: 'LKR 52,900', sizes: 'US 7–13', ariaLabel: 'View Nike Air Max Pulse', loading: 'lazy' },
-  { category: 'luxury', badge: 'LUXURY', badgeClass: 'badge--gold', image: productLuxury, alt: 'Black and gold luxury sneaker', code: 'KZ-024 / 05', brand: 'BALMAIN', name: 'Unicorn Low Sneaker', price: 'LKR 189,000', sizes: 'EU 40–45', ariaLabel: 'View Balmain Unicorn Low', loading: 'lazy', delay: 70 },
-  { category: 'luxury', badge: 'TRENDING', badgeClass: 'badge--mint', image: productNewBalance, alt: 'Green modern running sneaker', code: 'KZ-024 / 06', brand: 'NEW BALANCE', name: '9060 Sea Salt', price: 'LKR 56,500', sizes: 'US 6–12', ariaLabel: 'View New Balance 9060', loading: 'lazy', delay: 140 },
-];
 
 export function HeroSection() {
   const visualRef = useRef(null);
@@ -44,7 +34,7 @@ export function HeroSection() {
           <h1>AUTHENTIC<br />SNEAKERS.<br /><span>BUILT FOR THE CULTURE.</span></h1>
           <p>Imported heat. Verified quality. A premium pre-order experience for Sri Lanka’s sneaker and streetwear community.</p>
           <div className="hero-actions">
-            <a href="/new-drops" className="btn btn--acid">SHOP SNEAKERS <span>↗</span></a>
+            <a href="/shop" className="btn btn--acid">SHOP SNEAKERS <span>↗</span></a>
             <a href="/pre-order" className="btn btn--ghost">PRE-ORDER NOW</a>
           </div>
           <div className="hero-badges" aria-label="Trust badges">
@@ -102,7 +92,7 @@ export function FeaturedDrops({ showToast }) {
         <div className="product-grid">
           {products.map((product) => <ProductCard product={product} key={product.code} hidden={filter !== 'all' && filter !== product.category} onSaved={(saved) => showToast(saved ? 'Added to your saved list.' : 'Removed from your saved list.')} />)}
         </div>
-        <div className="center-action reveal"><a href="/new-drops" className="text-link">VIEW ALL SNEAKERS <span>↗</span></a></div>
+        <div className="center-action reveal"><a href="/shop" className="text-link">VIEW ALL SNEAKERS <span>↗</span></a></div>
       </div>
     </section>
   );

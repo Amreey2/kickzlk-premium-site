@@ -2,19 +2,27 @@ import { useEffect, useState } from 'react';
 import { logoWordmarkWhite } from '../assets';
 
 const navItems = [
-  ['/index.html', 'Home'],
+  ['/', 'Home'],
+  ['/shop', 'Shop'],
   ['/new-drops', 'New Drops'],
   ['/brands', 'Brands'],
   ['/pre-order', 'Pre-Order'],
-  ['/about-us', 'About Us'],
-  ['/community', 'Community'],
+  ['/about', 'About'],
+  ['/contact', 'Contact'],
 ];
 
-export default function Header({ productPage = false, bagCount = 0 }) {
+export default function Header({ bagCount = 0 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
-  const currentPath = productPage ? '/product.html' : window.location.pathname;
-  const activePath = currentPath === '/' ? '/index.html' : currentPath;
+  const currentPath = window.location.pathname;
+  const activePath = currentPath.startsWith('/product/')
+    || currentPath.endsWith('/product.html')
+    ? '/shop'
+    : currentPath === '/index.html'
+      ? '/'
+      : ['/about-us', '/community'].includes(currentPath)
+        ? '/about'
+        : currentPath;
 
   useEffect(() => {
     document.body.classList.toggle('nav-open', menuOpen);
@@ -34,7 +42,7 @@ export default function Header({ productPage = false, bagCount = 0 }) {
   return (
     <header className={`site-header${hasScrolled ? ' site-header--scrolled' : ''}`} id="top">
       <div className="container header__inner">
-        <a href="index.html" className="brand" aria-label="KICKZ.LK home">
+        <a href="/" className="brand" aria-label="KICKZ.LK home">
           <img src={logoWordmarkWhite} alt="KICKZ.LK" />
         </a>
         <nav className="desktop-nav" aria-label="Primary navigation">

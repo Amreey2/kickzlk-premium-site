@@ -1,8 +1,8 @@
 import { logoWordmarkWhite } from '../assets';
 
 const columns = [
-  ['SHOP', [['New Drops', '/new-drops'], ['Brands', '/brands'], ['Pre-Orders', '/pre-order'], ['Luxury', '/brands']]],
-  ['SUPPORT', [['Authenticity', '/about-us'], ['Delivery', '/pre-order'], ['Size Guide', '#'], ['Contact', '/community']]],
+  ['SHOP', [['All Products', '/shop'], ['New Drops', '/new-drops'], ['Brands', '/brands'], ['Pre-Orders', '/pre-order']]],
+  ['SUPPORT', [['Authenticity', '/about'], ['Delivery', '/about'], ['About', '/about'], ['Contact', '/contact']]],
   ['LEGAL', [['Terms', ''], ['Privacy', ''], ['Returns', ''], ['Pre-Order Policy', '']]],
 ];
 

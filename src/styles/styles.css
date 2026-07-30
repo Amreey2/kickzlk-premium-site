@@ -466,6 +466,25 @@ button { color: inherit; }
 .price-row { display: grid; justify-items: end; align-content: end; flex: 0 0 auto; }
 .price-row strong { font-size: 15px; }
 .price-row span { color: var(--faint); font-size: 10px; }
+
+/* SPRINT 3.1 COMMERCE CARD DETAILS
+   Extends the reusable approved card with delivery context and a clear catalog CTA without affecting homepage cards. */
+.product-card__commerce {
+  margin-top: 16px;
+  padding: 14px 4px 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.product-card__commerce > span { color: var(--muted); font-size: 9px; letter-spacing: .09em; }
+.product-card__cta { flex: 0 0 auto; color: var(--text); font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+.product-card__cta span { color: var(--acid); margin-left: 7px; }
+.shop-toolbar { display: flex; justify-content: space-between; align-items: start; gap: 24px; }
+.shop-toolbar > span { color: var(--faint); font-size: 10px; letter-spacing: .12em; padding-top: 11px; white-space: nowrap; }
+.shop-brand-filter { padding: 16px 0 30px; border-top: 1px solid var(--line); }
+.shop-catalog .product-grid { row-gap: 52px; }
 .center-action { text-align: center; margin-top: 52px; }
 .text-link { font-size: 12px; letter-spacing: .1em; font-weight: 800; border-bottom: 1px solid var(--acid); padding-bottom: 6px; }
 .text-link span { color: var(--acid); margin-left: 10px; }
@@ -634,6 +653,7 @@ button { color: inherit; }
 .product-price { border-block: 1px solid var(--line); padding: 22px 0; display: flex; align-items: end; justify-content: space-between; gap: 20px; }
 .product-price strong { font: 800 31px/1 var(--display); }
 .product-price span { color: var(--muted); font-size: 10px; }
+.price-notice { margin: 18px 0 0; padding: 14px 16px; border-left: 2px solid var(--acid); background: rgba(184,255,53,.055); color: var(--muted); font-size: 11px; }
 .option-section { padding: 24px 0; border-bottom: 1px solid var(--line); }
 .option-head { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 14px; }
 .option-head h3 { margin: 0; font-size: 11px; letter-spacing: .12em; }
@@ -670,6 +690,23 @@ button { color: inherit; }
 .tab-panel h3 { color: var(--text); font-family: var(--display); font-size: 26px; }
 .tab-panel ul { padding-left: 19px; }
 .mobile-buybar { display: none; }
+
+/* SPRINT 3.1 CONTACT FOUNDATION
+   Uses existing display typography, surfaces and button styling for a focused support destination. */
+.contact-card {
+  min-height: 390px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: clamp(40px, 6vw, 84px);
+  background: radial-gradient(circle at 82% 22%, rgba(184,255,53,.16), transparent 30%), #101013;
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  align-items: center;
+  gap: clamp(40px, 7vw, 100px);
+}
+.contact-card h2 { margin: 18px 0 0; font: 800 clamp(46px, 5vw, 78px)/.88 var(--display); letter-spacing: -.05em; }
+.contact-card p { margin: 0 0 28px; color: var(--muted); }
+.empty-state { text-align: center; }
 
 @media (min-width: 961px) {
   /* SPRINT 2.2 ROUTED PRE-ORDER ALIGNMENT
@@ -785,6 +822,7 @@ button { color: inherit; }
   .social-actions { justify-content: center; }
   .social-wall { max-width: 720px; margin-inline: auto; }
   .newsletter-card { grid-template-columns: 1fr; }
+  .contact-card { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1.4fr 1fr 1fr; }
   .footer-col:last-child { grid-column: 2 / 3; }
   .product-layout { grid-template-columns: 1fr; }
@@ -870,6 +908,9 @@ button { color: inherit; }
   .product-card__body { padding-top: 14px; gap: 12px; }
   .product-card__body > div:first-child { min-width: 0; }
   .product-card h3 { font-size: 16px; }
+  .product-card__commerce { align-items: flex-end; }
+  .shop-toolbar { display: grid; gap: 0; }
+  .shop-toolbar > span { padding: 0 0 20px; }
 
   /* MOBILE EDITORIAL FIX
      Prevents the oversized headline from forcing the card wider and keeps the shoe fully inside its visual panel. */
@@ -911,6 +952,12 @@ button { color: inherit; }
   .newsletter-card { padding: 35px 24px; min-height: 0; }
   .newsletter-card h2 { font-size: clamp(32px, 9.8vw, 42px); }
   .newsletter-form input { font-size: 18px; }
+
+  /* MOBILE CONTACT FIX
+     Keeps support copy and CTA inside the established small-screen gutter. */
+  .contact-card { min-height: 0; padding: 38px 24px; gap: 28px; }
+  .contact-card h2 { font-size: clamp(31px, 9.8vw, 42px); }
+  .contact-card .btn { width: 100%; }
 
   /* MOBILE FOOTER FIX
      Maintains the two-column link layout while allowing every column to shrink safely. */
