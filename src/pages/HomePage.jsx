@@ -28,6 +28,12 @@ export default function HomePage() {
         <BrandsSection />
         <NewsletterSection showToast={toast.showToast} />
       </main>
+      <button className="scroll-top-btn" type="button" aria-label="Scroll to top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m6 14 6-6 6 6" />
+          <path d="M12 8v12" />
+        </svg>
+      </button>
       <Footer />
       <Toast message={toast.message} visible={toast.visible} />
     </>

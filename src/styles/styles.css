@@ -262,6 +262,54 @@ button { color: inherit; }
 .btn--ghost { background: rgba(255,255,255,.03); }
 .btn--ghost:hover { border-color: var(--acid); color: var(--acid); }
 .btn--light { background: #f4f4ed; color: #090909; border-color: #f4f4ed; }
+.scroll-top-btn {
+  position: fixed;
+  right: clamp(18px, 2.6vw, 34px);
+  bottom: calc(26px + env(safe-area-inset-bottom));
+  z-index: 80;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(184,255,53,.35);
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgba(184,255,53,.16), rgba(7,7,7,.94) 42%);
+  color: var(--acid);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 18px 45px rgba(0,0,0,.38), inset 0 0 0 1px rgba(255,255,255,.04);
+  backdrop-filter: blur(16px);
+  transition: transform .25s, border-color .25s, background .25s, color .25s, box-shadow .25s;
+}
+.scroll-top-btn::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: inherit;
+  border: 1px solid rgba(255,255,255,.08);
+  pointer-events: none;
+}
+.scroll-top-btn svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  position: relative;
+  z-index: 1;
+}
+.scroll-top-btn:hover {
+  transform: translateY(-3px);
+  border-color: var(--acid);
+  background: var(--acid);
+  color: #050505;
+  box-shadow: 0 20px 52px rgba(184,255,53,.18), 0 18px 45px rgba(0,0,0,.42);
+}
+.scroll-top-btn:focus-visible {
+  outline: 2px solid var(--acid);
+  outline-offset: 4px;
+}
 .hero-badges { display: flex; align-items: stretch; gap: 0; margin-top: 43px; width: min(590px, 100%); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .hero-badges div { flex: 1; padding: 17px 20px 17px 0; display: grid; gap: 2px; }
 .hero-badges div + div { border-left: 1px solid var(--line); padding-left: 24px; }
@@ -961,6 +1009,7 @@ button { color: inherit; }
   .product-cta { padding-bottom: 110px; }
   .mobile-buybar { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; max-width: 100vw; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(7,7,7,.94); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
   .mobile-buybar .btn { min-width: 0; min-height: 48px; padding-inline: 10px; gap: 8px; font-size: 10px; }
+  .scroll-top-btn { right: 18px; bottom: calc(80px + env(safe-area-inset-bottom)); width: 48px; height: 48px; }
   .gallery { position: static; }
 }
 
