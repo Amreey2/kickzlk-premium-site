@@ -1,10 +1,14 @@
 import HomePage from './pages/HomePage';
+import AccountPage from './pages/AccountPage';
 import AboutPage from './pages/AboutPage';
 import BrandsPage from './pages/BrandsPage';
+import CheckoutPage from './pages/CheckoutPage';
 import ContactPage from './pages/ContactPage';
+import LoginPage from './pages/LoginPage';
 import NewDropsPage from './pages/NewDropsPage';
 import PreOrderPage from './pages/PreOrderPage';
 import ProductPage from './pages/ProductPage';
+import RegisterPage from './pages/RegisterPage';
 import ShopPage from './pages/ShopPage';
 
 const routes = {
@@ -18,6 +22,10 @@ const routes = {
   '/about-us': AboutPage,
   '/community': AboutPage,
   '/contact': ContactPage,
+  '/login': LoginPage,
+  '/register': RegisterPage,
+  '/account': AccountPage,
+  '/checkout': CheckoutPage,
 };
 
 export default function App() {

@@ -54,10 +54,10 @@ export default function Header({ bagCount = 0 }) {
           <button className="icon-btn" aria-label="Search">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
           </button>
-          <button className="icon-btn bag-btn" aria-label="Shopping bag">
+          <a className="icon-btn bag-btn" href="/checkout" aria-label="Shopping bag and checkout">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z" /><path d="M9 8a3 3 0 0 1 6 0" /></svg>
             <span className="bag-count">{bagCount}</span>
-          </button>
+          </a>
           <button
             className="menu-toggle"
             aria-label="Open menu"

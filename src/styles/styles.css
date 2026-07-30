@@ -83,7 +83,7 @@ body::before {
 
 img { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
-button, input { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button { color: inherit; }
 .container { width: var(--container); margin-inline: auto; }
 .section-pad { padding: 118px 0; }
@@ -717,6 +717,117 @@ button { color: inherit; }
 .contact-card p { margin: 0 0 28px; color: var(--muted); }
 .empty-state { text-align: center; }
 
+/* SPRINT 3.2 CUSTOMER FORM SYSTEM
+   Reuses the approved glass panels, display hierarchy and acid focus language across account and checkout routes. */
+.auth-section { min-height: calc(100svh - var(--top-chrome-height)); display: grid; align-items: center; }
+.auth-layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(520px, 1.1fr); gap: clamp(55px, 8vw, 120px); align-items: center; }
+.auth-layout > *,
+.account-layout > *,
+.checkout-layout > * { min-width: 0; }
+.auth-intro h1 { margin: 22px 0; max-width: 720px; font: 800 clamp(58px, 6.2vw, 100px)/.86 var(--display); letter-spacing: -.055em; text-transform: uppercase; }
+.auth-intro > p { max-width: 530px; color: var(--muted); }
+.auth-assurance { margin-top: 45px; padding-top: 23px; border-top: 1px solid var(--line); display: grid; gap: 5px; max-width: 520px; }
+.auth-assurance strong { color: var(--acid); font-size: 10px; letter-spacing: .15em; }
+.auth-assurance span { color: var(--muted); font-size: 12px; }
+.auth-panel,
+.checkout-form,
+.checkout-summary,
+.profile-card,
+.order-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.01));
+}
+.auth-panel { padding: clamp(30px, 4vw, 52px); }
+.customer-form { display: grid; gap: 18px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-field { min-width: 0; display: grid; gap: 8px; }
+.form-field > span { color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .13em; }
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  outline: 0;
+  background: rgba(0,0,0,.28);
+  color: var(--text);
+  padding: 14px 15px;
+  transition: border-color .22s, background .22s;
+}
+.form-field textarea { resize: vertical; }
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus { border-color: var(--acid); background: rgba(184,255,53,.035); }
+.form-field input::placeholder,
+.form-field textarea::placeholder { color: var(--faint); }
+.form-field.has-error input { border-color: var(--danger); }
+.form-field small { color: var(--danger); font-size: 10px; }
+.customer-form > .btn { width: 100%; margin-top: 2px; }
+.form-message { margin: 0; padding: 12px 14px; border: 1px solid rgba(184,255,53,.24); border-radius: 10px; color: var(--acid); font-size: 11px; }
+.auth-switch { margin: 25px 0 0; padding-top: 22px; border-top: 1px solid var(--line); color: var(--faint); font-size: 10px; letter-spacing: .08em; text-align: center; }
+.auth-switch a { color: var(--text); font-weight: 800; }
+
+/* SPRINT 3.2 ACCOUNT AND ORDER TRACKING
+   Keeps profile and order history separate while the six approved stages remain readable at every width. */
+.account-layout { display: grid; grid-template-columns: minmax(260px, .32fr) minmax(0, 1fr); gap: clamp(35px, 5vw, 72px); align-items: start; }
+.profile-card { position: sticky; top: 112px; padding: 30px; }
+.profile-avatar { width: 70px; height: 70px; margin-bottom: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--acid); color: #050505; font: 800 20px/1 var(--display); }
+.profile-card h2 { margin: 10px 0 25px; font: 800 32px/1 var(--display); }
+.profile-card dl { margin: 0 0 28px; display: grid; gap: 18px; }
+.profile-card dl div { display: grid; gap: 3px; }
+.profile-card dt { color: var(--faint); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+.profile-card dd { margin: 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.profile-card .btn { width: 100%; }
+.account-heading { margin-bottom: 26px; }
+.account-heading h2,
+.checkout-heading h2 { margin: 9px 0 0; font: 800 clamp(35px, 4vw, 58px)/.92 var(--display); letter-spacing: -.045em; }
+.order-history { min-width: 0; display: grid; gap: 24px; }
+.order-card { min-width: 0; padding: clamp(22px, 3vw, 34px); }
+.order-card__head { padding-bottom: 20px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 24px; align-items: center; }
+.order-card__head > div { display: grid; gap: 3px; }
+.order-card__head span { color: var(--faint); font-size: 8px; letter-spacing: .12em; }
+.order-card__head strong { font-size: 11px; }
+.order-status { justify-self: end; border: 1px solid rgba(184,255,53,.35); border-radius: 999px; padding: 7px 10px; color: var(--acid) !important; font-weight: 800; }
+.order-card__product { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 24px; padding: 25px 0; }
+.order-card__product img { width: 100%; }
+.order-card__product h3 { margin: 4px 0; font-family: var(--display); font-size: 20px; }
+.order-card__product p { margin: 0; color: var(--muted); font-size: 11px; }
+.order-tracking { list-style: none; margin: 0; padding: 24px 0 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(6, 1fr); }
+.order-tracking li { min-width: 0; position: relative; display: grid; justify-items: center; gap: 10px; text-align: center; color: var(--faint); }
+.order-tracking li::before { content: ""; position: absolute; top: 15px; left: -50%; width: 100%; height: 1px; background: var(--line); }
+.order-tracking li:first-child::before { display: none; }
+.order-tracking li span { width: 30px; height: 30px; position: relative; z-index: 1; border: 1px solid var(--line); border-radius: 50%; display: grid; place-items: center; background: var(--panel); font-size: 8px; }
+.order-tracking li strong { max-width: 90px; font-size: 8px; line-height: 1.25; text-transform: uppercase; }
+.order-tracking li.complete,
+.order-tracking li.current { color: var(--text); }
+.order-tracking li.complete::before,
+.order-tracking li.current::before { background: var(--acid); }
+.order-tracking li.complete span,
+.order-tracking li.current span { border-color: var(--acid); color: #050505; background: var(--acid); }
+.order-tracking li.current span { box-shadow: 0 0 0 6px var(--acid-soft); }
+
+/* SPRINT 3.2 CHECKOUT PREPARATION
+   Separates the product decision from customer details without adding payment processing or backend behavior. */
+.checkout-layout { display: grid; grid-template-columns: minmax(340px, .78fr) minmax(0, 1.22fr); gap: clamp(36px, 6vw, 84px); align-items: start; }
+.checkout-summary { position: sticky; top: 112px; padding: clamp(24px, 3vw, 36px); }
+.checkout-product { margin: 22px 0 26px; display: grid; grid-template-columns: 150px 1fr; gap: 20px; align-items: center; }
+.checkout-product > div { min-height: 140px; border: 1px solid var(--line); border-radius: 14px; display: grid; place-items: center; background: radial-gradient(circle, rgba(184,255,53,.12), transparent 62%), #111114; }
+.checkout-product img { width: 110%; }
+.checkout-product section { min-width: 0; display: grid; gap: 6px; }
+.checkout-product h2 { margin: 0; font: 800 22px/1 var(--display); overflow-wrap: anywhere; }
+.checkout-product strong { font-size: 16px; }
+.checkout-product small { color: var(--muted); font-size: 10px; }
+.checkout-summary .price-notice { margin-top: 24px; }
+.checkout-form { padding: clamp(28px, 4vw, 50px); }
+.checkout-heading { margin-bottom: 10px; }
+.bank-transfer { padding: 20px; border: 1px dashed var(--line-strong); border-radius: 12px; display: grid; gap: 4px; background: rgba(255,255,255,.018); }
+.bank-transfer span { color: var(--faint); font-size: 8px; letter-spacing: .13em; }
+.bank-transfer strong { font-family: var(--display); font-size: 18px; }
+.bank-transfer p { margin: 7px 0 0; color: var(--muted); font-size: 11px; }
+.checkout-whatsapp { width: 100%; }
+
 @media (min-width: 961px) {
   /* SPRINT 2.2 ROUTED PRE-ORDER ALIGNMENT
      Gives the complete headline a protected column and contains the sneaker inside its visual panel. */
@@ -832,6 +943,15 @@ button { color: inherit; }
   .social-wall { max-width: 720px; margin-inline: auto; }
   .newsletter-card { grid-template-columns: 1fr; }
   .contact-card { grid-template-columns: 1fr; }
+  /* TABLET CUSTOMER EXPERIENCE
+     Stacks account and checkout surfaces before their content columns become compressed. */
+  .auth-section { min-height: 0; }
+  .auth-layout { grid-template-columns: 1fr; gap: 45px; }
+  .auth-intro { max-width: 720px; }
+  .account-layout,
+  .checkout-layout { grid-template-columns: 1fr; }
+  .profile-card,
+  .checkout-summary { position: static; }
   .footer-grid { grid-template-columns: 1.4fr 1fr 1fr; }
   .footer-col:last-child { grid-column: 2 / 3; }
   .product-layout { grid-template-columns: 1fr; }
@@ -973,6 +1093,30 @@ button { color: inherit; }
   .contact-card { min-height: 0; padding: 38px 24px; gap: 28px; }
   .contact-card h2 { font-size: clamp(31px, 9.8vw, 42px); }
   .contact-card .btn { width: 100%; }
+
+  /* MOBILE CUSTOMER EXPERIENCE
+     Converts forms and tracking to single-column touch layouts without changing the approved visual hierarchy. */
+  .auth-intro h1 { font-size: clamp(38px, 11.5vw, 48px); }
+  .auth-assurance { margin-top: 30px; }
+  .auth-panel { padding: 28px 20px; }
+  .form-row { grid-template-columns: 1fr; }
+  .account-heading h2,
+  .checkout-heading h2 { font-size: clamp(31px, 9.8vw, 42px); }
+  .profile-card,
+  .order-card,
+  .checkout-form,
+  .checkout-summary { padding: 22px 18px; }
+  .order-card__head { grid-template-columns: 1fr 1fr; gap: 15px; }
+  .order-status { justify-self: start; }
+  .order-card__product { grid-template-columns: 95px 1fr; gap: 15px; }
+  .order-tracking { grid-template-columns: 1fr; gap: 0; padding-top: 18px; }
+  .order-tracking li { min-height: 54px; grid-template-columns: 32px 1fr; justify-items: start; align-items: start; gap: 13px; text-align: left; }
+  .order-tracking li::before { top: -24px; left: 15px; width: 1px; height: 30px; }
+  .order-tracking li:first-child::before { display: block; height: 0; }
+  .order-tracking li strong { max-width: none; padding-top: 8px; font-size: 9px; }
+  .checkout-product { grid-template-columns: 105px 1fr; gap: 14px; }
+  .checkout-product > div { min-height: 110px; }
+  .checkout-product h2 { font-size: 16px; line-height: 1.05; }
 
   /* MOBILE FOOTER FIX
      Maintains the two-column link layout while allowing every column to shrink safely. */

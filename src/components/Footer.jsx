@@ -2,7 +2,7 @@ import { logoWordmarkWhite } from '../assets';
 
 const columns = [
   ['SHOP', [['All Products', '/shop'], ['New Drops', '/new-drops'], ['Brands', '/brands'], ['Pre-Orders', '/pre-order']]],
-  ['SUPPORT', [['Authenticity', '/about'], ['Delivery', '/about'], ['About', '/about'], ['Contact', '/contact']]],
+  ['SUPPORT', [['My Account', '/account'], ['Sign In', '/login'], ['Authenticity', '/about'], ['Contact', '/contact']]],
   ['LEGAL', [['Terms', ''], ['Privacy', ''], ['Returns', ''], ['Pre-Order Policy', '']]],
 ];
 
