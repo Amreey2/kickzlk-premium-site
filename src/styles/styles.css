@@ -50,6 +50,13 @@ html:has(.home-main)::-webkit-scrollbar { width: 0; height: 0; display: none; }
   scroll-snap-stop: normal;
 }
 
+/* SPRINT 2.2 FOOTER SNAP ENDPOINT
+   Makes the complete footer a valid final landing so mandatory desktop snapping cannot return users to the newsletter. */
+body:has(.home-main) > #root > .footer {
+  scroll-snap-align: end;
+  scroll-snap-stop: always;
+}
+
 /* INITIAL HERO SNAP OFFSET
    Includes the announcement height in the first snap target so loading the page never scrolls it out of view. */
 .home-main .hero { scroll-margin-top: calc(var(--top-chrome-height) - var(--header-height)); }
@@ -303,7 +310,9 @@ button { color: inherit; }
   .home-main .snap-section { scroll-snap-stop: always; }
   .home-main .hero { min-height: 0; }
 
-  .hero h1 { font-size: clamp(58px, 5.5vw, 96px); margin-block: clamp(16px, 2.4svh, 24px); }
+  /* SPRINT 2.2 HERO HEIGHT-AWARE TYPE
+     Keeps the approved display scale while preventing tall desktop headlines from entering the stat/footer rows. */
+  .hero h1 { font-size: clamp(58px, min(5.5vw, 7.4svh), 86px); margin-block: clamp(16px, 2.4svh, 24px); }
   .hero-copy > p { margin-bottom: clamp(20px, 3svh, 34px); }
   .hero-badges { margin-top: clamp(22px, 3.5svh, 38px); }
 
@@ -320,6 +329,15 @@ button { color: inherit; }
   }
   .hero-badges strong { font-size: 17px; line-height: 1.1; }
   .hero-badges span { margin-top: 3px; line-height: 1.25; }
+
+  /* SPRINT 2.2 HERO STAT SEPARATION
+     Reserves a clean row for the three trust cards and keeps the supporting authenticity note below them. */
+  .hero-copy { align-self: center; }
+  .hero-badges div { min-height: 62px; align-content: center; }
+  .hero-footer {
+    min-height: 30px;
+    padding-top: clamp(4px, 1svh, 10px);
+  }
 
 }
 
@@ -654,27 +672,28 @@ button { color: inherit; }
 .mobile-buybar { display: none; }
 
 @media (min-width: 961px) {
-  /* DESKTOP EDITORIAL OVERLAP FIX
-     Gives the full headline a protected column and contains the sneaker inside the complementary visual panel. */
-  .home-main .editorial-card { grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); }
-  .home-main .editorial-card__copy { padding: clamp(42px, 4vw, 70px); position: relative; z-index: 3; }
-  .home-main .editorial-card h2 { max-width: 100%; font-size: clamp(32px, 2.65vw, 52px); }
-  .home-main .editorial-card__visual img { width: 88%; }
+  /* SPRINT 2.2 ROUTED PRE-ORDER ALIGNMENT
+     Gives the complete headline a protected column and contains the sneaker inside its visual panel. */
+  :is(.home-main, .site-main) .editorial-card { grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); }
+  :is(.home-main, .site-main) .editorial-card__copy { padding: clamp(42px, 4vw, 70px); position: relative; z-index: 3; }
+  :is(.home-main, .site-main) .editorial-card h2 { max-width: 100%; font-size: clamp(32px, 2.65vw, 52px); }
+  :is(.home-main, .site-main) .editorial-card__visual { overflow: hidden; }
+  :is(.home-main, .site-main) .editorial-card__visual img { width: 88%; }
 
-  /* DESKTOP BENEFITS OVERLAP FIX
-     Balances the statement and trust-card columns so the heading cannot cross the grid boundary. */
-  .home-main .why-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(42px, 5vw, 80px); }
-  .home-main .why-intro { z-index: 2; }
-  .home-main .why-intro h2 { max-width: 100%; font-size: clamp(38px, 3.2vw, 60px); }
-  .home-main .benefit-grid { position: relative; z-index: 3; }
+  /* SPRINT 2.2 ROUTED ABOUT ALIGNMENT
+     Balances the statement and trust-card columns so the heading never crosses into the benefit tiles. */
+  :is(.home-main, .site-main) .why-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(42px, 5vw, 80px); }
+  :is(.home-main, .site-main) .why-intro { z-index: 2; }
+  :is(.home-main, .site-main) .why-intro h2 { max-width: 100%; font-size: clamp(38px, 3.2vw, 60px); }
+  :is(.home-main, .site-main) .benefit-grid { position: relative; z-index: 3; }
 
-  /* DESKTOP SOCIAL OVERLAP FIX
-     Protects the campaign headline from the sliced product wall while preserving the two-column artwork. */
-  .home-main .social-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(44px, 5vw, 76px); }
-  .home-main .social-copy { position: relative; z-index: 3; }
-  .home-main .social-copy h2 { max-width: 100%; font-size: clamp(40px, 3.35vw, 64px); }
-  .home-main .social-wall { position: relative; z-index: 1; }
-  .home-main .social-quote { font-size: clamp(25px, 2.5vw, 44px); }
+  /* SPRINT 2.2 ROUTED COMMUNITY ALIGNMENT
+     Protects every campaign word from the sliced product wall while preserving the artwork composition. */
+  :is(.home-main, .site-main) .social-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(44px, 5vw, 76px); }
+  :is(.home-main, .site-main) .social-copy { position: relative; z-index: 3; }
+  :is(.home-main, .site-main) .social-copy h2 { max-width: 100%; font-size: clamp(40px, 3.35vw, 64px); }
+  :is(.home-main, .site-main) .social-wall { position: relative; z-index: 1; }
+  :is(.home-main, .site-main) .social-quote { font-size: clamp(25px, 2.5vw, 44px); }
 
   /* DESKTOP NEWSLETTER TYPE FIT
      Keeps the approved two-line message inside its existing form card at every desktop width. */
@@ -684,14 +703,14 @@ button { color: inherit; }
 @media (min-width: 961px) and (max-width: 1279px) {
   /* NARROW DESKTOP COMPOSITION FIX
      Reduces card depth and inner padding without changing section order or the approved visual language. */
-  .home-main .editorial-card { min-height: 540px; }
-  .home-main .editorial-card__copy { padding: clamp(34px, 3.5vw, 46px); }
-  .home-main .editorial-card__visual { min-height: 520px; }
-  .home-main .benefit-card { min-height: 260px; padding: 24px; }
-  .home-main .social-grid { gap: 42px; }
-  .home-main .social-wall { width: calc(100% - 8px); transform: rotate(1deg); }
-  .home-main .social-tile--one,
-  .home-main .social-tile--four { transform: translateY(22px); }
+  :is(.home-main, .site-main) .editorial-card { min-height: 540px; }
+  :is(.home-main, .site-main) .editorial-card__copy { padding: clamp(34px, 3.5vw, 46px); }
+  :is(.home-main, .site-main) .editorial-card__visual { min-height: 520px; }
+  :is(.home-main, .site-main) .benefit-card { min-height: 260px; padding: 24px; }
+  :is(.home-main, .site-main) .social-grid { gap: 42px; }
+  :is(.home-main, .site-main) .social-wall { width: calc(100% - 8px); transform: rotate(1deg); }
+  :is(.home-main, .site-main) .social-tile--one,
+  :is(.home-main, .site-main) .social-tile--four { transform: translateY(22px); }
 }
 
 @media (min-width: 961px) and (max-height: 850px) {
@@ -710,9 +729,9 @@ button { color: inherit; }
   .home-main .hero-visual { height: 100%; }
   .home-main .snap-section:not(.hero) { padding-block: 54px; }
   .home-main .editorial { padding-top: 35px; }
-  .home-main .editorial-card,
-  .home-main .editorial-card__visual { min-height: 460px; }
-  .home-main .benefit-card { min-height: 230px; }
+  :is(.home-main, .site-main) .editorial-card,
+  :is(.home-main, .site-main) .editorial-card__visual { min-height: 460px; }
+  :is(.home-main, .site-main) .benefit-card { min-height: 230px; }
   .home-main .review-card { min-height: 255px; }
 }
 
