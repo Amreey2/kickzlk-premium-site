@@ -8,8 +8,12 @@ const viewports = [
   { width: 390, height: 844, isMobile: true },
   { width: 430, height: 844, isMobile: true },
   { width: 768, height: 1024, isMobile: true },
+  { width: 964, height: 620, isMobile: false },
   { width: 1280, height: 800, isMobile: false },
   { width: 1440, height: 900, isMobile: false },
+  { width: 1536, height: 960, isMobile: false },
+  { width: 1728, height: 1117, isMobile: false },
+  { width: 1920, height: 1080, isMobile: false },
 ];
 const pages = [['home', '/'], ['product', '/product.html']];
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -68,7 +72,7 @@ try {
           .filter(({ rect }) => rect.width > 0 && rect.height > 0 && (rect.left < -1 || rect.right > viewportWidth + 1))
           .slice(0, 30)
           .map(({ element, rect }) => ({ selector: selectorFor(element), left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) }));
-        const clippedText = [...document.querySelectorAll('h1, h2, h3, p, blockquote, a, button, .eyebrow, .section-kicker')]
+        const clippedText = [...document.querySelectorAll('h1, h2, h3, p, blockquote, a, button, .eyebrow, .section-kicker, .social-quote')]
           .filter((element) => {
             const intentionalDesktopDisplay = viewportWidth > 960 && element.matches('.hero h1, .editorial-card h2, .why-intro h2, .social-copy h2');
             return !intentionalDesktopDisplay && !element.matches('.icon-btn, .brand-tile') && element.scrollWidth > element.clientWidth + 1;
@@ -86,6 +90,20 @@ try {
           const tickerTrackStyle = getComputedStyle(document.querySelector('.culture-ticker__track'));
           const tickerGroups = [...document.querySelectorAll('.culture-ticker__group')];
           const snapTargets = [...document.querySelectorAll('.snap-section')];
+          const heroBadges = document.querySelector('.hero-badges').getBoundingClientRect();
+          const statisticCards = [...document.querySelectorAll('.hero-badges > div')].map((card) => card.getBoundingClientRect());
+          const textBounds = (selector) => {
+            const element = document.querySelector(selector);
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            return range.getBoundingClientRect();
+          };
+          const editorialText = textBounds('.editorial-card h2');
+          const editorialVisual = document.querySelector('.editorial-card__visual').getBoundingClientRect();
+          const whyText = textBounds('.why-intro h2');
+          const benefitGrid = document.querySelector('.benefit-grid').getBoundingClientRect();
+          const socialText = textBounds('.social-copy h2');
+          const socialWall = document.querySelector('.social-wall').getBoundingClientRect();
           return {
             scrollSnapType: rootStyle.scrollSnapType,
             scrollPaddingTop: rootStyle.scrollPaddingTop,
@@ -93,13 +111,20 @@ try {
             heroHeight: Math.round(hero.height),
             heroArtworkFits: heroShoe.top >= hero.top - 1 && heroShoe.bottom <= hero.bottom + 1,
             heroFooterFits: heroFooter.classList.contains('is-visible') && heroFooterRect.bottom <= window.innerHeight + 1,
+            heroStatisticsClear: statisticCards.every((card, index) => statisticCards.slice(index + 1).every((other) => card.right <= other.left || other.right <= card.left))
+              && heroBadges.bottom <= heroFooterRect.top + 1,
             tickerTop: Math.round(tickerRect.top),
-            heroFoldError: Math.round(Math.abs(tickerRect.top - window.innerHeight)),
+            tickerBottom: Math.round(tickerRect.bottom),
+            heroFoldError: Math.round(Math.abs(tickerRect.bottom - window.innerHeight)),
+            tickerVisibleAtLoad: tickerRect.top < window.innerHeight - 20 && tickerRect.bottom <= window.innerHeight + 4,
             tickerAnimation: tickerTrackStyle.animationName,
             tickerDuration: tickerTrackStyle.animationDuration,
             tickerGroupWidths: tickerGroups.map((group) => Math.round(group.getBoundingClientRect().width)),
             tickerText: tickerGroups.map((group) => group.textContent.replace(/\s+/g, ' ').trim()),
             snapTargets: snapTargets.map((target) => ({ className: target.className, align: getComputedStyle(target).scrollSnapAlign })),
+            desktopOverlapFree: editorialText.right <= editorialVisual.left + 1
+              && whyText.right <= benefitGrid.left + 1
+              && socialText.right <= socialWall.left + 1,
           };
         })() : null;
         return {
@@ -135,6 +160,14 @@ try {
         }));
         await page.locator('[data-filter="nike"]').click();
         interactionChecks.filteredProducts = await page.locator('.product-card:not(.is-hidden)').count();
+        if (width > 960) {
+          interactionChecks.desktopSnapLandings = [];
+          for (const selector of ['.editorial', '.why', '.social', '.newsletter']) {
+            await page.evaluate((targetSelector) => document.querySelector(targetSelector).scrollIntoView({ block: 'start', behavior: 'instant' }), selector);
+            await page.waitForTimeout(180);
+            interactionChecks.desktopSnapLandings.push(Math.round(await page.locator(selector).evaluate((element) => element.getBoundingClientRect().top)));
+          }
+        }
       } else {
         await page.locator('.size-btn:not(:disabled)').first().click();
         const preorder = width <= 650 ? page.locator('.mobile-buybar .btn--acid') : page.locator('#preorder-button');
@@ -174,15 +207,20 @@ try {
 
     if (result.page === 'home') {
       const { homeUx, interactionChecks } = result;
-      if (homeUx.scrollSnapType !== 'y') failures.push(`${label}: proximity snapping unavailable`);
+      const expectedSnap = result.width > 960 ? 'y mandatory' : 'y';
+      if (homeUx.scrollSnapType !== expectedSnap) failures.push(`${label}: expected ${expectedSnap} snapping, got ${homeUx.scrollSnapType}`);
       if (homeUx.scrollbarWidth !== 'none') failures.push(`${label}: root scrollbar visible`);
       if (homeUx.snapTargets.length !== 9 || homeUx.snapTargets.some(({ align }) => align !== 'start')) failures.push(`${label}: invalid snap targets`);
       if (homeUx.tickerAnimation !== 'culture-ticker') failures.push(`${label}: ticker animation unavailable`);
       if (homeUx.tickerGroupWidths.length !== 2 || Math.abs(homeUx.tickerGroupWidths[0] - homeUx.tickerGroupWidths[1]) > 1) failures.push(`${label}: ticker groups are not seamless`);
       if (homeUx.tickerText.some((text) => text !== expectedTicker)) failures.push(`${label}: ticker text/order changed`);
-      if (result.width >= 768 && homeUx.heroFoldError > 3) failures.push(`${label}: hero misses first fold by ${homeUx.heroFoldError}px`);
+      if (result.width >= 768 && homeUx.heroFoldError > 4) failures.push(`${label}: ticker misses first fold by ${homeUx.heroFoldError}px`);
+      if (result.width >= 768 && !homeUx.tickerVisibleAtLoad) failures.push(`${label}: ticker is not visible on first load`);
       if (result.width >= 768 && !homeUx.heroArtworkFits) failures.push(`${label}: hero artwork is cropped`);
       if (result.width >= 768 && !homeUx.heroFooterFits) failures.push(`${label}: hero footer cue is cropped or hidden`);
+      if (result.width > 960 && !homeUx.heroStatisticsClear) failures.push(`${label}: hero statistics overlap or lack separation`);
+      if (result.width > 960 && !homeUx.desktopOverlapFree) failures.push(`${label}: desktop heading overlaps adjacent artwork/cards`);
+      if (result.width > 960 && interactionChecks.desktopSnapLandings.some((top) => Math.abs(top - Number.parseFloat(homeUx.scrollPaddingTop)) > 2)) failures.push(`${label}: incomplete desktop snap landing`);
       if (Math.abs(interactionChecks.anchorScroll.targetTop - Number.parseFloat(homeUx.scrollPaddingTop)) > 2) failures.push(`${label}: sticky anchor offset incorrect`);
       if (!interactionChecks.anchorScroll.scrollable) failures.push(`${label}: root scrolling unavailable`);
       if (interactionChecks.filteredProducts !== 2) failures.push(`${label}: product filtering failed`);

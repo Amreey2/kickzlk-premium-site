@@ -25,6 +25,7 @@
   --shadow: 0 30px 90px rgba(0,0,0,.45);
   --header-height: 78px;
   --top-chrome-height: 112px;
+  --culture-ticker-height: 49px;
 }
 
 * { box-sizing: border-box; }
@@ -186,7 +187,7 @@ button { color: inherit; }
   position: relative;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  height: calc(100svh - var(--top-chrome-height));
+  height: calc(100svh - var(--top-chrome-height) - var(--culture-ticker-height));
   min-height: 650px;
   padding: clamp(30px, 5svh, 56px) 0 clamp(18px, 2.8svh, 30px);
   overflow: hidden;
@@ -295,9 +296,45 @@ button { color: inherit; }
 /* DESKTOP VIEWPORT RHYTHM
    Clamps only the hero's vertical spacing and display scale so every approved cue remains inside shorter laptop screens. */
 @media (min-width: 961px) {
+  /* DESKTOP SHOWROOM SNAP FIX
+     Uses firm section landings on mouse-driven layouts while oversized sections remain internally scrollable. */
+  html:has(.home-main) { scroll-snap-type: y mandatory; }
+  .home-main .snap-section { scroll-snap-stop: always; }
+  .home-main .hero { min-height: 0; }
+
   .hero h1 { font-size: clamp(58px, 5.5vw, 96px); margin-block: clamp(16px, 2.4svh, 24px); }
   .hero-copy > p { margin-bottom: clamp(20px, 3svh, 34px); }
   .hero-badges { margin-top: clamp(22px, 3.5svh, 38px); }
+
+  /* DESKTOP TRUST STAT CARDS
+     Gives each approved metric its own quiet panel, clearer hierarchy and consistent breathing room. */
+  .hero-badges { width: min(620px, 100%); gap: 10px; border: 0; }
+  .hero-badges div,
+  .hero-badges div + div {
+    min-width: 0;
+    padding: 13px 16px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: rgba(255,255,255,.025);
+  }
+  .hero-badges strong { font-size: 17px; line-height: 1.1; }
+  .hero-badges span { margin-top: 3px; line-height: 1.25; }
+
+}
+
+@media (min-width: 961px) and (max-width: 1279px) {
+  /* NARROW DESKTOP QA FIX
+     Preserves the desktop composition immediately above the tablet breakpoint without oversized type or dead space. */
+  .home-main .hero { padding: clamp(16px, 3svh, 28px) 0 clamp(10px, 2svh, 18px); }
+  .hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .hero h1 { font-size: clamp(43px, 4.8vw, 61px); margin-block: clamp(10px, 1.8svh, 18px); }
+  .hero-copy > p { font-size: 15px; margin-bottom: clamp(14px, 2.2svh, 24px); }
+  .hero-badges { margin-top: clamp(12px, 2.4svh, 24px); }
+  .hero-badges div,
+  .hero-badges div + div { padding: 10px 12px; }
+  .hero-footer { font-size: 10px; }
+  .trust-chip { max-width: 480px; font-size: 10px; }
+  .section-pad { padding-block: clamp(72px, 9svh, 96px); }
 }
 .hero-footer { display: flex; align-items: center; justify-content: space-between; margin-top: clamp(0px, 1svh, 10px); position: relative; z-index: 2; }
 /* HERO FOOTER REVEAL FIT
@@ -587,6 +624,69 @@ button { color: inherit; }
 .tab-panel h3 { color: var(--text); font-family: var(--display); font-size: 26px; }
 .tab-panel ul { padding-left: 19px; }
 .mobile-buybar { display: none; }
+
+@media (min-width: 961px) {
+  /* DESKTOP EDITORIAL OVERLAP FIX
+     Gives the full headline a protected column and contains the sneaker inside the complementary visual panel. */
+  .home-main .editorial-card { grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); }
+  .home-main .editorial-card__copy { padding: clamp(42px, 4vw, 70px); position: relative; z-index: 3; }
+  .home-main .editorial-card h2 { max-width: 100%; font-size: clamp(32px, 2.65vw, 52px); }
+  .home-main .editorial-card__visual img { width: 88%; }
+
+  /* DESKTOP BENEFITS OVERLAP FIX
+     Balances the statement and trust-card columns so the heading cannot cross the grid boundary. */
+  .home-main .why-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(42px, 5vw, 80px); }
+  .home-main .why-intro { z-index: 2; }
+  .home-main .why-intro h2 { max-width: 100%; font-size: clamp(38px, 3.2vw, 60px); }
+  .home-main .benefit-grid { position: relative; z-index: 3; }
+
+  /* DESKTOP SOCIAL OVERLAP FIX
+     Protects the campaign headline from the sliced product wall while preserving the two-column artwork. */
+  .home-main .social-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(44px, 5vw, 76px); }
+  .home-main .social-copy { position: relative; z-index: 3; }
+  .home-main .social-copy h2 { max-width: 100%; font-size: clamp(40px, 3.35vw, 64px); }
+  .home-main .social-wall { position: relative; z-index: 1; }
+  .home-main .social-quote { font-size: clamp(25px, 2.5vw, 44px); }
+
+  /* DESKTOP NEWSLETTER TYPE FIT
+     Keeps the approved two-line message inside its existing form card at every desktop width. */
+  .home-main .newsletter-card h2 { font-size: clamp(47px, 5vw, 82px); }
+}
+
+@media (min-width: 961px) and (max-width: 1279px) {
+  /* NARROW DESKTOP COMPOSITION FIX
+     Reduces card depth and inner padding without changing section order or the approved visual language. */
+  .home-main .editorial-card { min-height: 540px; }
+  .home-main .editorial-card__copy { padding: clamp(34px, 3.5vw, 46px); }
+  .home-main .editorial-card__visual { min-height: 520px; }
+  .home-main .benefit-card { min-height: 260px; padding: 24px; }
+  .home-main .social-grid { gap: 42px; }
+  .home-main .social-wall { width: calc(100% - 8px); transform: rotate(1deg); }
+  .home-main .social-tile--one,
+  .home-main .social-tile--four { transform: translateY(22px); }
+}
+
+@media (min-width: 961px) and (max-height: 850px) {
+  /* SHORT DESKTOP VIEWPORT FIX
+     Removes unused vertical centering and compacts only spacing-dependent dimensions on laptop-height windows. */
+  .hero-grid { align-items: start; }
+  .hero h1 { font-size: clamp(36px, 4vw, 48px); margin-block: 9px; }
+  .hero-copy > p { max-width: 470px; margin-bottom: 11px; font-size: 13px; line-height: 1.4; }
+  .hero-actions { gap: 9px; }
+  .hero-actions .btn { min-height: 44px; padding-inline: 18px; }
+  .hero-badges { margin-top: 9px; gap: 7px; }
+  .hero-badges div,
+  .hero-badges div + div { padding: 8px 10px; }
+  .hero-badges strong { font-size: 15px; }
+  .hero-badges span { font-size: 9px; }
+  .home-main .hero-visual { height: 100%; }
+  .home-main .snap-section:not(.hero) { padding-block: 54px; }
+  .home-main .editorial { padding-top: 35px; }
+  .home-main .editorial-card,
+  .home-main .editorial-card__visual { min-height: 460px; }
+  .home-main .benefit-card { min-height: 230px; }
+  .home-main .review-card { min-height: 255px; }
+}
 
 @media (max-width: 1180px) {
   .desktop-nav { gap: 20px; }
