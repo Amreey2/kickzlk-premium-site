@@ -29,7 +29,7 @@ export default function ProductPage() {
       <AnnouncementBar />
       <Header productPage bagCount={bagCount} />
       <main className="product-main"><div className="container">
-        <div className="breadcrumbs"><a href="index.html">HOME</a><span>/</span><a href="index.html#drops">JORDAN</a><span>/</span><span>AIR JORDAN 1 RETRO HIGH OG</span></div>
+        <div className="breadcrumbs"><a href="index.html">HOME</a><span>/</span><a href="/new-drops">JORDAN</a><span>/</span><span>AIR JORDAN 1 RETRO HIGH OG</span></div>
         <div className="product-layout">
           <ProductGallery />
           <ProductInfo selectedSize={selectedSize} setSelectedSize={setSelectedSize} payment={payment} setPayment={setPayment} addToBag={addToBag} />

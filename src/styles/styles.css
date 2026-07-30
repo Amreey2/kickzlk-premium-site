@@ -130,7 +130,7 @@ button { color: inherit; }
   color: #c9c9c4;
   transition: color .25s ease;
 }
-.desktop-nav a:hover { color: var(--acid); }
+.desktop-nav a:hover, .desktop-nav a.active { color: var(--acid); }
 .header-actions { display: flex; align-items: center; gap: 8px; }
 .icon-btn, .menu-toggle {
   width: 43px;
@@ -179,6 +179,7 @@ button { color: inherit; }
 .mobile-drawer.open { transform: translateY(0); opacity: 1; }
 .mobile-drawer nav { display: grid; }
 .mobile-drawer nav a { font-family: var(--display); font-size: clamp(32px, 10vw, 58px); font-weight: 800; border-bottom: 1px solid var(--line); padding: 12px 0; }
+.mobile-drawer nav a.active { color: var(--acid); }
 .mobile-drawer__meta { margin-top: 38px; display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
 
 /* PREMIUM VIEWPORT HERO
@@ -364,6 +365,33 @@ button { color: inherit; }
 .section-head > p { max-width: 460px; margin: 0 0 6px; color: var(--muted); }
 .section-head--center { display: grid; justify-content: center; text-align: center; }
 .section-head--center > p { margin-inline: auto; }
+
+/* SPRINT 3A PAGE HERO
+   Gives routed ecommerce pages a reusable premium entry section using the approved tokens and hierarchy. */
+.site-main { overflow: clip; }
+.page-hero {
+  min-height: min(52svh, 520px);
+  display: grid;
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 78% 28%, rgba(167,255,31,.11), transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,.025), transparent 68%);
+}
+.page-hero__inner { max-width: 1040px; }
+.page-hero h1 {
+  font-family: var(--display);
+  font-size: clamp(62px, 9vw, 132px);
+  line-height: .86;
+  letter-spacing: -.05em;
+  margin: 18px 0;
+}
+.page-hero p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+}
 .filter-row { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 30px; }
 .filter-btn {
   padding: 10px 16px;
@@ -805,6 +833,11 @@ button { color: inherit; }
   .section-head { display: grid; gap: 14px; margin-bottom: 34px; }
   .section-head h2 { font-size: clamp(31px, 10.15vw, 44px); }
   .section-head > p { font-size: 13px; }
+  /* SPRINT 3A MOBILE PAGE HERO
+     Keeps routed page titles inside the smallest supported ecommerce viewport. */
+  .page-hero { min-height: 36svh; }
+  .page-hero h1 { font-size: clamp(40px, 12vw, 58px); }
+  .page-hero p { font-size: 14px; }
 
   /* MOBILE FILTER FIX
      Keeps every filter touch target usable inside its own horizontal row without affecting page width. */

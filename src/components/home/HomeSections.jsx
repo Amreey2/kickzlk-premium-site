@@ -44,8 +44,8 @@ export function HeroSection() {
           <h1>AUTHENTIC<br />SNEAKERS.<br /><span>BUILT FOR THE CULTURE.</span></h1>
           <p>Imported heat. Verified quality. A premium pre-order experience for Sri Lanka’s sneaker and streetwear community.</p>
           <div className="hero-actions">
-            <a href="#drops" className="btn btn--acid">SHOP SNEAKERS <span>↗</span></a>
-            <a href="#preorder" className="btn btn--ghost">PRE-ORDER NOW</a>
+            <a href="/new-drops" className="btn btn--acid">SHOP SNEAKERS <span>↗</span></a>
+            <a href="/pre-order" className="btn btn--ghost">PRE-ORDER NOW</a>
           </div>
           <div className="hero-badges" aria-label="Trust badges">
             <div><strong>100%</strong><span>Authentic</span></div>
@@ -102,7 +102,7 @@ export function FeaturedDrops({ showToast }) {
         <div className="product-grid">
           {products.map((product) => <ProductCard product={product} key={product.code} hidden={filter !== 'all' && filter !== product.category} onSaved={(saved) => showToast(saved ? 'Added to your saved list.' : 'Removed from your saved list.')} />)}
         </div>
-        <div className="center-action reveal"><a href="#" className="text-link">VIEW ALL SNEAKERS <span>↗</span></a></div>
+        <div className="center-action reveal"><a href="/new-drops" className="text-link">VIEW ALL SNEAKERS <span>↗</span></a></div>
       </div>
     </section>
   );
@@ -111,7 +111,7 @@ export function FeaturedDrops({ showToast }) {
 export function EditorialSection() {
   return (
     <section className="editorial section-pad snap-section"><div className="container editorial-card reveal">
-      <div className="editorial-card__copy"><span className="section-kicker">THE PRE-ORDER EDIT</span><h2>YOUR SIZE.<br />YOUR PAIR.<br /><em>NO COMPROMISE.</em></h2><p>Access rare colorways, exclusive releases and hard-to-find sizing without settling for what is locally available.</p><a href="#preorder" className="btn btn--light">HOW PRE-ORDERS WORK <span>→</span></a></div>
+      <div className="editorial-card__copy"><span className="section-kicker">THE PRE-ORDER EDIT</span><h2>YOUR SIZE.<br />YOUR PAIR.<br /><em>NO COMPROMISE.</em></h2><p>Access rare colorways, exclusive releases and hard-to-find sizing without settling for what is locally available.</p><a href="/pre-order" className="btn btn--light">HOW PRE-ORDERS WORK <span>→</span></a></div>
       <div className="editorial-card__visual"><span className="editorial-number">02</span><img src={productDunk} alt="Premium sneaker floating in editorial layout" loading="lazy" /><div className="editorial-note">CURATED FOR<br />SRI LANKA</div></div>
     </div></section>
   );
@@ -122,7 +122,7 @@ export function BrandsSection() {
   return (
     <section className="brands section-pad snap-section" id="brands"><div className="container">
       <div className="section-head reveal"><div><span className="section-kicker">GLOBAL LABELS</span><h2>SHOP BY BRAND</h2></div><p>From iconic sportswear to statement luxury, sourced to match your rotation.</p></div>
-      <div className="brand-grid">{brands.map(([brand, number, delay]) => <a href="#drops" className={`brand-tile reveal${delay ? ` delay-${delay}` : ''}`} key={brand}><span>{brand}</span><small>{number}</small></a>)}</div>
+      <div className="brand-grid">{brands.map(([brand, number, delay]) => <a href="/new-drops" className={`brand-tile reveal${delay ? ` delay-${delay}` : ''}`} key={brand}><span>{brand}</span><small>{number}</small></a>)}</div>
     </div></section>
   );
 }

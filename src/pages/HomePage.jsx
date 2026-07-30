@@ -5,14 +5,9 @@ import Toast from '../components/Toast';
 import {
   BrandsSection,
   CultureTicker,
-  EditorialSection,
   FeaturedDrops,
   HeroSection,
   NewsletterSection,
-  PreorderSection,
-  ReviewsSection,
-  SocialSection,
-  WhySection,
 } from '../components/home/HomeSections';
 import useReveal from '../hooks/useReveal';
 import useToast from '../hooks/useToast';
@@ -30,12 +25,7 @@ export default function HomePage() {
         <HeroSection />
         <CultureTicker />
         <FeaturedDrops showToast={toast.showToast} />
-        <EditorialSection />
         <BrandsSection />
-        <WhySection />
-        <PreorderSection />
-        <ReviewsSection />
-        <SocialSection />
         <NewsletterSection showToast={toast.showToast} />
       </main>
       <Footer />

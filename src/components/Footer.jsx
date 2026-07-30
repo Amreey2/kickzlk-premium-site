@@ -1,15 +1,12 @@
 import { logoWordmarkWhite } from '../assets';
 
 const columns = [
-  ['SHOP', [['New Drops', 'drops'], ['Brands', 'brands'], ['Pre-Orders', 'preorder'], ['Luxury', '']]],
-  ['SUPPORT', [['Authenticity', 'why'], ['Delivery', 'preorder'], ['Size Guide', ''], ['Contact', '']]],
+  ['SHOP', [['New Drops', '/new-drops'], ['Brands', '/brands'], ['Pre-Orders', '/pre-order'], ['Luxury', '/brands']]],
+  ['SUPPORT', [['Authenticity', '/about-us'], ['Delivery', '/pre-order'], ['Size Guide', '#'], ['Contact', '/community']]],
   ['LEGAL', [['Terms', ''], ['Privacy', ''], ['Returns', ''], ['Pre-Order Policy', '']]],
 ];
 
-export default function Footer({ productPage = false }) {
-  const homePrefix = productPage ? 'index.html' : '';
-  const hrefFor = (id) => (id ? `${homePrefix}#${id}` : '#');
-
+export default function Footer() {
   return (
     <footer className="footer">
       <div className="container footer-grid">
@@ -21,7 +18,7 @@ export default function Footer({ productPage = false }) {
         {columns.map(([heading, links]) => (
           <div className="footer-col" key={heading}>
             <h3>{heading}</h3>
-            {links.map(([label, id]) => <a href={hrefFor(id)} key={label}>{label}</a>)}
+            {links.map(([label, href]) => <a href={href || '#'} key={label}>{label}</a>)}
           </div>
         ))}
       </div>

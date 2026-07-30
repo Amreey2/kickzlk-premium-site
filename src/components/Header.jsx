@@ -2,17 +2,19 @@ import { useEffect, useState } from 'react';
 import { logoWordmarkWhite } from '../assets';
 
 const navItems = [
-  ['drops', 'New Drops'],
-  ['brands', 'Brands'],
-  ['preorder', 'Pre-Order'],
-  ['why', 'Why Kickz'],
-  ['social', 'Community'],
+  ['/index.html', 'Home'],
+  ['/new-drops', 'New Drops'],
+  ['/brands', 'Brands'],
+  ['/pre-order', 'Pre-Order'],
+  ['/about-us', 'About Us'],
+  ['/community', 'Community'],
 ];
 
 export default function Header({ productPage = false, bagCount = 0 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
-  const homePrefix = productPage ? 'index.html' : '';
+  const currentPath = productPage ? '/product.html' : window.location.pathname;
+  const activePath = currentPath === '/' ? '/index.html' : currentPath;
 
   useEffect(() => {
     document.body.classList.toggle('nav-open', menuOpen);
@@ -36,7 +38,9 @@ export default function Header({ productPage = false, bagCount = 0 }) {
           <img src={logoWordmarkWhite} alt="KICKZ.LK" />
         </a>
         <nav className="desktop-nav" aria-label="Primary navigation">
-          {navItems.map(([id, label]) => <a href={`${homePrefix}#${id}`} key={id}>{label}</a>)}
+          {navItems.map(([href, label]) => (
+            <a href={href} className={activePath === href ? 'active' : ''} key={href}>{label}</a>
+          ))}
         </nav>
         <div className="header-actions">
           <button className="icon-btn" aria-label="Search">
@@ -58,7 +62,9 @@ export default function Header({ productPage = false, bagCount = 0 }) {
       </div>
       <div className={`mobile-drawer${menuOpen ? ' open' : ''}`} aria-hidden={!menuOpen}>
         <nav aria-label="Mobile navigation">
-          {navItems.map(([id, label]) => <a href={`${homePrefix}#${id}`} key={id} onClick={closeMenu}>{label}</a>)}
+          {navItems.map(([href, label]) => (
+            <a href={href} className={activePath === href ? 'active' : ''} key={href} onClick={closeMenu}>{label}</a>
+          ))}
         </nav>
         <div className="mobile-drawer__meta"><span>Colombo, Sri Lanka</span><span>Online · Islandwide</span></div>
       </div>
