@@ -1,11 +1,12 @@
 # KICKZ.LK Premium Sneaker Marketplace
 
-The approved KICKZ.LK HTML design converted into a Vite-powered React frontend. It includes the complete homepage and product-detail experience with the original responsive layouts, animations, assets, navigation, and client-side interactions.
+The approved KICKZ.LK React storefront with a production-structured Express API foundation. Existing frontend pages and mock-data flows remain unchanged while the backend provides MySQL/TiDB-ready authentication, products, orders, and image uploads.
 
 ## Requirements
 
 - Node.js 20.19+ or 22.12+
 - npm 10+
+- MySQL 8+ or a compatible TiDB deployment
 
 ## Development
 
@@ -19,11 +20,45 @@ Vite prints the local development URL. The available page entries are:
 - `/` or `/index.html` — homepage
 - `/product.html` — product detail page
 
+## Backend
+
+Copy the server template, enter your database and secret values, initialize the schema, and seed the single administrator:
+
+```bash
+cp server/.env.example server/.env
+npm run db:init
+npm run db:seed-admin
+npm run server
+```
+
+The API defaults to `http://localhost:5000/api`. In production, use unique 32+ character JWT secrets, enable `COOKIE_SECURE`, set `DB_REQUIRED=true`, and configure `CLIENT_ORIGIN`.
+
+Useful commands:
+
+```bash
+npm run server:dev
+npm run server:test
+npm run db:init
+npm run db:seed-admin
+```
+
+Main API routes:
+
+- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/profile`
+- `POST /api/admin/login`
+- `GET /api/products`, `GET /api/products/:id`
+- `POST /api/products`, `PUT /api/products/:id`, `DELETE /api/products/:id` (admin)
+- `POST /api/orders`, `GET /api/orders/:id`, `GET /api/orders/user/:userId`
+- `GET /api/admin/orders`, `PUT /api/admin/orders/:id/status` (admin)
+- `POST /api/uploads/products` (admin)
+- `GET /api/health`
+
 ## Validation and Production Build
 
 ```bash
 npm run lint
 npm run build
+npm run server:test
 npm run preview
 ```
 
@@ -47,9 +82,18 @@ src/
   components/   Shared UI and page-section components
   hooks/        Reveal and toast behavior
   pages/        Home and product pages
+  services/api/ Prepared API client modules; current mock data is retained
   styles/       Approved responsive design system
   App.jsx       Page entry selection
   main.jsx      React bootstrap
+server/
+  config/       Environment, MySQL pool, and TiDB-compatible schema
+  controllers/  HTTP handlers
+  middleware/   Authentication, uploads, validation errors, and security
+  models/       Parameterized data access
+  routes/       Public, customer, and protected admin routes
+  services/     Business logic
+  tests/        API and service regression coverage
 ```
 
-This sprint intentionally does not add authentication, inventory, checkout, payments, databases, admin tools, or additional pages.
+Payment processing and replacement of frontend mock data are intentionally deferred. Local uploads are isolated behind an image service so cloud storage can be introduced later without rewriting controllers.
