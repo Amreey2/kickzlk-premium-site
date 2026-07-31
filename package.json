@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "audit:mobile": "node scripts/mobile-audit.mjs",
+    "audit:commerce": "node scripts/commerce-audit.mjs",
     "server": "node server/server.js",
     "server:dev": "node --watch server/server.js",
     "server:test": "node --test server/tests/*.test.js",

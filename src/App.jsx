@@ -2,6 +2,7 @@ import HomePage from './pages/HomePage';
 import AccountPage from './pages/AccountPage';
 import AboutPage from './pages/AboutPage';
 import BrandsPage from './pages/BrandsPage';
+import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import ContactPage from './pages/ContactPage';
 import LoginPage from './pages/LoginPage';
@@ -32,6 +33,7 @@ const routes = {
   '/login': LoginPage,
   '/register': RegisterPage,
   '/account': AccountPage,
+  '/cart': CartPage,
   '/checkout': CheckoutPage,
   '/admin/login': AdminLoginPage,
   '/admin/dashboard': AdminDashboardPage,

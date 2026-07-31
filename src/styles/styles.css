@@ -858,23 +858,87 @@ button { color: inherit; }
 
 /* SPRINT 3.2 CHECKOUT PREPARATION
    Separates the product decision from customer details without adding payment processing or backend behavior. */
-.checkout-layout { display: grid; grid-template-columns: minmax(340px, .78fr) minmax(0, 1.22fr); gap: clamp(36px, 6vw, 84px); align-items: start; }
+.checkout-layout { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr); gap: clamp(36px, 6vw, 84px); align-items: start; }
 .checkout-summary { position: sticky; top: 112px; padding: clamp(24px, 3vw, 36px); }
+.checkout-summary__heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.checkout-summary__heading > span:last-child { color: var(--faint); font-size: 8px; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
 .checkout-product { margin: 22px 0 26px; display: grid; grid-template-columns: 150px 1fr; gap: 20px; align-items: center; }
-.checkout-product > div { min-height: 140px; border: 1px solid var(--line); border-radius: 14px; display: grid; place-items: center; background: radial-gradient(circle, rgba(184,255,53,.12), transparent 62%), #111114; }
+.checkout-product__image { min-height: 140px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; display: grid; place-items: center; background: radial-gradient(circle, rgba(184,255,53,.12), transparent 62%), #111114; }
 .checkout-product img { width: 110%; }
 .checkout-product section { min-width: 0; display: grid; gap: 6px; }
 .checkout-product h2 { margin: 0; font: 800 22px/1 var(--display); overflow-wrap: anywhere; }
 .checkout-product strong { font-size: 16px; }
 .checkout-product small { color: var(--muted); font-size: 10px; }
+.checkout-product__meta { margin: 3px 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.checkout-product__meta div { display: flex; gap: 5px; color: var(--muted); font-size: 9px; }
+.checkout-product__meta dt { color: var(--faint); text-transform: uppercase; }
+.checkout-product__meta dd { margin: 0; color: var(--text); font-weight: 700; }
+.checkout-totals { margin-top: 24px; padding-top: 17px; border-top: 1px solid var(--line); display: grid; gap: 12px; }
+.checkout-totals > div { display: flex; align-items: center; justify-content: space-between; gap: 24px; color: var(--muted); font-size: 11px; }
+.checkout-totals > div strong { color: var(--text); font-size: 12px; white-space: nowrap; }
+.checkout-totals .checkout-totals__total { margin-top: 3px; padding-top: 15px; border-top: 1px solid var(--line); color: var(--text); font-weight: 800; }
+.checkout-totals .checkout-totals__total strong { font: 800 20px/1 var(--display); }
 .checkout-summary .price-notice { margin-top: 24px; }
 .checkout-form { padding: clamp(28px, 4vw, 50px); }
 .checkout-heading { margin-bottom: 10px; }
+.checkout-heading > p { max-width: 640px; margin: 15px 0 4px; color: var(--muted); font-size: 11px; }
 .bank-transfer { padding: 20px; border: 1px dashed var(--line-strong); border-radius: 12px; display: grid; gap: 4px; background: rgba(255,255,255,.018); }
 .bank-transfer span { color: var(--faint); font-size: 8px; letter-spacing: .13em; }
 .bank-transfer strong { font-family: var(--display); font-size: 18px; }
 .bank-transfer p { margin: 7px 0 0; color: var(--muted); font-size: 11px; }
+.guest-checkout-note { padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.018); }
+.guest-checkout-note > span { color: var(--acid); font-size: 8px; font-weight: 800; letter-spacing: .14em; }
+.guest-checkout-note p { margin: 7px 0 10px; color: var(--muted); font-size: 10px; }
+.guest-checkout-note a { color: var(--text); font-size: 8px; font-weight: 800; letter-spacing: .1em; }
+.guest-checkout-note a:hover { color: var(--acid); }
+.checkout-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.checkout-actions .btn { min-width: 0; width: 100%; padding-inline: 18px; text-align: center; }
 .checkout-whatsapp { width: 100%; }
+
+/* SPRINT 6.0 SHARED PRICE NOTICE
+   Keeps exchange-rate guidance visible without competing with totals or primary actions. */
+.checkout-price-notice { min-width: 0; border: 1px solid rgba(184,255,53,.2); border-left: 2px solid var(--acid); border-radius: 0 11px 11px 0; display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; }
+.checkout-price-notice > span { width: 22px; height: 22px; border: 1px solid rgba(184,255,53,.38); border-radius: 50%; display: grid; place-items: center; color: var(--acid); font: 700 10px/1 var(--body); }
+.checkout-price-notice p { min-width: 0; margin: 1px 0 0; overflow-wrap: anywhere; }
+
+/* SPRINT 6.0 CART LAYOUT
+   Uses the existing panel, typography and CTA system in a stable products-plus-summary composition. */
+.cart-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(330px, .65fr); gap: clamp(30px, 4vw, 58px); align-items: start; }
+.cart-products,
+.cart-summary,
+.cart-empty { border: 1px solid var(--line); border-radius: var(--radius-md); background: linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.01)); }
+.cart-products { min-width: 0; padding: clamp(26px, 3vw, 42px); }
+.cart-panel-heading { padding-bottom: 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: end; gap: 24px; }
+.cart-panel-heading h1 { margin: 8px 0 0; font: 800 clamp(32px, 3vw, 46px)/.92 var(--display); letter-spacing: -.045em; }
+.cart-panel-heading > span { color: var(--faint); font-size: 8px; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
+.cart-item { min-width: 0; padding-top: 28px; display: grid; grid-template-columns: clamp(150px, 16vw, 210px) minmax(0, 1fr) auto; gap: clamp(20px, 3vw, 38px); align-items: center; }
+.cart-item__image { aspect-ratio: 1.18; overflow: hidden; border: 1px solid var(--line); border-radius: 15px; display: grid; place-items: center; background: radial-gradient(circle, rgba(184,255,53,.13), transparent 64%), #111114; }
+.cart-item__image img { width: 112%; max-width: none; }
+.cart-item__details { min-width: 0; }
+.cart-item__details h2 { margin: 7px 0 8px; font: 800 clamp(21px, 2vw, 28px)/1 var(--display); letter-spacing: -.03em; }
+.cart-item__details p { margin: 0 0 17px; color: var(--muted); font-size: 10px; }
+.cart-item__size { display: inline-flex; gap: 7px; color: var(--faint); font-size: 8px; letter-spacing: .1em; }
+.cart-item__size strong { color: var(--text); }
+.cart-item__controls { min-width: 124px; display: grid; justify-items: end; gap: 16px; text-align: right; }
+.quantity-control { display: grid; gap: 6px; justify-items: end; }
+.quantity-control > span { color: var(--faint); font-size: 8px; letter-spacing: .11em; }
+.quantity-control select { width: 76px; height: 42px; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; background: rgba(0,0,0,.3); color: var(--text); cursor: pointer; }
+.cart-item__price { font: 800 17px/1 var(--display); white-space: nowrap; }
+.cart-remove { border: 0; border-bottom: 1px solid var(--line-strong); padding: 0 0 3px; background: transparent; color: var(--faint); font-size: 8px; font-weight: 800; letter-spacing: .1em; cursor: pointer; }
+.cart-remove:hover { border-color: var(--danger); color: var(--danger); }
+.cart-summary { position: sticky; top: 112px; padding: clamp(26px, 3vw, 38px); }
+.cart-summary__rows { margin: 25px 0 0; display: grid; gap: 16px; }
+.cart-summary__rows > div { display: flex; justify-content: space-between; gap: 24px; color: var(--muted); font-size: 10px; }
+.cart-summary__rows strong { color: var(--text); font-size: 10px; white-space: nowrap; }
+.cart-summary__rows .cart-summary__total { margin-top: 5px; padding-top: 20px; border-top: 1px solid var(--line); align-items: end; color: var(--text); font-weight: 800; }
+.cart-summary__total strong { font: 800 21px/1 var(--display); }
+.cart-summary .checkout-price-notice { margin: 24px 0; }
+.cart-summary .btn { width: 100%; padding-inline: 18px; text-align: center; }
+.cart-continue { width: max-content; margin: 18px auto 0; border-bottom: 1px solid var(--line-strong); display: block; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .1em; }
+.cart-continue:hover { color: var(--acid); border-color: var(--acid); }
+.cart-empty { min-height: 440px; padding: clamp(42px, 7vw, 90px); display: grid; align-content: center; justify-items: start; }
+.cart-empty h1 { margin: 18px 0; font: 800 clamp(48px, 6vw, 88px)/.86 var(--display); letter-spacing: -.055em; }
+.cart-empty p { max-width: 540px; margin: 0 0 30px; color: var(--muted); }
 
 /* SPRINT 4 PRIVATE ADMIN SYSTEM
    Every selector is admin-scoped so the approved customer storefront remains visually and behaviorally isolated. */
@@ -1135,9 +1199,14 @@ button { color: inherit; }
   .auth-layout { grid-template-columns: 1fr; gap: 45px; }
   .auth-intro { max-width: 720px; }
   .account-layout,
-  .checkout-layout { grid-template-columns: 1fr; }
+  .checkout-layout,
+  .cart-layout { grid-template-columns: 1fr; }
   .profile-card,
-  .checkout-summary { position: static; }
+  .checkout-summary,
+  .cart-summary { position: static; }
+  /* TABLET CART ORDERING
+     Keeps products first and places the complete summary immediately below without sticky interference. */
+  .cart-item { grid-template-columns: 180px minmax(0, 1fr) auto; }
   .footer-grid { grid-template-columns: 1.4fr 1fr 1fr; }
   .footer-col:last-child { grid-column: 2 / 3; }
   .product-layout { grid-template-columns: 1fr; }
@@ -1302,8 +1371,27 @@ button { color: inherit; }
   .order-tracking li:first-child::before { display: block; height: 0; }
   .order-tracking li strong { max-width: none; padding-top: 8px; font-size: 9px; }
   .checkout-product { grid-template-columns: 105px 1fr; gap: 14px; }
-  .checkout-product > div { min-height: 110px; }
+  .checkout-product__image { min-height: 110px; }
   .checkout-product h2 { font-size: 16px; line-height: 1.05; }
+
+  /* MOBILE CART + CHECKOUT CONTROLS
+     Moves secondary controls below product details and gives every action a full-width touch target. */
+  .cart-products,
+  .cart-summary { padding: 22px 18px; }
+  .cart-panel-heading { align-items: center; }
+  .cart-item { grid-template-columns: 104px minmax(0, 1fr); gap: 16px; align-items: start; }
+  .cart-item__image { aspect-ratio: 1; }
+  .cart-item__details h2 { font-size: 17px; }
+  .cart-item__details p { margin-bottom: 12px; }
+  .cart-item__controls { min-width: 0; grid-column: 1 / -1; padding-top: 18px; border-top: 1px solid var(--line); grid-template-columns: auto 1fr; justify-items: start; align-items: end; gap: 10px 20px; text-align: left; }
+  .quantity-control { justify-items: start; }
+  .cart-item__price { justify-self: end; align-self: center; }
+  .cart-remove { grid-column: 1 / -1; min-height: 36px; padding-top: 10px; }
+  .cart-summary__rows > div { gap: 14px; }
+  .cart-empty { min-height: 370px; padding: 42px 24px; }
+  .cart-empty h1 { font-size: clamp(36px, 11vw, 48px); }
+  .checkout-actions { grid-template-columns: 1fr; }
+  .checkout-actions .btn { min-height: 50px; }
 
   /* MOBILE FOOTER FIX
      Maintains the two-column link layout while allowing every column to shrink safely. */
