@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS customers (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(150) NOT NULL,
   email VARCHAR(255) NOT NULL,
@@ -6,17 +6,17 @@ CREATE TABLE IF NOT EXISTS users (
   phone_number VARCHAR(30) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_users_email (email)
+  UNIQUE KEY uq_customers_email (email)
 );
 
 -- Administrators intentionally use a separate table and token flow; no public role system.
-CREATE TABLE IF NOT EXISTS admins (
+CREATE TABLE IF NOT EXISTS administrators (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   email VARCHAR(255) NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_admins_email (email)
+  UNIQUE KEY uq_administrators_email (email)
 );
 
 CREATE TABLE IF NOT EXISTS categories (
@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS categories (
 
 CREATE TABLE IF NOT EXISTS products (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  slug VARCHAR(180) NOT NULL,
   category_id BIGINT UNSIGNED NULL,
   brand VARCHAR(150) NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -48,6 +49,7 @@ CREATE TABLE IF NOT EXISTS products (
   product_type ENUM('Ready Stock', 'Pre Order') NOT NULL DEFAULT 'Ready Stock',
   delivery_time VARCHAR(100) NULL,
   availability VARCHAR(100) NOT NULL DEFAULT 'Available',
+  stock INT UNSIGNED NOT NULL DEFAULT 0,
   meta_title VARCHAR(255) NULL,
   meta_description TEXT NULL,
   images JSON NOT NULL,
@@ -57,6 +59,7 @@ CREATE TABLE IF NOT EXISTS products (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE KEY uq_products_slug (slug),
   KEY idx_products_brand (brand),
   KEY idx_products_category (category),
   KEY idx_products_type (product_type),
@@ -84,7 +87,7 @@ CREATE TABLE IF NOT EXISTS orders (
   KEY idx_orders_user (user_id),
   KEY idx_orders_email (email),
   KEY idx_orders_status (order_status),
-  CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+  CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS order_items (

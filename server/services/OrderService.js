@@ -27,8 +27,9 @@ export default class OrderService {
       if (!product) throw new AppError(`Product ${requested.productId} was not found.`, 404, 'PRODUCT_NOT_FOUND');
       const quantity = Number(requested.quantity || 1);
       if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) throw new AppError('Item quantity must be between 1 and 10.', 422, 'INVALID_QUANTITY');
-      if (!product.size.map(String).includes(String(requested.selectedSize))) throw new AppError(`Selected size is unavailable for ${product.name}.`, 422, 'INVALID_SIZE');
-      items.push({ productId: product.id, productName: product.name, selectedSize: String(requested.selectedSize), quantity, price: Number(product.price) });
+      const availableSizes = product.sizes || product.size || [];
+      if (!availableSizes.map(String).includes(String(requested.selectedSize))) throw new AppError(`Selected size is unavailable for ${product.name}.`, 422, 'INVALID_SIZE');
+      items.push({ productId: product.databaseId || product.id, productName: product.name, selectedSize: String(requested.selectedSize), quantity, price: Number(product.price) });
     }
 
     const totalAmount = items.reduce((total, item) => total + item.price * item.quantity, 0);

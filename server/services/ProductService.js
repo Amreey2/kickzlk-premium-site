@@ -2,7 +2,12 @@ import AppError from '../utils/AppError.js';
 import { requireFields } from '../utils/validation.js';
 
 const productTypes = new Set(['Ready Stock', 'Pre Order']);
+const slugify = (value) => String(value).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+const resolveProductType = (payload) => typeof payload.preOrder === 'boolean'
+  ? (payload.preOrder ? 'Pre Order' : 'Ready Stock')
+  : (payload.productType || 'Ready Stock');
 const normalize = (payload) => ({
+  slug: slugify(payload.slug || payload.name),
   categoryId: payload.categoryId || null,
   brand: String(payload.brand).trim(),
   name: String(payload.name).trim(),
@@ -10,9 +15,10 @@ const normalize = (payload) => ({
   category: String(payload.category).trim(),
   price: Number(payload.price),
   sizes: payload.sizes,
-  productType: payload.productType,
+  productType: resolveProductType(payload),
   deliveryTime: payload.deliveryTime?.trim() || null,
   availability: payload.availability?.trim() || 'Available',
+  stock: Number(payload.stock || 0),
   metaTitle: payload.metaTitle?.trim() || null,
   metaDescription: payload.metaDescription?.trim() || null,
   images: payload.images || [],
@@ -22,10 +28,13 @@ const normalize = (payload) => ({
 });
 
 const validate = (payload) => {
-  requireFields(payload, ['brand', 'name', 'description', 'category', 'price', 'productType']);
+  requireFields(payload, ['brand', 'name', 'description', 'category', 'price']);
   if (!Number.isFinite(Number(payload.price)) || Number(payload.price) < 0) throw new AppError('Product price must be valid.', 422, 'INVALID_PRICE');
   if (!Array.isArray(payload.sizes) || !payload.sizes.length) throw new AppError('At least one product size is required.', 422, 'INVALID_SIZES');
-  if (!productTypes.has(payload.productType)) throw new AppError('Product type must be Ready Stock or Pre Order.', 422, 'INVALID_PRODUCT_TYPE');
+  const productType = resolveProductType(payload);
+  if (!productTypes.has(productType)) throw new AppError('Product type must be Ready Stock or Pre Order.', 422, 'INVALID_PRODUCT_TYPE');
+  if (!Number.isInteger(Number(payload.stock || 0)) || Number(payload.stock || 0) < 0) throw new AppError('Product stock must be a non-negative integer.', 422, 'INVALID_STOCK');
+  if (payload.images !== undefined && !Array.isArray(payload.images)) throw new AppError('Product images must be an array.', 422, 'INVALID_IMAGES');
 };
 
 export default class ProductService {
@@ -49,22 +58,24 @@ export default class ProductService {
   async update(id, payload) {
     const current = await this.get(id);
     const merged = {
-      categoryId: current.category_id,
+      slug: current.id,
+      categoryId: current.categoryId,
       brand: current.brand,
       name: current.name,
       description: current.description,
       category: current.category,
       price: current.price,
-      sizes: current.size,
-      productType: current.product_type,
-      deliveryTime: current.delivery_time,
+      sizes: current.sizes,
+      productType: current.preOrder ? 'Pre Order' : 'Ready Stock',
+      deliveryTime: current.deliveryTime,
       availability: current.availability,
-      metaTitle: current.meta_title,
-      metaDescription: current.meta_description,
+      stock: current.stock,
+      metaTitle: current.metaTitle,
+      metaDescription: current.metaDescription,
       images: current.images,
-      imageAltText: current.image_alt_text,
+      imageAltText: current.imageAltText,
       variations: current.variations,
-      productTag: current.product_tag,
+      productTag: current.productTag,
       ...payload,
     };
     validate(merged);

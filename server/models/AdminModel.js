@@ -4,7 +4,7 @@ export default class AdminModel {
   }
 
   async findByEmail(email) {
-    const rows = await this.database.query('SELECT * FROM admins WHERE email = ? LIMIT 1', [email]);
+    const rows = await this.database.query('SELECT * FROM administrators WHERE email = ? LIMIT 1', [email]);
     return rows[0] || null;
   }
 }

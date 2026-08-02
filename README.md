@@ -27,6 +27,7 @@ Copy the server template, enter your database and secret values, initialize the 
 ```bash
 cp server/.env.example server/.env
 npm run db:init
+npm run db:seed-products
 npm run db:seed-admin
 npm run server
 ```
@@ -39,6 +40,7 @@ Useful commands:
 npm run server:dev
 npm run server:test
 npm run db:init
+npm run db:seed-products
 npm run db:seed-admin
 ```
 
