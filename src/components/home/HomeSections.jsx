@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import {
-  heroSneaker,
+  heroJordanCinematic,
   productDunk,
   productJordan,
   productLuxury,
@@ -19,7 +19,7 @@ export function HeroSection() {
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
     shoeRef.current.style.animation = 'none';
-    shoeRef.current.style.transform = `rotate(${(-4 + x * 4).toFixed(2)}deg) translate(${(x * 12).toFixed(1)}px, ${(y * 10).toFixed(1)}px)`;
+    shoeRef.current.style.transform = `translate3d(${(x * 12).toFixed(1)}px, ${(y * 9).toFixed(1)}px, 0) scale(1.012)`;
   };
   const handleLeave = () => {
     shoeRef.current.style.transform = '';
@@ -30,8 +30,9 @@ export function HeroSection() {
     <section className="hero section-pad snap-section">
       <div className="hero-grid container">
         <div className="hero-copy reveal">
-          <div className="eyebrow"><span className="pulse" /> CURATED GLOBAL DROPS · SRI LANKA</div>
-          <h1>AUTHENTIC<br />SNEAKERS.<br /><span>BUILT FOR THE CULTURE.</span></h1>
+          <div className="eyebrow"><span className="pulse" /> CURATED DROPS · SRI LANKA</div>
+          <h1 className="hero-title hero-title--desktop">AUTHENTIC<br />SNEAKERS.<br /><span>BUILT FOR THE CULTURE.</span></h1>
+          <h1 className="hero-title hero-title--mobile">BUILT FOR<br /><span>THE<br />CULTURE.</span></h1>
           <p>Imported heat. Verified quality. A premium pre-order experience for Sri Lanka’s sneaker and streetwear community.</p>
           <div className="hero-actions">
             <a href="/shop" className="btn btn--acid">SHOP SNEAKERS <span>↗</span></a>
@@ -44,10 +45,7 @@ export function HeroSection() {
           </div>
         </div>
         <div className="hero-visual reveal delay-120" ref={visualRef} onMouseMove={handleMove} onMouseLeave={handleLeave}>
-          <div className="hero-orbit hero-orbit--one" /><div className="hero-orbit hero-orbit--two" /><div className="hero-glow" />
-          <div className="floating-label floating-label--top"><span>DROP 024</span><strong>LIMITED</strong></div>
-          <img className="hero-shoe" ref={shoeRef} src={heroSneaker} alt="Limited edition black and neon sneaker illustration" />
-          <div className="floating-label floating-label--bottom"><span>FROM</span><strong>LKR 42,900</strong></div>
+          <img className="hero-shoe" ref={shoeRef} src={heroJordanCinematic} alt="Premium red and black high-top sneaker in cinematic studio lighting" />
           <div className="hero-index">01<span>/06</span></div>
         </div>
       </div>
@@ -92,7 +90,7 @@ export function FeaturedDrops({ showToast }) {
         <div className="product-grid">
           {products.map((product) => <ProductCard product={product} key={product.code} hidden={filter !== 'all' && filter !== product.category} onSaved={(saved) => showToast(saved ? 'Added to your saved list.' : 'Removed from your saved list.')} />)}
         </div>
-        <div className="center-action reveal"><a href="/shop" className="text-link">VIEW ALL SNEAKERS <span>↗</span></a></div>
+        <div className="center-action reveal"><a href="/shop" className="btn btn--ghost">VIEW ALL SNEAKERS <span>↗</span></a></div>
       </div>
     </section>
   );
@@ -113,6 +111,7 @@ export function BrandsSection() {
     <section className="brands section-pad snap-section" id="brands"><div className="container">
       <div className="section-head reveal"><div><span className="section-kicker">GLOBAL LABELS</span><h2>SHOP BY BRAND</h2></div><p>From iconic sportswear to statement luxury, sourced to match your rotation.</p></div>
       <div className="brand-grid">{brands.map(([brand, number, delay]) => <a href="/new-drops" className={`brand-tile reveal${delay ? ` delay-${delay}` : ''}`} key={brand}><span>{brand}</span><small>{number}</small></a>)}</div>
+      <div className="center-action reveal"><a href="/brands" className="btn btn--ghost">VIEW ALL BRANDS <span>↗</span></a></div>
     </div></section>
   );
 }

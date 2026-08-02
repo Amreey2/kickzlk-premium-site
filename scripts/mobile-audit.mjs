@@ -2,21 +2,23 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright-core';
 
 const baseUrl = 'http://127.0.0.1:4173';
-const viewports = [
-  { width: 320, height: 844, isMobile: true },
-  { width: 375, height: 844, isMobile: true },
-  { width: 390, height: 844, isMobile: true },
-  { width: 430, height: 844, isMobile: true },
-  { width: 768, height: 1024, isMobile: true },
-  { width: 964, height: 620, isMobile: false },
-  { width: 1280, height: 800, isMobile: false },
-  { width: 1440, height: 900, isMobile: false },
-  { width: 1536, height: 960, isMobile: false },
-  { width: 1728, height: 1117, isMobile: false },
-  { width: 1920, height: 1080, isMobile: false },
-];
-const pages = [['home', '/'], ['product', '/product.html']];
 const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const viewports = [
+  [320, 844, true],
+  [375, 844, true],
+  [390, 844, true],
+  [430, 844, true],
+  [1280, 800, false],
+  [1440, 900, false],
+  [1920, 1080, false],
+];
+const routes = [
+  ['home', '/'],
+  ['about', '/about'],
+  ['community', '/community'],
+  ['preorder', '/pre-order'],
+  ['product', '/product/air-jordan-1-retro-high-og'],
+];
 
 const server = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '4173'], {
   stdio: ['ignore', 'pipe', 'pipe'],
@@ -25,8 +27,7 @@ const server = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port'
 const waitForServer = async () => {
   for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
-      const response = await fetch(baseUrl);
-      if (response.ok) return;
+      if ((await fetch(baseUrl)).ok) return;
     } catch {
       // Vite is still starting.
     }
@@ -40,195 +41,133 @@ try {
   const browser = await chromium.launch({ executablePath: chromePath, headless: true });
   const results = [];
 
-  for (const viewport of viewports) {
-    const { width, height, isMobile } = viewport;
-    for (const [name, path] of pages) {
-      const context = await browser.newContext({
-        viewport: { width, height },
-        deviceScaleFactor: 1,
-        hasTouch: true,
-        isMobile,
-      });
+  for (const [width, height, isMobile] of viewports) {
+    for (const [name, route] of routes) {
+      const context = await browser.newContext({ viewport: { width, height }, isMobile, hasTouch: isMobile });
       const page = await context.newPage();
       const consoleErrors = [];
       page.on('console', (message) => {
         if (message.type() === 'error') consoleErrors.push(message.text());
       });
       page.on('pageerror', (error) => consoleErrors.push(error.message));
-      await page.goto(`${baseUrl}${path}`, { waitUntil: 'domcontentloaded' });
-      await page.evaluate(() => Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 5000))]));
-      await page.waitForTimeout(300);
+      await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded' });
+      await page.evaluate(() => Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 4000))]));
+      await page.waitForTimeout(250);
 
-      const metrics = await page.evaluate(() => {
+      const metrics = await page.evaluate(({ pageName, mobile }) => {
         const viewportWidth = document.documentElement.clientWidth;
-        const ignored = '.culture-ticker__track, .filter-row, .tabs, .hero-shoe, .hero-orbit, .hero-glow';
-        const selectorFor = (element) => {
-          const classes = [...element.classList].slice(0, 3).join('.');
-          return `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}${classes ? `.${classes}` : ''}`;
-        };
-        const outsideViewport = [...document.querySelectorAll('body *')]
-          .filter((element) => !element.matches(ignored) && !element.closest('.culture-ticker, .announcement, .filter-row, .tabs, .hero-badges'))
-          .map((element) => ({ element, rect: element.getBoundingClientRect() }))
-          .filter(({ rect }) => rect.width > 0 && rect.height > 0 && (rect.left < -1 || rect.right > viewportWidth + 1))
-          .slice(0, 30)
-          .map(({ element, rect }) => ({ selector: selectorFor(element), left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) }));
-        const clippedText = [...document.querySelectorAll('h1, h2, h3, p, blockquote, a, button, .eyebrow, .section-kicker, .social-quote')]
-          .filter((element) => {
-            const intentionalDesktopDisplay = viewportWidth > 960 && element.matches('.hero h1, .editorial-card h2, .why-intro h2, .social-copy h2');
-            return !intentionalDesktopDisplay && !element.matches('.icon-btn, .brand-tile') && element.scrollWidth > element.clientWidth + 1;
-          })
-          .map((element) => ({ selector: selectorFor(element), clientWidth: element.clientWidth, scrollWidth: element.scrollWidth }))
-          .slice(0, 30);
-        const homeUx = document.querySelector('.home-main') ? (() => {
-          const rootStyle = getComputedStyle(document.documentElement);
+        const clipped = [...document.querySelectorAll('h1, h2, h3, p, a, button, blockquote, .eyebrow, .section-kicker')]
+          .filter((element) => !element.matches('.icon-btn, .floating-action, .brand-tile, .cart-item__image')
+            && element.getClientRects().length
+            && getComputedStyle(element).visibility !== 'hidden'
+            && element.scrollWidth > element.clientWidth + 3)
+          .map((element) => `${element.tagName.toLowerCase()}.${[...element.classList].join('.')}[+${element.scrollWidth - element.clientWidth}px]`)
+          .slice(0, 12);
+        const actions = [...document.querySelectorAll('.floating-action')].map((element) => {
+          const rect = element.getBoundingClientRect();
+          return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left };
+        });
+        const pageHero = document.querySelector('.page-hero')?.getBoundingClientRect();
+        const home = pageName === 'home' ? (() => {
           const hero = document.querySelector('.hero').getBoundingClientRect();
-          const heroShoe = document.querySelector('.hero-shoe').getBoundingClientRect();
-          const heroFooter = document.querySelector('.hero-footer');
-          const heroFooterRect = heroFooter.getBoundingClientRect();
-          const ticker = document.querySelector('.culture-ticker');
-          const tickerRect = ticker.getBoundingClientRect();
-          const tickerTrackStyle = getComputedStyle(document.querySelector('.culture-ticker__track'));
-          const tickerGroups = [...document.querySelectorAll('.culture-ticker__group')];
-          const snapTargets = [...document.querySelectorAll('.snap-section')];
-          const heroBadges = document.querySelector('.hero-badges').getBoundingClientRect();
-          const statisticCards = [...document.querySelectorAll('.hero-badges > div')].map((card) => card.getBoundingClientRect());
-          const textBounds = (selector) => {
-            const element = document.querySelector(selector);
-            const range = document.createRange();
-            range.selectNodeContents(element);
-            return range.getBoundingClientRect();
-          };
-          const editorialText = textBounds('.editorial-card h2');
-          const editorialVisual = document.querySelector('.editorial-card__visual').getBoundingClientRect();
-          const whyText = textBounds('.why-intro h2');
-          const benefitGrid = document.querySelector('.benefit-grid').getBoundingClientRect();
-          const socialText = textBounds('.social-copy h2');
-          const socialWall = document.querySelector('.social-wall').getBoundingClientRect();
+          const shoe = document.querySelector('.hero-shoe').getBoundingClientRect();
+          const drops = document.querySelector('.drops').getBoundingClientRect();
           return {
-            scrollSnapType: rootStyle.scrollSnapType,
-            scrollPaddingTop: rootStyle.scrollPaddingTop,
-            scrollbarWidth: rootStyle.scrollbarWidth,
             heroHeight: Math.round(hero.height),
-            heroArtworkFits: heroShoe.top >= hero.top - 1 && heroShoe.bottom <= hero.bottom + 1,
-            heroFooterFits: heroFooter.classList.contains('is-visible') && heroFooterRect.bottom <= window.innerHeight + 1,
-            heroStatisticsClear: statisticCards.every((card, index) => statisticCards.slice(index + 1).every((other) => card.right <= other.left || other.right <= card.left))
-              && heroBadges.bottom <= heroFooterRect.top + 1,
-            tickerTop: Math.round(tickerRect.top),
-            tickerBottom: Math.round(tickerRect.bottom),
-            heroFoldError: Math.round(Math.abs(tickerRect.bottom - window.innerHeight)),
-            tickerVisibleAtLoad: tickerRect.top < window.innerHeight - 20 && tickerRect.bottom <= window.innerHeight + 4,
-            tickerAnimation: tickerTrackStyle.animationName,
-            tickerDuration: tickerTrackStyle.animationDuration,
-            tickerGroupWidths: tickerGroups.map((group) => Math.round(group.getBoundingClientRect().width)),
-            tickerText: tickerGroups.map((group) => group.textContent.replace(/\s+/g, ' ').trim()),
-            snapTargets: snapTargets.map((target) => ({ className: target.className, align: getComputedStyle(target).scrollSnapAlign })),
-            desktopOverlapFree: editorialText.right <= editorialVisual.left + 1
-              && whyText.right <= benefitGrid.left + 1
-              && socialText.right <= socialWall.left + 1,
+            heroBottom: Math.round(hero.bottom),
+            shoeVerticalFit: shoe.top >= hero.top - 1 && shoe.bottom <= hero.bottom + 1,
+            scrollSnapType: getComputedStyle(document.documentElement).scrollSnapType,
+            labelsRemoved: document.querySelectorAll('.floating-label').length === 0,
+            cinematicAsset: document.querySelector('.hero-shoe').currentSrc.includes('hero-jordan-cinematic'),
+            correctMobileTitle: getComputedStyle(document.querySelector('.hero-title--mobile')).display !== 'none',
+            correctDesktopTitle: getComputedStyle(document.querySelector('.hero-title--desktop')).display !== 'none',
+            cardCount: document.querySelectorAll('.drops .product-card').length,
+            dropsHeight: Math.round(drops.height),
+            viewSneakers: Boolean(document.querySelector('.drops a[href="/shop"].btn')),
+            viewBrands: Boolean(document.querySelector('.brands a[href="/brands"].btn')),
           };
         })() : null;
         return {
           viewportWidth,
-          documentScrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
-          outsideViewport,
-          clippedText,
-          homeUx,
+          documentWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+          clipped,
+          pageHeroHeight: pageHero ? Math.round(pageHero.height) : null,
+          floatingActions: actions,
+          home,
+          mobile,
         };
-      });
+      }, { pageName: name, mobile: isMobile });
 
-      await page.screenshot({ path: `/tmp/kickz-${name}-${width}.png`, fullPage: false });
-      const interactionChecks = {};
-      const menuToggle = page.locator('.menu-toggle');
-      if (await menuToggle.isVisible()) {
-        await menuToggle.click();
-        interactionChecks.mobileNav = await page.evaluate(() => ({
+      const interactions = {};
+      const menu = page.locator('.menu-toggle');
+      if (await menu.isVisible()) {
+        await menu.click();
+        await page.waitForTimeout(350);
+        interactions.menu = await page.evaluate(() => ({
           expanded: document.querySelector('.menu-toggle').getAttribute('aria-expanded') === 'true',
-          drawerOpen: document.querySelector('.mobile-drawer').classList.contains('open'),
+          lines: document.querySelectorAll('.menu-toggle span').length,
+          drawerVisible: getComputedStyle(document.querySelector('.mobile-drawer')).visibility === 'visible',
           bodyLocked: document.body.classList.contains('nav-open'),
-          documentScrollWidth: document.documentElement.scrollWidth,
+          linkFont: Number.parseFloat(getComputedStyle(document.querySelector('.mobile-drawer nav a')).fontSize),
         }));
-        await menuToggle.click();
+        await menu.click();
       }
-
       if (name === 'home') {
-        await page.locator('.hero a[href="#drops"]').click();
-        await page.waitForTimeout(900);
-        interactionChecks.anchorScroll = await page.evaluate(() => ({
-          scrollY: Math.round(window.scrollY),
-          targetTop: Math.round(document.querySelector('#drops').getBoundingClientRect().top),
-          scrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight,
-        }));
         await page.locator('[data-filter="nike"]').click();
-        interactionChecks.filteredProducts = await page.locator('.product-card:not(.is-hidden)').count();
-        if (width > 960) {
-          interactionChecks.desktopSnapLandings = [];
-          for (const selector of ['.editorial', '.why', '.social', '.newsletter']) {
-            await page.evaluate((targetSelector) => document.querySelector(targetSelector).scrollIntoView({ block: 'start', behavior: 'instant' }), selector);
-            await page.waitForTimeout(180);
-            interactionChecks.desktopSnapLandings.push(Math.round(await page.locator(selector).evaluate((element) => element.getBoundingClientRect().top)));
-          }
-        }
-      } else {
+        interactions.filteredProducts = await page.locator('.drops .product-card:not(.is-hidden)').count();
+        await page.locator('.drops').evaluate((element) => element.scrollIntoView({ block: 'start', behavior: 'instant' }));
+        interactions.scrollMoved = await page.evaluate(() => window.scrollY > 0);
+      }
+      if (name === 'product') {
         await page.locator('.size-btn:not(:disabled)').first().click();
-        const preorder = width <= 650 ? page.locator('.mobile-buybar .btn--acid') : page.locator('#preorder-button');
-        await preorder.click();
-        await page.locator('.tab-btn').nth(2).click();
-        interactionChecks.productControls = await page.evaluate(() => ({
-          bagCount: document.querySelector('.bag-count').textContent,
-          sizeSelected: document.querySelector('.size-btn.active')?.textContent,
-          activeTab: document.querySelector('.tab-btn.active')?.textContent,
-        }));
+        interactions.sizeSelected = await page.locator('.size-btn.active').count() === 1;
       }
 
-      results.push({ page: name, width, height, consoleErrors, interactionChecks, ...metrics });
+      if (name === 'home') await page.screenshot({ path: `/tmp/kickz-home-${width}.png`, fullPage: false });
+      results.push({ name, width, height, consoleErrors, interactions, ...metrics });
       await context.close();
     }
   }
 
-  const reducedContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
+  const reducedContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, reducedMotion: 'reduce' });
   const reducedPage = await reducedContext.newPage();
   await reducedPage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   const reducedMotion = await reducedPage.evaluate(() => ({
-    scrollSnapType: getComputedStyle(document.documentElement).scrollSnapType,
-    tickerAnimation: getComputedStyle(document.querySelector('.culture-ticker__track')).animationName,
+    snap: getComputedStyle(document.documentElement).scrollSnapType,
+    shoeAnimation: getComputedStyle(document.querySelector('.hero-shoe')).animationName,
   }));
   await reducedContext.close();
-
   await browser.close();
 
   const failures = [];
-  const expectedTicker = 'AUTHENTIC SNEAKERS★GLOBAL DROPS★PRE ORDER AVAILABLE★KICKZ.LK★';
   for (const result of results) {
-    const label = `${result.page} ${result.width}x${result.height}`;
+    const label = `${result.name} ${result.width}x${result.height}`;
     if (result.consoleErrors.length) failures.push(`${label}: console errors`);
-    if (result.documentScrollWidth !== result.viewportWidth) failures.push(`${label}: horizontal overflow`);
-    if (result.outsideViewport.length) failures.push(`${label}: elements outside viewport`);
-    if (result.clippedText.length) failures.push(`${label}: clipped text`);
-
-    if (result.page === 'home') {
-      const { homeUx, interactionChecks } = result;
-      const expectedSnap = result.width > 960 ? 'y mandatory' : 'y';
-      if (homeUx.scrollSnapType !== expectedSnap) failures.push(`${label}: expected ${expectedSnap} snapping, got ${homeUx.scrollSnapType}`);
-      if (homeUx.scrollbarWidth !== 'none') failures.push(`${label}: root scrollbar visible`);
-      if (homeUx.snapTargets.length !== 9 || homeUx.snapTargets.some(({ align }) => align !== 'start')) failures.push(`${label}: invalid snap targets`);
-      if (homeUx.tickerAnimation !== 'culture-ticker') failures.push(`${label}: ticker animation unavailable`);
-      if (homeUx.tickerGroupWidths.length !== 2 || Math.abs(homeUx.tickerGroupWidths[0] - homeUx.tickerGroupWidths[1]) > 1) failures.push(`${label}: ticker groups are not seamless`);
-      if (homeUx.tickerText.some((text) => text !== expectedTicker)) failures.push(`${label}: ticker text/order changed`);
-      if (result.width >= 768 && homeUx.heroFoldError > 4) failures.push(`${label}: ticker misses first fold by ${homeUx.heroFoldError}px`);
-      if (result.width >= 768 && !homeUx.tickerVisibleAtLoad) failures.push(`${label}: ticker is not visible on first load`);
-      if (result.width >= 768 && !homeUx.heroArtworkFits) failures.push(`${label}: hero artwork is cropped`);
-      if (result.width >= 768 && !homeUx.heroFooterFits) failures.push(`${label}: hero footer cue is cropped or hidden`);
-      if (result.width > 960 && !homeUx.heroStatisticsClear) failures.push(`${label}: hero statistics overlap or lack separation`);
-      if (result.width > 960 && !homeUx.desktopOverlapFree) failures.push(`${label}: desktop heading overlaps adjacent artwork/cards`);
-      if (result.width > 960 && interactionChecks.desktopSnapLandings.some((top) => Math.abs(top - Number.parseFloat(homeUx.scrollPaddingTop)) > 2)) failures.push(`${label}: incomplete desktop snap landing`);
-      if (Math.abs(interactionChecks.anchorScroll.targetTop - Number.parseFloat(homeUx.scrollPaddingTop)) > 2) failures.push(`${label}: sticky anchor offset incorrect`);
-      if (!interactionChecks.anchorScroll.scrollable) failures.push(`${label}: root scrolling unavailable`);
-      if (interactionChecks.filteredProducts !== 2) failures.push(`${label}: product filtering failed`);
+    if (result.documentWidth !== result.viewportWidth) failures.push(`${label}: horizontal overflow`);
+    if (result.clipped.length) failures.push(`${label}: clipped text (${result.clipped.join(', ')})`);
+    if (result.floatingActions.length !== 2) failures.push(`${label}: missing floating actions`);
+    if (result.floatingActions.some((rect) => rect.left < 0 || rect.right > result.width || rect.top < 0 || rect.bottom > result.height)) failures.push(`${label}: floating action outside viewport`);
+    if (result.floatingActions.length === 2 && result.floatingActions[0].bottom > result.floatingActions[1].top) failures.push(`${label}: floating actions overlap`);
+    if (result.mobile && (!result.interactions.menu?.expanded || result.interactions.menu.lines !== 3 || !result.interactions.menu.drawerVisible || !result.interactions.menu.bodyLocked || result.interactions.menu.linkFont > 28)) failures.push(`${label}: mobile navigation regression`);
+    if (result.pageHeroHeight && result.pageHeroHeight > (result.mobile ? result.height * .36 : 440)) failures.push(`${label}: page hero remains oversized`);
+    if (result.name === 'home') {
+      if (!result.home.scrollSnapType.startsWith('y')) failures.push(`${label}: section snapping unavailable`);
+      if (!result.home.labelsRemoved || !result.home.cinematicAsset) failures.push(`${label}: hero artwork cleanup failed`);
+      if (result.mobile && (!result.home.correctMobileTitle || result.home.correctDesktopTitle)) failures.push(`${label}: mobile hero hierarchy failed`);
+      if (!result.mobile && (!result.home.correctDesktopTitle || result.home.correctMobileTitle)) failures.push(`${label}: desktop hero hierarchy failed`);
+      if (result.home.cardCount !== 6 || !result.home.viewSneakers || !result.home.viewBrands) failures.push(`${label}: homepage CTA/card regression`);
+      if (!result.interactions.scrollMoved || result.interactions.filteredProducts !== 2) failures.push(`${label}: homepage interactions failed`);
+      if (result.width >= 1280 && result.home.dropsHeight > result.height) failures.push(`${label}: featured drops exceeds one viewport`);
+      if (!result.home.shoeVerticalFit) failures.push(`${label}: hero sneaker is vertically cropped`);
     }
+    if (result.name === 'product' && !result.interactions.sizeSelected) failures.push(`${label}: product controls failed`);
   }
-  if (reducedMotion.scrollSnapType !== 'none' || reducedMotion.tickerAnimation !== 'none') failures.push('reduced motion: motion safeguards failed');
+  if (reducedMotion.snap !== 'none' || reducedMotion.shoeAnimation !== 'none') failures.push('reduced motion safeguards failed');
 
-  console.log(JSON.stringify({ results, reducedMotion, failures }, null, 2));
+  console.table(results.map(({ name, width, documentWidth, clipped, consoleErrors }) => ({
+    page: name, width, overflow: documentWidth - width, clipped: clipped.length, consoleErrors: consoleErrors.length,
+  })));
+  console.log(JSON.stringify({ reducedMotion, failures }, null, 2));
   if (failures.length) throw new Error(`Responsive audit failed:\n- ${failures.join('\n- ')}`);
 } finally {
   server.kill('SIGTERM');

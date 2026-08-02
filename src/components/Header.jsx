@@ -64,14 +64,16 @@ export default function Header({ bagCount = 0 }) {
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
           >
-            <span /><span />
+            <span /><span /><span />
           </button>
         </div>
       </div>
       <div className={`mobile-drawer${menuOpen ? ' open' : ''}`} aria-hidden={!menuOpen}>
         <nav aria-label="Mobile navigation">
-          {navItems.map(([href, label]) => (
-            <a href={href} className={activePath === href ? 'active' : ''} key={href} onClick={closeMenu}>{label}</a>
+          {navItems.map(([href, label], index) => (
+            <a href={href} className={activePath === href ? 'active' : ''} key={href} onClick={closeMenu}>
+              <small>{String(index + 1).padStart(2, '0')}</small><span>{label}</span><i aria-hidden="true">↗</i>
+            </a>
           ))}
         </nav>
         <div className="mobile-drawer__meta"><span>Colombo, Sri Lanka</span><span>Online · Islandwide</span></div>

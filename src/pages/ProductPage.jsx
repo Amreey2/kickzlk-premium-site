@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import AnnouncementBar from '../components/AnnouncementBar';
 import Footer from '../components/Footer';
+import FloatingActions from '../components/FloatingActions';
 import Header from '../components/Header';
 import PageHero from '../components/PageHero';
 import PageShell from '../components/PageShell';
@@ -53,6 +54,7 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
       <ProductDetails product={product} />
       <Recommendations productId={product.id} />
       <Footer />
+      <FloatingActions aboveMobileBuyBar />
       <MobileBuyBar product={product} selectedSize={selectedSize} addToBag={addToBag} />
       <Toast message={toast.message} visible={toast.visible} />
     </>
