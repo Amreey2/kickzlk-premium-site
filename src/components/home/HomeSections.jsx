@@ -32,7 +32,7 @@ export function HeroSection() {
         <div className="hero-copy reveal">
           <div className="eyebrow"><span className="pulse" /> CURATED DROPS · SRI LANKA</div>
           <h1 className="hero-title hero-title--desktop">AUTHENTIC<br />SNEAKERS.<br /><span>BUILT FOR THE CULTURE.</span></h1>
-          <h1 className="hero-title hero-title--mobile">BUILT FOR<br /><span>THE<br />CULTURE.</span></h1>
+          <h1 className="hero-title hero-title--mobile">AUTHENTIC<br />SNEAKERS.<br /><span>BUILT FOR THE CULTURE.</span></h1>
           <p>Imported heat. Verified quality. A premium pre-order experience for Sri Lanka’s sneaker and streetwear community.</p>
           <div className="hero-actions">
             <a href="/shop" className="btn btn--acid">SHOP SNEAKERS <span>↗</span></a>
@@ -45,8 +45,8 @@ export function HeroSection() {
           </div>
         </div>
         <div className="hero-visual reveal delay-120" ref={visualRef} onMouseMove={handleMove} onMouseLeave={handleLeave}>
+          <div className="hero-orbit hero-orbit--one" /><div className="hero-orbit hero-orbit--two" /><div className="hero-glow" />
           <img className="hero-shoe" ref={shoeRef} src={heroJordanCinematic} alt="Premium red and black high-top sneaker in cinematic studio lighting" />
-          <div className="hero-index">01<span>/06</span></div>
         </div>
       </div>
       <div className="container hero-footer reveal delay-220">

@@ -1,4 +1,3 @@
-import AnnouncementBar from '../components/AnnouncementBar';
 import Footer from '../components/Footer';
 import FloatingActions from '../components/FloatingActions';
 import Header from '../components/Header';
@@ -20,7 +19,6 @@ export default function HomePage() {
   return (
     <>
       <div className="noise" aria-hidden="true" />
-      <AnnouncementBar />
       <Header />
       <main className="home-main">
         <HeroSection />

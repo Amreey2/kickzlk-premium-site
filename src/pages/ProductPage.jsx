@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import AnnouncementBar from '../components/AnnouncementBar';
 import Footer from '../components/Footer';
 import FloatingActions from '../components/FloatingActions';
 import Header from '../components/Header';
@@ -42,7 +41,6 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
   return (
     <>
       <div className="noise" aria-hidden="true" />
-      <AnnouncementBar />
       <Header bagCount={bagCount} />
       <main className="product-main"><div className="container">
         <div className="breadcrumbs"><a href="/index.html">HOME</a><span>/</span><a href="/shop">SHOP</a><span>/</span><span>{product.name.toUpperCase()}</span></div>

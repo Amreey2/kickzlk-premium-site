@@ -24,7 +24,7 @@
   --radius-sm: 12px;
   --shadow: 0 30px 90px rgba(0,0,0,.45);
   --header-height: 78px;
-  --top-chrome-height: 112px;
+  --top-chrome-height: 78px;
   --culture-ticker-height: 49px;
 }
 
@@ -86,7 +86,7 @@ a { color: inherit; text-decoration: none; }
 button, input, select, textarea { font: inherit; }
 button { color: inherit; }
 .container { width: var(--container); margin-inline: auto; }
-.section-pad { padding: 96px 0; }
+.section-pad { padding: 82px 0; }
 .noise {
   position: fixed;
   inset: 0;
@@ -196,15 +196,15 @@ button { color: inherit; }
 .mobile-drawer nav a.active { color: var(--acid); }
 .mobile-drawer__meta { margin-top: 28px; padding-top: 20px; display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 10px; }
 
-/* PREMIUM VIEWPORT HERO
-   Uses the available first-screen height after the announcement and header, with flexible rows to prevent cropping. */
+/* SPRINT 5.1.1 HERO CHROME + TOP RHYTHM
+   The removed announcement strip no longer reserves height; compact padding starts the showroom directly below the header. */
 .hero {
   position: relative;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   height: calc(100svh - var(--top-chrome-height) - var(--culture-ticker-height));
   min-height: 650px;
-  padding: clamp(30px, 5svh, 56px) 0 clamp(18px, 2.8svh, 30px);
+  padding: clamp(20px, 3svh, 30px) 0 clamp(16px, 2.4svh, 26px);
   overflow: hidden;
 }
 .home-main .hero { min-height: 650px; }
@@ -246,7 +246,12 @@ button { color: inherit; }
 }
 .hero h1 { font-size: clamp(58px, 6.2vw, 110px); line-height: .86; max-width: 760px; }
 .hero-title--mobile { display: none; }
-.hero h1 span { color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.7); }
+.hero h1 span {
+  color: rgba(245,245,239,.055);
+  -webkit-text-stroke: 1.35px rgba(255,255,255,.86);
+  font-weight: 800;
+  letter-spacing: -.045em;
+}
 .hero-copy > p { max-width: 580px; font-size: 17px; color: var(--muted); margin: 0 0 34px; }
 .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
 .btn {
@@ -420,7 +425,9 @@ button { color: inherit; }
 
   /* SPRINT 2.2 HERO STAT SEPARATION
      Reserves a clean row for the three trust cards and keeps the supporting authenticity note below them. */
-  .hero-copy { align-self: center; }
+  /* DESKTOP HERO TOP-SPACE REGRESSION FIX
+     Starts copy at the top of the existing grid instead of vertically centering an empty band above it. */
+  .hero-copy { align-self: start; padding-top: clamp(4px, 1svh, 10px); }
   .hero-badges div { min-height: 62px; align-content: center; }
   .hero-footer {
     min-height: 30px;
@@ -485,7 +492,7 @@ button { color: inherit; }
    Gives routed ecommerce pages a reusable premium entry section using the approved tokens and hierarchy. */
 .site-main { overflow: clip; }
 .page-hero {
-  min-height: min(44svh, 430px);
+  min-height: min(36svh, 350px);
   display: grid;
   align-items: end;
   border-bottom: 1px solid var(--line);
@@ -496,17 +503,22 @@ button { color: inherit; }
 .page-hero__inner { max-width: 1040px; }
 .page-hero h1 {
   font-family: var(--display);
-  font-size: clamp(56px, 7.5vw, 104px);
+  font-size: clamp(48px, 6vw, 84px);
   line-height: .86;
   letter-spacing: -.05em;
-  margin: 14px 0;
+  margin: 11px 0;
 }
 .page-hero p {
   max-width: 650px;
   margin: 0;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 15px;
 }
+
+/* SPRINT 5.1.1 ROUTED-PAGE TYPE SCALE
+   Keeps homepage display impact while making reused landing sections more compact and consistently aligned. */
+.site-main .section-pad { padding-block: 56px; }
+.site-main .page-hero { align-items: start; padding-block: 48px; }
 .filter-row { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 30px; }
 .filter-btn {
   padding: 10px 16px;
@@ -1146,7 +1158,7 @@ button { color: inherit; }
      Gives the complete headline a protected column and contains the sneaker inside its visual panel. */
   :is(.home-main, .site-main) .editorial-card { grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr); }
   :is(.home-main, .site-main) .editorial-card__copy { padding: clamp(42px, 4vw, 70px); position: relative; z-index: 3; }
-  :is(.home-main, .site-main) .editorial-card h2 { max-width: 100%; font-size: clamp(32px, 2.65vw, 52px); }
+  :is(.home-main, .site-main) .editorial-card h2 { max-width: 100%; font-size: clamp(30px, 2.4vw, 48px); }
   :is(.home-main, .site-main) .editorial-card__visual { overflow: hidden; }
   :is(.home-main, .site-main) .editorial-card__visual img { width: 88%; }
 
@@ -1154,14 +1166,14 @@ button { color: inherit; }
      Balances the statement and trust-card columns so the heading never crosses into the benefit tiles. */
   :is(.home-main, .site-main) .why-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(42px, 5vw, 80px); }
   :is(.home-main, .site-main) .why-intro { z-index: 2; }
-  :is(.home-main, .site-main) .why-intro h2 { max-width: 100%; font-size: clamp(38px, 3.2vw, 60px); }
+  :is(.home-main, .site-main) .why-intro h2 { max-width: 100%; font-size: clamp(35px, 2.8vw, 52px); }
   :is(.home-main, .site-main) .benefit-grid { position: relative; z-index: 3; }
 
   /* SPRINT 2.2 ROUTED COMMUNITY ALIGNMENT
      Protects every campaign word from the sliced product wall while preserving the artwork composition. */
   :is(.home-main, .site-main) .social-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(44px, 5vw, 76px); }
   :is(.home-main, .site-main) .social-copy { position: relative; z-index: 3; }
-  :is(.home-main, .site-main) .social-copy h2 { max-width: 100%; font-size: clamp(40px, 3.35vw, 64px); }
+  :is(.home-main, .site-main) .social-copy h2 { max-width: 100%; font-size: clamp(37px, 3vw, 56px); }
   :is(.home-main, .site-main) .social-wall { position: relative; z-index: 1; }
   :is(.home-main, .site-main) .social-quote { font-size: clamp(25px, 2.5vw, 44px); }
 
@@ -1174,8 +1186,8 @@ button { color: inherit; }
   /* SPRINT 5.1 ULTRAWIDE EDITORIAL FIT
      Caps display words at very wide viewports so protected copy columns keep every letter visible. */
   .hero h1 { font-size: 68px; }
-  :is(.home-main, .site-main) .why-intro h2,
-  :is(.home-main, .site-main) .social-copy h2 { font-size: 54px; }
+  :is(.home-main, .site-main) .why-intro h2 { font-size: 52px; }
+  :is(.home-main, .site-main) .social-copy h2 { font-size: 56px; }
 }
 
 @media (min-width: 961px) and (max-width: 1279px) {
@@ -1300,13 +1312,11 @@ button { color: inherit; }
 @media (max-width: 650px) {
   /* MOBILE VIEWPORT FOUNDATION
      Constrains every page layer to the simulated device width without altering internal scroll rows. */
-  :root { --container: calc(100% - 28px); --radius-lg: 22px; --radius-md: 16px; --header-height: 68px; --top-chrome-height: 102px; }
+  :root { --container: calc(100% - 28px); --radius-lg: 22px; --radius-md: 16px; --header-height: 68px; --top-chrome-height: 68px; }
   html, body, #root { max-width: 100%; overflow-x: clip; }
-  .section-pad { padding: 56px 0; }
-
-  /* MOBILE ANNOUNCEMENT FIX
-     The moving announcement remains animated but can no longer enlarge the document canvas. */
-  .announcement__inner { justify-content: flex-start; animation: marquee 16s linear infinite; width: max-content; }
+  .section-pad { padding: 48px 0; }
+  .site-main .section-pad { padding-block: 44px; }
+  .site-main .page-hero { padding-block: 36px; }
 
   /* MOBILE NAVIGATION FIX
      Keeps the logo, bag and menu controls within the narrowest supported header. */
@@ -1318,20 +1328,27 @@ button { color: inherit; }
   .mobile-drawer nav { min-width: 0; grid-template-columns: minmax(0, 1fr); }
   .mobile-drawer nav a { min-width: 0; }
 
-  /* MOBILE HERO FIX
-     Scales the display type and artwork to fit 320–430px screens without cropping the approved composition. */
-  .home-main .hero { display: grid; height: calc(100svh - var(--top-chrome-height) - var(--culture-ticker-height)); min-height: 590px; padding: 22px 0 14px; }
-  .hero-grid { min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+  /* SPRINT 5.1.1 MOBILE FIRST-VIEW RESTORATION
+     Restores the complete approved message and controls before the cinematic sneaker continues naturally below. */
+  .home-main .hero { display: grid; height: auto; min-height: calc(100svh - var(--header-height)); padding: 28px 0 20px; }
+  .hero-grid { min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; gap: 12px; }
   .hero-copy, .hero-visual { min-width: 0; width: 100%; }
-  .hero-copy { text-align: left; }
+  .hero-copy { text-align: center; padding-top: 0; }
   .hero-title--desktop { display: none; }
-  .hero .hero-title--mobile { display: block; max-width: 100%; margin: 13px 0 0; font-size: clamp(30px, 8.5vw, 36px); line-height: .86; }
-  .hero-copy > p,
-  .hero-actions,
-  .hero-badges { display: none; }
-  .hero-visual { flex: 0 0 auto; height: clamp(260px, 35svh, 310px); margin-top: 0; }
+  .hero .hero-title--mobile { display: block; max-width: 100%; margin: 13px 0 0; font-size: clamp(29px, 9vw, 38px); line-height: .86; }
+  .hero-copy > p { display: block; max-width: 350px; margin: 22px auto 24px; font-size: 13px; line-height: 1.55; }
+  .hero-actions { display: grid; width: min(200px, 100%); gap: 10px; margin-inline: auto; }
+  .hero-actions .btn { width: 100%; min-height: 52px; padding-inline: 16px; gap: 12px; font-size: 11px; white-space: nowrap; }
+  .hero-badges { display: flex; width: 100%; margin-top: 32px; overflow: visible; }
+  .hero-badges div,
+  .hero-badges div + div { min-width: 0; min-height: 58px; padding: 12px 7px; border: 0; border-radius: 0; background: transparent; text-align: left; }
+  .hero-badges div + div { border-left: 1px solid var(--line); }
+  .hero-badges strong { font-size: 13px; }
+  .hero-badges span { font-size: 9px; }
+  .hero-visual { flex: 0 0 auto; height: clamp(300px, 78vw, 340px); margin-top: 6px; }
   .hero-shoe { width: 125%; max-width: none; }
-  .hero-index { right: 90px; bottom: 6%; font-size: 25px; }
+  .hero-orbit { width: 95%; }
+  .hero-orbit--two { width: 69%; }
   .hero-footer { display: none; }
 
   /* MOBILE NATIVE SCROLL RHYTHM
@@ -1351,8 +1368,8 @@ button { color: inherit; }
   .section-head > p { font-size: 13px; }
   /* SPRINT 3A MOBILE PAGE HERO
      Keeps routed page titles inside the smallest supported ecommerce viewport. */
-  .page-hero { min-height: 30svh; }
-  .page-hero h1 { font-size: clamp(38px, 11vw, 52px); margin-block: 11px; }
+  .page-hero { min-height: 25svh; }
+  .page-hero h1 { font-size: clamp(34px, 9.8vw, 46px); margin-block: 9px; }
   .page-hero p { font-size: 13px; }
 
   /* MOBILE FILTER FIX

@@ -78,6 +78,9 @@ try {
             shoeVerticalFit: shoe.top >= hero.top - 1 && shoe.bottom <= hero.bottom + 1,
             scrollSnapType: getComputedStyle(document.documentElement).scrollSnapType,
             labelsRemoved: document.querySelectorAll('.floating-label').length === 0,
+            announcementRemoved: document.querySelector('.announcement') === null,
+            indexRemoved: document.querySelector('.hero-index') === null,
+            orbitCount: document.querySelectorAll('.hero-orbit').length,
             cinematicAsset: document.querySelector('.hero-shoe').currentSrc.includes('hero-jordan-cinematic'),
             correctMobileTitle: getComputedStyle(document.querySelector('.hero-title--mobile')).display !== 'none',
             correctDesktopTitle: getComputedStyle(document.querySelector('.hero-title--desktop')).display !== 'none',
@@ -152,7 +155,7 @@ try {
     if (result.pageHeroHeight && result.pageHeroHeight > (result.mobile ? result.height * .36 : 440)) failures.push(`${label}: page hero remains oversized`);
     if (result.name === 'home') {
       if (!result.home.scrollSnapType.startsWith('y')) failures.push(`${label}: section snapping unavailable`);
-      if (!result.home.labelsRemoved || !result.home.cinematicAsset) failures.push(`${label}: hero artwork cleanup failed`);
+      if (!result.home.labelsRemoved || !result.home.announcementRemoved || !result.home.indexRemoved || result.home.orbitCount !== 2 || !result.home.cinematicAsset) failures.push(`${label}: hero artwork cleanup/restoration failed`);
       if (result.mobile && (!result.home.correctMobileTitle || result.home.correctDesktopTitle)) failures.push(`${label}: mobile hero hierarchy failed`);
       if (!result.mobile && (!result.home.correctDesktopTitle || result.home.correctMobileTitle)) failures.push(`${label}: desktop hero hierarchy failed`);
       if (result.home.cardCount !== 6 || !result.home.viewSneakers || !result.home.viewBrands) failures.push(`${label}: homepage CTA/card regression`);
