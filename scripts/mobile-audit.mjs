@@ -14,9 +14,13 @@ const viewports = [
 ];
 const routes = [
   ['home', '/'],
+  ['shop', '/shop'],
+  ['new-drops', '/new-drops'],
+  ['brands', '/brands'],
   ['about', '/about'],
   ['community', '/community'],
   ['preorder', '/pre-order'],
+  ['contact', '/contact'],
   ['product', '/product/air-jordan-1-retro-high-og'],
 ];
 
@@ -72,6 +76,7 @@ try {
           const hero = document.querySelector('.hero').getBoundingClientRect();
           const shoe = document.querySelector('.hero-shoe').getBoundingClientRect();
           const drops = document.querySelector('.drops').getBoundingClientRect();
+          const builtStyle = getComputedStyle(document.querySelector('.hero h1 span'));
           return {
             heroHeight: Math.round(hero.height),
             heroBottom: Math.round(hero.bottom),
@@ -81,6 +86,8 @@ try {
             announcementRemoved: document.querySelector('.announcement') === null,
             indexRemoved: document.querySelector('.hero-index') === null,
             orbitCount: document.querySelectorAll('.hero-orbit').length,
+            watermarkRemoved: getComputedStyle(document.querySelector('.hero'), '::after').content === 'none',
+            builtStroke: Number.parseFloat(builtStyle.webkitTextStrokeWidth),
             cinematicAsset: document.querySelector('.hero-shoe').currentSrc.includes('hero-jordan-cinematic'),
             correctMobileTitle: getComputedStyle(document.querySelector('.hero-title--mobile')).display !== 'none',
             correctDesktopTitle: getComputedStyle(document.querySelector('.hero-title--desktop')).display !== 'none',
@@ -153,9 +160,11 @@ try {
     if (result.floatingActions.length === 2 && result.floatingActions[0].bottom > result.floatingActions[1].top) failures.push(`${label}: floating actions overlap`);
     if (result.mobile && (!result.interactions.menu?.expanded || result.interactions.menu.lines !== 3 || !result.interactions.menu.drawerVisible || !result.interactions.menu.bodyLocked || result.interactions.menu.linkFont > 28)) failures.push(`${label}: mobile navigation regression`);
     if (result.pageHeroHeight && result.pageHeroHeight > (result.mobile ? result.height * .36 : 440)) failures.push(`${label}: page hero remains oversized`);
+    if (['shop', 'new-drops', 'brands', 'about', 'community', 'contact'].includes(result.name)
+      && result.pageHeroHeight > (result.mobile ? 190 : 250)) failures.push(`${label}: targeted page hero spacing regression`);
     if (result.name === 'home') {
       if (!result.home.scrollSnapType.startsWith('y')) failures.push(`${label}: section snapping unavailable`);
-      if (!result.home.labelsRemoved || !result.home.announcementRemoved || !result.home.indexRemoved || result.home.orbitCount !== 2 || !result.home.cinematicAsset) failures.push(`${label}: hero artwork cleanup/restoration failed`);
+      if (!result.home.labelsRemoved || !result.home.announcementRemoved || !result.home.indexRemoved || result.home.orbitCount !== 2 || !result.home.watermarkRemoved || result.home.builtStroke < 1.5 || !result.home.cinematicAsset) failures.push(`${label}: hero artwork/typography cleanup failed`);
       if (result.mobile && (!result.home.correctMobileTitle || result.home.correctDesktopTitle)) failures.push(`${label}: mobile hero hierarchy failed`);
       if (!result.mobile && (!result.home.correctDesktopTitle || result.home.correctMobileTitle)) failures.push(`${label}: desktop hero hierarchy failed`);
       if (result.home.cardCount !== 6 || !result.home.viewSneakers || !result.home.viewBrands) failures.push(`${label}: homepage CTA/card regression`);

@@ -208,17 +208,6 @@ button { color: inherit; }
   overflow: hidden;
 }
 .home-main .hero { min-height: 650px; }
-.hero::after {
-  content: "KICKZ";
-  position: absolute;
-  left: -40px;
-  bottom: 10px;
-  font: 800 clamp(140px, 22vw, 380px)/.7 var(--display);
-  letter-spacing: -.08em;
-  color: rgba(255,255,255,.018);
-  pointer-events: none;
-  white-space: nowrap;
-}
 .hero-grid { display: grid; grid-template-columns: .96fr 1.04fr; gap: 24px; align-items: center; height: 100%; min-height: 0; }
 .hero-copy { position: relative; z-index: 3; }
 
@@ -246,11 +235,16 @@ button { color: inherit; }
 }
 .hero h1 { font-size: clamp(58px, 6.2vw, 110px); line-height: .86; max-width: 760px; }
 .hero-title--mobile { display: none; }
+.hero-title { position: relative; z-index: 4; }
 .hero h1 span {
-  color: rgba(245,245,239,.055);
-  -webkit-text-stroke: 1.35px rgba(255,255,255,.86);
+  position: relative;
+  z-index: 4;
+  color: rgba(245,245,239,.13);
+  -webkit-text-stroke: 1.6px rgba(255,255,255,.94);
+  paint-order: stroke fill;
   font-weight: 800;
-  letter-spacing: -.045em;
+  letter-spacing: -.035em;
+  text-shadow: 0 2px 18px rgba(0,0,0,.38);
 }
 .hero-copy > p { max-width: 580px; font-size: 17px; color: var(--muted); margin: 0 0 34px; }
 .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
@@ -519,6 +513,39 @@ button { color: inherit; }
    Keeps homepage display impact while making reused landing sections more compact and consistently aligned. */
 .site-main .section-pad { padding-block: 56px; }
 .site-main .page-hero { align-items: start; padding-block: 48px; }
+
+/* SPRINT 5.1.2 TARGETED STOREFRONT PAGE RHYTHM
+   Compacts only Shop, New Drops, Brands, About and Contact without changing homepage or account/admin layouts. */
+.site-main:has(.shop-catalog) .page-hero,
+.site-main:has(.why) .page-hero,
+.site-main:has(.contact-section) .page-hero {
+  min-height: 240px;
+  padding-block: 34px;
+}
+.site-main:has(.shop-catalog) .page-hero h1,
+.site-main:has(.why) .page-hero h1,
+.site-main:has(.contact-section) .page-hero h1 { font-size: clamp(40px, 4.5vw, 64px); }
+.site-main:has(.shop-catalog) .page-hero p,
+.site-main:has(.why) .page-hero p,
+.site-main:has(.contact-section) .page-hero p { max-width: 610px; font-size: 14px; }
+.site-main:has(.shop-catalog) .shop-catalog { padding-block: 44px; }
+.site-main:has(.shop-catalog) .shop-toolbar .filter-row { margin-bottom: 22px; }
+.site-main:has(.shop-catalog) .shop-catalog .product-grid { gap: 18px; row-gap: 40px; }
+.site-main:has(.shop-catalog) .product-card__visual { min-height: 340px; }
+.site-main:has(.shop-catalog) .product-card__body { padding-top: 14px; }
+.site-main:has(.shop-catalog) .product-card__commerce { margin-top: 12px; padding-top: 12px; }
+.site-main:has(.why) > .section-pad:not(.page-hero) { padding-block: 46px; }
+.site-main:has(.why) .why-grid { gap: 60px; }
+.site-main:has(.why) .benefit-grid { gap: 14px; }
+.site-main:has(.why) .benefit-card { min-height: 250px; }
+.site-main:has(.why) .process-line { margin-top: 50px; }
+.site-main:has(.why) .preorder-note { margin-top: 50px; }
+.site-main:has(.why) .review-card { min-height: 290px; }
+.site-main:has(.contact-section) .contact-section { padding-block: 44px; }
+.site-main:has(.contact-section) .contact-card { min-height: 330px; padding: clamp(36px, 4.5vw, 62px); gap: clamp(32px, 5vw, 68px); }
+.site-main:has(.contact-section) .contact-card h2 { font-size: clamp(38px, 4.2vw, 62px); }
+.site-main:has(.contact-section) .contact-card p { margin-bottom: 22px; }
+.site-main:has(.contact-section) .contact-card .btn { min-height: 50px; }
 .filter-row { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 30px; }
 .filter-btn {
   padding: 10px 16px;
@@ -1371,6 +1398,32 @@ button { color: inherit; }
   .page-hero { min-height: 25svh; }
   .page-hero h1 { font-size: clamp(34px, 9.8vw, 46px); margin-block: 9px; }
   .page-hero p { font-size: 13px; }
+
+  /* SPRINT 5.1.2 MOBILE STOREFRONT DENSITY
+     Mirrors the desktop compaction with touch-safe controls and readable, non-cropping type. */
+  .site-main:has(.shop-catalog) .page-hero,
+  .site-main:has(.why) .page-hero,
+  .site-main:has(.contact-section) .page-hero { min-height: 184px; padding-block: 28px; }
+  .site-main:has(.shop-catalog) .page-hero h1,
+  .site-main:has(.why) .page-hero h1,
+  .site-main:has(.contact-section) .page-hero h1 { font-size: clamp(31px, 9vw, 40px); }
+  .site-main:has(.shop-catalog) .page-hero p,
+  .site-main:has(.why) .page-hero p,
+  .site-main:has(.contact-section) .page-hero p { font-size: 12px; line-height: 1.5; }
+  .site-main:has(.shop-catalog) .shop-catalog { padding-block: 34px; }
+  .site-main:has(.shop-catalog) .shop-catalog .product-grid { row-gap: 32px; }
+  .site-main:has(.shop-catalog) .product-card__visual { min-height: clamp(270px, 84vw, 320px); }
+  .site-main:has(.shop-catalog) .product-card__commerce { gap: 10px; }
+  .site-main:has(.why) > .section-pad:not(.page-hero) { padding-block: 38px; }
+  .site-main:has(.why) .why-grid { gap: 38px; }
+  .site-main:has(.why) .benefit-card { min-height: 210px; }
+  .site-main:has(.why) .process-line { margin-top: 36px; }
+  .site-main:has(.why) .preorder-note { margin-top: 38px; }
+  .site-main:has(.why) .review-card { min-height: 250px; }
+  .site-main:has(.contact-section) .contact-section { padding-block: 34px; }
+  .site-main:has(.contact-section) .contact-card { padding: 30px 20px; gap: 22px; }
+  .site-main:has(.contact-section) .contact-card h2 { font-size: clamp(29px, 8.8vw, 38px); }
+  .site-main:has(.contact-section) .contact-card p { margin-bottom: 18px; font-size: 13px; }
 
   /* MOBILE FILTER FIX
      Keeps every filter touch target usable inside its own horizontal row without affecting page width. */
