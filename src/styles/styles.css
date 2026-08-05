@@ -621,6 +621,21 @@ button { color: inherit; }
 .shop-toolbar > span { color: var(--faint); font-size: 10px; letter-spacing: .12em; padding-top: 11px; white-space: nowrap; }
 .shop-brand-filter { padding: 16px 0 30px; border-top: 1px solid var(--line); }
 .shop-catalog .product-grid { row-gap: 52px; }
+.product-collection-state {
+  min-height: 180px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  margin: 24px 0;
+  padding: 28px;
+  text-align: center;
+  background: rgba(255,255,255,.015);
+}
+.product-collection-state strong { font-family: var(--display); font-size: clamp(19px, 2vw, 28px); letter-spacing: .02em; }
+.product-collection-state p { margin: 0; color: var(--muted); font-size: 12px; }
 .center-action { text-align: center; margin-top: 38px; }
 .center-action .btn { min-height: 48px; }
 .text-link { font-size: 12px; letter-spacing: .1em; font-weight: 800; border-bottom: 1px solid var(--acid); padding-bottom: 6px; }

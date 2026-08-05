@@ -6,8 +6,9 @@ import {
   productLuxury,
   productNewBalance,
 } from '../../assets';
-import { products } from '../../data/products';
+import { useProducts } from '../../hooks/useProducts';
 import ProductCard from '../ProductCard';
+import ProductCollectionState from '../ProductCollectionState';
 
 export function HeroSection() {
   const visualRef = useRef(null);
@@ -79,7 +80,14 @@ export function CultureTicker() {
 
 export function FeaturedDrops({ showToast }) {
   const [filter, setFilter] = useState('all');
+  const { products, loading, error } = useProducts();
   const filters = [['all', 'ALL DROPS'], ['jordan', 'JORDAN'], ['nike', 'NIKE'], ['adidas', 'ADIDAS'], ['luxury', 'LUXURY']];
+  const featuredProducts = products.slice(0, 6);
+  const matchesFilter = (product) => {
+    if (filter === 'all') return true;
+    if (filter === 'luxury') return product.category.toLowerCase().includes('luxury');
+    return product.brand.toLowerCase() === filter;
+  };
   return (
     <section className="drops section-pad snap-section" id="drops">
       <div className="container">
@@ -87,8 +95,9 @@ export function FeaturedDrops({ showToast }) {
         <div className="filter-row reveal delay-80" role="group" aria-label="Filter products">
           {filters.map(([value, label]) => <button className={`filter-btn${filter === value ? ' active' : ''}`} data-filter={value} key={value} onClick={() => setFilter(value)}>{label}</button>)}
         </div>
+        <ProductCollectionState loading={loading} error={error} empty={!loading && !error && featuredProducts.length === 0} />
         <div className="product-grid">
-          {products.map((product) => <ProductCard product={product} key={product.code} hidden={filter !== 'all' && filter !== product.category} onSaved={(saved) => showToast(saved ? 'Added to your saved list.' : 'Removed from your saved list.')} />)}
+          {featuredProducts.map((product) => <ProductCard product={product} key={product.id} hidden={!matchesFilter(product)} onSaved={(saved) => showToast(saved ? 'Added to your saved list.' : 'Removed from your saved list.')} />)}
         </div>
         <div className="center-action reveal"><a href="/shop" className="btn btn--ghost">VIEW ALL SNEAKERS <span>↗</span></a></div>
       </div>

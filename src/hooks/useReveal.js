@@ -6,7 +6,11 @@ export default function useReveal() {
 
     if (!('IntersectionObserver' in window)) {
       revealItems.forEach((item) => item.classList.add('is-visible'));
-      return undefined;
+      const fallbackObserver = new MutationObserver(() => {
+        document.querySelectorAll('.reveal:not(.is-visible)').forEach((item) => item.classList.add('is-visible'));
+      });
+      fallbackObserver.observe(document.body, { childList: true, subtree: true });
+      return () => fallbackObserver.disconnect();
     }
 
     const observer = new IntersectionObserver(
@@ -22,6 +26,14 @@ export default function useReveal() {
     );
 
     revealItems.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
+    // API-backed cards mount after the first render and must retain the approved reveal animation.
+    const mutationObserver = new MutationObserver(() => {
+      document.querySelectorAll('.reveal:not(.is-visible)').forEach((item) => observer.observe(item));
+    });
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      mutationObserver.disconnect();
+      observer.disconnect();
+    };
   }, []);
 }

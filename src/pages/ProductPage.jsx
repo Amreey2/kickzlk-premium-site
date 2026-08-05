@@ -6,13 +6,14 @@ import PageHero from '../components/PageHero';
 import PageShell from '../components/PageShell';
 import Toast from '../components/Toast';
 import { MobileBuyBar, ProductDetails, ProductGallery, ProductInfo, Recommendations } from '../components/product/ProductSections';
-import { getProductById } from '../data/products';
+import { useProduct, useProducts } from '../hooks/useProducts';
 import useReveal from '../hooks/useReveal';
 import useToast from '../hooks/useToast';
 
 export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }) {
   useReveal();
-  const product = getProductById(productId);
+  const { product, loading, error } = useProduct(productId);
+  const catalog = useProducts();
   const toast = useToast('Please select a size.');
   const [selectedSize, setSelectedSize] = useState('');
   const [payment, setPayment] = useState('deposit');
@@ -29,10 +30,23 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
     toast.showToast(`${sizePrefix} ${selectedSize} added to your enquiry bag.`, 2300);
   };
 
-  if (!product) {
+  if (loading) {
     return (
       <PageShell>
-        <PageHero kicker="KICKZ.LK CATALOG" title="PAIR NOT FOUND" copy="This sneaker is no longer available in the current local catalog." />
+        <PageHero kicker="KICKZ.LK CATALOG" title="LOADING PAIR" copy="Retrieving the latest product details from KICKZ.LK." />
+      </PageShell>
+    );
+  }
+
+  if (error || !product) {
+    const notFound = error?.status === 404;
+    return (
+      <PageShell>
+        <PageHero
+          kicker="KICKZ.LK CATALOG"
+          title={notFound ? 'PAIR NOT FOUND' : 'CATALOG UNAVAILABLE'}
+          copy={notFound ? 'This sneaker is no longer available in the current catalog.' : 'Product details could not be loaded. Please refresh or try again shortly.'}
+        />
         <section className="empty-state section-pad"><div className="container"><a href="/shop" className="btn btn--acid">RETURN TO SHOP <span>→</span></a></div></section>
       </PageShell>
     );
@@ -50,7 +64,7 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
         </div>
       </div></main>
       <ProductDetails product={product} />
-      <Recommendations productId={product.id} />
+      <Recommendations productId={product.id} products={catalog.products} loading={catalog.loading} error={catalog.error} />
       <Footer />
       <FloatingActions aboveMobileBuyBar />
       <MobileBuyBar product={product} selectedSize={selectedSize} addToBag={addToBag} />
