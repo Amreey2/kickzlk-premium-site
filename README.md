@@ -32,7 +32,7 @@ npm run db:seed-admin
 npm run server
 ```
 
-The API defaults to `http://localhost:5000/api`. In production, use unique 32+ character JWT secrets, enable `COOKIE_SECURE`, set `DB_REQUIRED=true`, and configure `CLIENT_ORIGIN`.
+The frontend defaults to the same-origin `/api` path. During development Vite proxies `/api` and `/uploads` to `http://127.0.0.1:5000`, so authenticated uploads continue working if Vite selects a port other than 5173. In production, route those paths to the backend at the web-server level, or set `VITE_API_URL` to the full API origin and add the exact frontend origin to `CLIENT_ORIGIN`. Also use unique 32+ character JWT secrets, enable `COOKIE_SECURE`, and set `DB_REQUIRED=true`.
 
 Useful commands:
 

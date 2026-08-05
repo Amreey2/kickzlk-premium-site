@@ -105,7 +105,11 @@ export default function AdminProductFormPage({ productId }) {
       }))]);
       setMessage(`${uploaded.length} image${uploaded.length === 1 ? '' : 's'} uploaded successfully.`);
     } catch (requestError) {
-      if (!handleAdminSessionError(requestError)) setError(requestError.message || 'Images could not be uploaded.');
+      if (!handleAdminSessionError(requestError)) {
+        setError(requestError.code === 'NETWORK_ERROR'
+          ? 'Image upload could not reach the KICKZ.LK server. Confirm the backend is running, then try again.'
+          : requestError.message || 'Images could not be uploaded.');
+      }
     } finally {
       previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
       previewUrls.current = [];
