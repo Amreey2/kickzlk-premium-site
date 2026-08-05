@@ -1,4 +1,4 @@
-import { apiRequest, resolveApiAssetUrl } from './client';
+import { ApiError, apiRequest, resolveApiAssetUrl } from './client';
 
 const listCache = new Map();
 const detailCache = new Map();
@@ -7,6 +7,7 @@ const normalizeImage = (image, index, productName) => {
   const source = typeof image === 'string' ? { url: image } : (image || {});
   return {
     url: resolveApiAssetUrl(source.url || source.src),
+    storageUrl: source.storageUrl || source.url || source.src || '',
     alt: source.alt || `${productName} sneaker view ${index + 1}`,
     position: Number(source.position || index + 1),
   };
@@ -15,6 +16,12 @@ const normalizeImage = (image, index, productName) => {
 // Keep the storefront isolated from database naming and from optional API metadata.
 const normalizeProduct = (product) => {
   const id = String(product.id || product.slug || '');
+  const availability = String(product.availability || 'Active');
+  const status = availability.toLowerCase() === 'inactive'
+    ? 'Inactive'
+    : availability.toLowerCase() === 'out of stock'
+      ? 'Out of Stock'
+      : 'Active';
   return {
     id,
     slug: String(product.slug || id),
@@ -29,8 +36,13 @@ const normalizeProduct = (product) => {
     description: String(product.description || ''),
     preOrder: Boolean(product.preOrder),
     stock: Number(product.stock || 0),
+    status,
+    availability,
+    deliveryTime: String(product.deliveryTime || ''),
   };
 };
+
+const isCustomerVisible = (product) => product.status !== 'Inactive';
 
 const cachedRequest = (cache, key, request) => {
   if (cache.has(key)) return cache.get(key);
@@ -50,12 +62,41 @@ export const productsApi = {
       const normalized = Array.isArray(products) ? products.map(normalizeProduct) : [];
       normalized.forEach((product) => detailCache.set(product.slug, Promise.resolve(product)));
       return normalized;
-    });
+    }).then((products) => products.filter(isCustomerVisible));
   },
-  get: (slug) => cachedRequest(detailCache, String(slug), async () => normalizeProduct(
+  adminList: () => cachedRequest(listCache, '', async () => {
+    const products = await apiRequest('/products');
+    const normalized = Array.isArray(products) ? products.map(normalizeProduct) : [];
+    normalized.forEach((product) => detailCache.set(product.slug, Promise.resolve(product)));
+    return normalized;
+  }),
+  getAdmin: (slug) => cachedRequest(detailCache, String(slug), async () => normalizeProduct(
     await apiRequest(`/products/${encodeURIComponent(slug)}`),
   )),
-  create: (data) => apiRequest('/products', { method: 'POST', body: data }),
-  update: (id, data) => apiRequest(`/products/${id}`, { method: 'PUT', body: data }),
-  remove: (id) => apiRequest(`/products/${id}`, { method: 'DELETE' }),
+  get: async (slug) => {
+    const product = await productsApi.getAdmin(slug);
+    if (!isCustomerVisible(product)) throw new ApiError('Product was not found.', 404, 'PRODUCT_NOT_FOUND');
+    return product;
+  },
+  create: async (data) => {
+    const product = normalizeProduct(await apiRequest('/products', { method: 'POST', body: data }));
+    listCache.clear();
+    detailCache.clear();
+    return product;
+  },
+  update: async (id, data) => {
+    const product = normalizeProduct(await apiRequest(`/products/${encodeURIComponent(id)}`, { method: 'PUT', body: data }));
+    listCache.clear();
+    detailCache.clear();
+    return product;
+  },
+  remove: async (id) => {
+    await apiRequest(`/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    listCache.clear();
+    detailCache.clear();
+  },
+  clearCache: () => {
+    listCache.clear();
+    detailCache.clear();
+  },
 };

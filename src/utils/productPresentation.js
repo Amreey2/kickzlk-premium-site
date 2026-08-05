@@ -12,6 +12,7 @@ export const replaceFailedProductImage = (event) => {
 };
 
 export const productAvailability = (product) => {
+  if (product.status === 'Out of Stock') return 'OUT OF STOCK';
   if (product.preOrder) return 'PRE-ORDER';
   return product.stock > 0 ? 'AVAILABLE' : 'OUT OF STOCK';
 };
@@ -19,6 +20,7 @@ export const productAvailability = (product) => {
 export const productDeliveryTime = (product) => product.preOrder ? '14–28 days' : '3–5 days';
 
 export const productBadgeClass = (product) => {
+  if (product.status === 'Out of Stock') return '';
   if (product.preOrder) return 'badge--sand';
   if (product.stock > 0) return 'badge--acid';
   return '';

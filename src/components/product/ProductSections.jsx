@@ -62,8 +62,9 @@ export function ProductGallery({ product }) {
 export function ProductInfo({ product, selectedSize, setSelectedSize, payment, setPayment, addToBag }) {
   const deposit = Math.round((product.price * 0.3) / 1000) * 1000;
   const amount = payment === 'deposit' ? `${formatProductPrice(deposit)} DEPOSIT` : formatProductPrice(product.price);
-  const action = product.preOrder ? 'PRE-ORDER' : 'ADD';
-  const actionText = selectedSize ? `${action} SIZE ${selectedSize} · ${amount}` : `SELECT A SIZE TO ${action}`;
+  const unavailable = product.status === 'Out of Stock' || (!product.preOrder && product.stock <= 0);
+  const action = unavailable ? 'OUT OF STOCK' : product.preOrder ? 'PRE-ORDER' : 'ADD';
+  const actionText = unavailable ? action : selectedSize ? `${action} SIZE ${selectedSize} · ${amount}` : `SELECT A SIZE TO ${action}`;
   const sizePrefix = product.brand === 'Balmain' ? 'EU' : 'US';
   const whatsappUrl = createWhatsAppUrl(product);
   const availability = productAvailability(product);
@@ -105,7 +106,7 @@ export function ProductInfo({ product, selectedSize, setSelectedSize, payment, s
       )}
       <div className="delivery-box"><b>↗</b><div><strong>Estimated delivery: {deliveryTime}</strong><span>Regular WhatsApp updates from sourcing to islandwide delivery.</span></div></div>
       <div className="product-cta">
-        <button className="btn btn--acid" id="preorder-button" onClick={addToBag}>{actionText} <span>→</span></button>
+        <button className="btn btn--acid" id="preorder-button" onClick={addToBag} disabled={unavailable}>{actionText} <span>→</span></button>
         <a className="btn btn--whatsapp" id="whatsapp-button" href={whatsappUrl} target="_blank" rel="noopener noreferrer">WHATSAPP ENQUIRY <span>↗</span></a>
       </div>
       <div className="auth-box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.9 7.5 10.5 4.3-1.6 7.5-5.9 7.5-10.5V6L12 3Z" /><path d="m8.8 12 2.1 2.1 4.4-4.5" /></svg><div><h4>KICKZ AUTHENTICITY GUARANTEE</h4><p>Sourced from verified retail and trusted global channels. Order documentation is retained for quality assurance.</p></div></div>
@@ -144,6 +145,7 @@ export function Recommendations({ productId, products, loading, error }) {
 
 export function MobileBuyBar({ product, selectedSize, addToBag }) {
   const openWhatsApp = () => document.getElementById('whatsapp-button')?.click();
+  const unavailable = product.status === 'Out of Stock' || (!product.preOrder && product.stock <= 0);
   const action = product.preOrder ? 'PRE-ORDER' : 'ADD';
-  return <div className="mobile-buybar"><button className="btn btn--ghost" onClick={openWhatsApp}>WHATSAPP</button><button className="btn btn--acid" onClick={addToBag}>{selectedSize ? `${action} SIZE ${selectedSize}` : 'SELECT SIZE'}</button></div>;
+  return <div className="mobile-buybar"><button className="btn btn--ghost" onClick={openWhatsApp}>WHATSAPP</button><button className="btn btn--acid" onClick={addToBag} disabled={unavailable}>{unavailable ? 'OUT OF STOCK' : selectedSize ? `${action} SIZE ${selectedSize}` : 'SELECT SIZE'}</button></div>;
 }
