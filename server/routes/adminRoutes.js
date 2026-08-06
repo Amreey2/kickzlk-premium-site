@@ -4,15 +4,18 @@ import { createAuthController } from '../controllers/authController.js';
 import { createCatalogController } from '../controllers/catalogController.js';
 import { createOrderController } from '../controllers/orderController.js';
 import { createProductController } from '../controllers/productController.js';
+import { createProductImportController } from '../controllers/productImportController.js';
 import { requireAdmin } from '../middleware/auth.js';
+import { uploadProductCsv } from '../middleware/upload.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
-export default function createAdminRoutes({ authService, orderService, catalogService, productService }) {
+export default function createAdminRoutes({ authService, orderService, catalogService, productService, productImportService }) {
   const router = Router();
   const auth = createAuthController(authService);
   const orders = createOrderController(orderService);
   const catalog = createCatalogController(catalogService);
   const products = createProductController(productService);
+  const productImports = createProductImportController(productImportService);
   const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 15, standardHeaders: 'draft-8', legacyHeaders: false });
   router.post('/login', limiter, asyncHandler(auth.adminLogin));
   router.get('/brands', requireAdmin, asyncHandler(catalog.brands));
@@ -26,6 +29,10 @@ export default function createAdminRoutes({ authService, orderService, catalogSe
   router.get('/catalog-options', requireAdmin, asyncHandler(catalog.options));
   router.post('/catalog-options', requireAdmin, asyncHandler(catalog.createOption));
   router.put('/catalog-options/:id', requireAdmin, asyncHandler(catalog.updateOption));
+  router.get('/products/import/template', requireAdmin, asyncHandler(productImports.template));
+  router.get('/products/import/history', requireAdmin, asyncHandler(productImports.history));
+  router.get('/products/import/history/:id/failures.csv', requireAdmin, asyncHandler(productImports.failedReport));
+  router.post('/products/import', requireAdmin, uploadProductCsv, asyncHandler(productImports.process));
   router.get('/products', requireAdmin, asyncHandler(products.adminList));
   router.get('/products/:id', requireAdmin, asyncHandler(products.adminGet));
   router.get('/orders', requireAdmin, asyncHandler(orders.adminList));

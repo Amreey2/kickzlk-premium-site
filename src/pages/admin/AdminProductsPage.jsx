@@ -82,7 +82,7 @@ export default function AdminProductsPage() {
 
   return (
     <AdminLayout title="Products">
-      <AdminPageHeader eyebrow="CATALOG MANAGEMENT" title="PRODUCTS" copy={loading ? 'Loading live catalog…' : `${products.length} products in the live catalog.`} action={<a href="/admin/products/new" className="btn btn--acid">ADD PRODUCT <span>＋</span></a>} />
+      <AdminPageHeader eyebrow="CATALOG MANAGEMENT" title="PRODUCTS" copy={loading ? 'Loading live catalog…' : `${products.length} products in the live catalog.`} action={<div className="admin-page-actions"><a href="/admin/products/import" className="btn btn--ghost">BULK IMPORT</a><a href="/admin/products/new" className="btn btn--acid">ADD PRODUCT <span>＋</span></a></div>} />
       <section className="admin-panel">
         {/* SPRINT 6.1B LIVE CATALOG: the existing table now reflects database reads and protected mutations. */}
         {message && <p className="admin-feedback admin-feedback--success" role="status">{message}</p>}

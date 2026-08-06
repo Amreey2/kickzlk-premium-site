@@ -54,8 +54,8 @@ const validate = (payload) => {
   if (!productTypes.has(productType)) throw new AppError('Product type must be Ready Stock or Pre Order.', 422, 'INVALID_PRODUCT_TYPE');
   if (!Number.isInteger(Number(payload.stock || 0)) || Number(payload.stock || 0) < 0) throw new AppError('Product stock must be a non-negative integer.', 422, 'INVALID_STOCK');
   if (payload.images !== undefined && !Array.isArray(payload.images)) throw new AppError('Product images must be an array.', 422, 'INVALID_IMAGES');
-  if (!Array.isArray(payload.productTags) || !payload.productTags.length || list(payload.productTags).some((value) => value.length > 60 || /[,\r\n]/.test(value))) throw new AppError('Add at least one valid product tag (maximum 60 characters each).', 422, 'INVALID_PRODUCT_TAGS');
-  if (!Array.isArray(payload.colorVariations) || !payload.colorVariations.length || list(payload.colorVariations).some((value) => value.length > 60 || /[,\r\n]/.test(value))) throw new AppError('Add at least one valid colour name (maximum 60 characters each).', 422, 'INVALID_COLORS');
+  if (!Array.isArray(payload.productTags) || list(payload.productTags).some((value) => value.length > 60 || /[,\r\n]/.test(value))) throw new AppError('Product tags must be valid values with a maximum of 60 characters each.', 422, 'INVALID_PRODUCT_TAGS');
+  if (!Array.isArray(payload.colorVariations) || list(payload.colorVariations).some((value) => value.length > 60 || /[,\r\n]/.test(value))) throw new AppError('Colours must be valid values with a maximum of 60 characters each.', 422, 'INVALID_COLORS');
   if (String(payload.metaTitle).trim().length > 255) throw new AppError('Meta title cannot exceed 255 characters.', 422, 'INVALID_META_TITLE');
   if (String(payload.metaDescription).trim().length > 320) throw new AppError('Meta description cannot exceed 320 characters.', 422, 'INVALID_META_DESCRIPTION');
   if (String(payload.imageAltText).trim().length > 255) throw new AppError('Image alt text cannot exceed 255 characters.', 422, 'INVALID_IMAGE_ALT_TEXT');

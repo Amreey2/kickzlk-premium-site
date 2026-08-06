@@ -48,6 +48,13 @@ const services = () => ({
     createCategory: async (payload) => ({ id: 2, ...payload }), updateCategory: async (id, payload) => ({ id: Number(id), ...payload }), deleteCategory: async () => undefined,
     createOption: async (payload) => ({ id: 2, ...payload }),
   },
+  productImportService: {
+    template: () => 'sku,brand,category,product_name,price,status\n',
+    preview: async () => ({ mode: 'preview', totalRows: 1, validRows: 1, failedRows: 0, canImport: true, rows: [] }),
+    import: async () => ({ mode: 'import', importId: 1, totalRows: 1, successfulRows: 1, failedRows: 0, createdRows: 1, updatedRows: 0, failures: [] }),
+    history: async () => [],
+    failedReport: async () => ({ fileName: 'failed.csv', csv: 'row,sku,reason\n' }),
+  },
 });
 
 const app = () => createApp({ services: services(), databaseCheck: async () => true });
@@ -98,6 +105,19 @@ describe('API contract', () => {
     await request(instance).post('/api/admin/brands').send({ name: 'Puma' }).expect(401);
     const created = await request(instance).post('/api/admin/brands').set('Authorization', `Bearer ${adminToken}`).send({ name: 'Puma' }).expect(201);
     assert.equal(created.body.data.name, 'Puma');
+  });
+
+  test('bulk product import APIs require admin authentication', async () => {
+    const instance = app();
+    await request(instance).get('/api/admin/products/import/template').expect(401);
+    const template = await request(instance).get('/api/admin/products/import/template').set('Authorization', `Bearer ${adminToken}`).expect(200);
+    assert.match(template.text, /^sku,brand/);
+    const preview = await request(instance).post('/api/admin/products/import')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .field('mode', 'preview')
+      .attach('file', Buffer.from('sku,brand,category,product_name,price,status\nKZ-1,Nike,Sneakers,Pair,100,Active'), { filename: 'products.csv', contentType: 'text/csv' })
+      .expect(200);
+    assert.equal(preview.body.data.mode, 'preview');
   });
 
   test('guest checkout and verified guest tracking work without an account', async () => {

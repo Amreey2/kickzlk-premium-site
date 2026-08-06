@@ -19,6 +19,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminLoginPage from './pages/admin/AdminLoginPage';
 import AdminOrdersPage from './pages/admin/AdminOrdersPage';
 import AdminProductFormPage from './pages/admin/AdminProductFormPage';
+import AdminProductImportPage from './pages/admin/AdminProductImportPage';
 import AdminProductsPage from './pages/admin/AdminProductsPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
@@ -42,6 +43,7 @@ const routes = {
   '/admin/login': AdminLoginPage,
   '/admin/dashboard': AdminDashboardPage,
   '/admin/products': AdminProductsPage,
+  '/admin/products/import': AdminProductImportPage,
   '/admin/brands': AdminBrandsPage,
   '/admin/categories': AdminCategoriesPage,
   '/admin/products/new': AdminProductFormPage,

@@ -27,3 +27,19 @@ const upload = multer({
 });
 
 export const uploadProductImages = upload.array('images', 8);
+
+const csvTypes = new Set(['text/csv', 'application/csv', 'application/vnd.ms-excel', 'text/plain', 'application/octet-stream']);
+const csvUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: (request, file, callback) => {
+    void request;
+    const valid = path.extname(file.originalname).toLowerCase() === '.csv' && csvTypes.has(file.mimetype);
+    callback(valid ? null : new AppError('Upload a valid CSV file.', 422, 'INVALID_CSV_FILE'), valid);
+  },
+});
+
+export const uploadProductCsv = (request, response, next) => csvUpload.single('file')(request, response, (error) => {
+  if (error?.code === 'LIMIT_FILE_SIZE') return next(new AppError('CSV files cannot exceed 5 MB.', 422, 'CSV_FILE_TOO_LARGE'));
+  return next(error);
+});

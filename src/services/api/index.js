@@ -3,4 +3,5 @@ export { authApi } from './auth';
 export { catalogApi } from './catalog';
 export { ordersApi } from './orders';
 export { productsApi } from './products';
+export { productImportsApi } from './productImports';
 export { uploadsApi } from './uploads';

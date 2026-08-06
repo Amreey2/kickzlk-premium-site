@@ -146,3 +146,34 @@ CREATE TABLE IF NOT EXISTS order_status_history (
   KEY idx_status_history_order (order_id),
   CONSTRAINT fk_status_history_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS product_imports (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  file_name VARCHAR(255) NOT NULL,
+  imported_by BIGINT UNSIGNED NULL,
+  status ENUM('Processing', 'Completed') NOT NULL DEFAULT 'Processing',
+  total_rows INT UNSIGNED NOT NULL DEFAULT 0,
+  successful_rows INT UNSIGNED NOT NULL DEFAULT 0,
+  failed_rows INT UNSIGNED NOT NULL DEFAULT 0,
+  created_rows INT UNSIGNED NOT NULL DEFAULT 0,
+  updated_rows INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP NULL,
+  PRIMARY KEY (id),
+  KEY idx_product_imports_created (created_at),
+  KEY idx_product_imports_admin (imported_by),
+  CONSTRAINT fk_product_imports_admin FOREIGN KEY (imported_by) REFERENCES administrators(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS product_import_failures (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  import_id BIGINT UNSIGNED NOT NULL,
+  row_number INT UNSIGNED NOT NULL,
+  sku VARCHAR(100) NULL,
+  error_codes JSON NOT NULL,
+  reasons JSON NOT NULL,
+  row_data JSON NOT NULL,
+  PRIMARY KEY (id),
+  KEY idx_product_import_failures_import (import_id),
+  CONSTRAINT fk_product_import_failures_import FOREIGN KEY (import_id) REFERENCES product_imports(id) ON DELETE CASCADE
+);

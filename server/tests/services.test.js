@@ -5,6 +5,8 @@ import AuthService from '../services/AuthService.js';
 import OrderService from '../services/OrderService.js';
 import ProductService from '../services/ProductService.js';
 import CatalogService from '../services/CatalogService.js';
+import ProductImportService, { CSV_COLUMNS } from '../services/ProductImportService.js';
+import { serializeCsv } from '../utils/csv.js';
 
 describe('authentication services', () => {
   test('registration hashes passwords and returns a customer JWT', async () => {
@@ -131,5 +133,71 @@ describe('catalogue management services', () => {
     assert.equal(brandData.metaTitle, null);
     assert.equal(categoryData.image, null);
     assert.equal(categoryData.metaDescription, null);
+  });
+});
+
+describe('bulk product import services', () => {
+  const values = (overrides) => CSV_COLUMNS.map((column) => ({
+    sku: 'KZ-NEW-001', brand: 'Nike', category: 'Lifestyle Sneakers', product_name: 'Imported Pair',
+    price: '45000', status: 'Active', description: '', stock: '5', delivery_timeline: '2 Weeks',
+    available_sizes: '40,41,42', pre_order_available: '', product_tags: 'New Arrival,new arrival,Exclusive',
+    color_variations: 'Black,White', cdn_images: 'https://cdn.example.com/one.jpg,https://cdn.example.com/two.jpg',
+    image_alt_text: '', meta_title: '', meta_description: '', ...overrides,
+  })[column]);
+
+  const csv = serializeCsv([
+    CSV_COLUMNS,
+    values({}),
+    values({ sku: 'KZ-EXIST-001', product_name: 'Updated Pair', pre_order_available: 'YES' }),
+    values({ sku: 'KZ-DUP-001', product_name: 'Duplicate One' }),
+    values({ sku: 'KZ-DUP-001', product_name: 'Duplicate Two' }),
+    values({ sku: 'KZ-BRAND-FAIL', brand: 'Missing Brand' }),
+    values({ sku: 'KZ-CATEGORY-FAIL', category: 'Missing Category' }),
+  ]);
+
+  test('previews, validates, imports valid rows, updates by SKU, and reports failures', async () => {
+    const created = []; const updated = []; let storedFailures = []; let completed;
+    const existing = { id: 'existing-pair', sku: 'KZ-EXIST-001', description: 'Existing description', sizes: ['39'] };
+    const importModel = {
+      create: async () => 55,
+      addFailures: async (id, failures) => { assert.equal(id, 55); storedFailures = failures; },
+      complete: async (id, summary) => { assert.equal(id, 55); completed = summary; },
+      list: async () => [],
+      findById: async () => ({ id: 55 }),
+      failures: async () => storedFailures.map((failure) => ({
+        rowNumber: failure.rowNumber, sku: failure.sku,
+        errorCodes: failure.errors.map((error) => error.code), reasons: failure.errors.map((error) => error.message), source: failure.source,
+      })),
+    };
+    const service = new ProductImportService({
+      productService: {
+        create: async (payload) => { created.push(payload); return payload; },
+        update: async (id, payload) => { updated.push({ id, payload }); return payload; },
+      },
+      productModel: { findBySku: async (sku) => sku === existing.sku ? existing : null },
+      brandModel: { list: async () => [{ id: 1, name: 'Nike', status: 'Active' }] },
+      categoryModel: { list: async () => [{ id: 2, name: 'Lifestyle Sneakers', status: 'Active' }] },
+      importModel,
+    });
+
+    const preview = await service.preview(csv, 'products.csv');
+    assert.equal(preview.totalRows, 6);
+    assert.equal(preview.validRows, 2);
+    assert.equal(preview.failedRows, 4);
+    assert.equal(preview.rows.find((row) => row.sku === existing.sku).notices[0].code, 'SKU_EXISTS');
+    assert.equal(preview.rows.filter((row) => row.sku === 'KZ-DUP-001').every((row) => row.errors[0].code === 'DUPLICATE_SKU_IN_CSV'), true);
+
+    const result = await service.import(csv, { fileName: 'products.csv', adminId: 1 });
+    assert.deepEqual(completed, { totalRows: 6, successfulRows: 2, failedRows: 4, createdRows: 1, updatedRows: 1 });
+    assert.equal(result.importId, 55);
+    assert.equal(created[0].preOrder, false);
+    assert.deepEqual(created[0].productTags, ['New Arrival', 'Exclusive']);
+    assert.equal(created[0].cdnImages.length, 2);
+    assert.equal(updated[0].id, existing.id);
+    assert.equal(updated[0].payload.preOrder, true);
+
+    const report = await service.failedReport(55);
+    assert.match(report.csv, /DUPLICATE_SKU_IN_CSV/);
+    assert.match(report.csv, /BRAND_NOT_FOUND/);
   });
 });
