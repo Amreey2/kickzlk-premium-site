@@ -18,6 +18,7 @@ const mapProduct = (row) => {
     brand: row.brand,
     brandId: row.brand_id,
     category: row.category,
+    categoryGender: row.category_gender || null,
     price: Number(row.price),
     images: parseJson(row.images, []),
     sizes: parseJson(row.size, []),
@@ -52,23 +53,25 @@ export default class ProductModel {
   async findAll(filters = {}) {
     const clauses = [];
     const values = [];
-    if (filters.category) { clauses.push('category = ?'); values.push(filters.category); }
-    if (filters.brand) { clauses.push('brand = ?'); values.push(filters.brand); }
-    if (filters.productType) { clauses.push('product_type = ?'); values.push(filters.productType); }
+    if (filters.category) { clauses.push('p.category = ?'); values.push(filters.category); }
+    if (filters.brand) { clauses.push('p.brand = ?'); values.push(filters.brand); }
+    if (filters.productType) { clauses.push('p.product_type = ?'); values.push(filters.productType); }
     if (filters.search) {
-      clauses.push('(sku LIKE ? OR name LIKE ? OR brand LIKE ?)');
+      clauses.push('(p.sku LIKE ? OR p.name LIKE ? OR p.brand LIKE ?)');
       const term = `%${filters.search}%`;
       values.push(term, term, term);
     }
     const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : '';
-    const rows = await this.database.query(`SELECT * FROM products${where} ORDER BY created_at DESC`, values);
+    const rows = await this.database.query(`SELECT p.*, c.gender AS category_gender FROM products p LEFT JOIN categories c ON c.id = p.category_id${where} ORDER BY p.created_at DESC`, values);
     return rows.map(mapProduct);
   }
 
   async findById(id) {
     const numeric = /^\d+$/.test(String(id));
     const rows = await this.database.query(
-      numeric ? 'SELECT * FROM products WHERE id = ? LIMIT 1' : 'SELECT * FROM products WHERE slug = ? LIMIT 1',
+      numeric
+        ? 'SELECT p.*, c.gender AS category_gender FROM products p LEFT JOIN categories c ON c.id = p.category_id WHERE p.id = ? LIMIT 1'
+        : 'SELECT p.*, c.gender AS category_gender FROM products p LEFT JOIN categories c ON c.id = p.category_id WHERE p.slug = ? LIMIT 1',
       [id],
     );
     return mapProduct(rows[0]);

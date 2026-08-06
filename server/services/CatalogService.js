@@ -9,7 +9,7 @@ const validUrl = (value) => {
 };
 const text = (value) => String(value || '').trim();
 const validateCommon = (payload, imageField) => {
-  requireFields(payload, ['name', 'metaTitle', 'metaDescription']);
+  requireFields(payload, ['name']);
   if (text(payload.name).length > 150) throw new AppError('Name cannot exceed 150 characters.', 422, 'INVALID_NAME');
   if (!statuses.has(payload.status || 'Active')) throw new AppError('Status must be Active or Inactive.', 422, 'INVALID_STATUS');
   if (text(payload.metaTitle).length > 255) throw new AppError('Meta title cannot exceed 255 characters.', 422, 'INVALID_META_TITLE');
@@ -81,12 +81,24 @@ export default class CatalogService {
     return this.optionModel.create({ kind: payload.kind, value, status: 'Active' });
   }
 
+  async updateOption(id, payload) {
+    const current = await this.optionModel.findById(id);
+    if (!current) throw new AppError('Catalogue option was not found.', 404, 'OPTION_NOT_FOUND');
+    const value = text(payload.value === undefined ? current.value : payload.value);
+    const status = payload.status || current.status;
+    if (!value || value.length > 150) throw new AppError('Catalogue option must contain 1–150 characters.', 422, 'INVALID_OPTION');
+    if (!statuses.has(status)) throw new AppError('Status must be Active or Inactive.', 422, 'INVALID_STATUS');
+    const duplicate = await this.optionModel.find(current.kind, value);
+    if (duplicate && Number(duplicate.id) !== Number(current.id)) throw new AppError('This catalogue option already exists.', 409, 'OPTION_EXISTS');
+    return this.optionModel.update(id, { value, status });
+  }
+
   brandData(payload) {
-    return { name: text(payload.name), status: payload.status || 'Active', logoImage: text(payload.logoImage) || null, metaTitle: text(payload.metaTitle), metaDescription: text(payload.metaDescription) };
+    return { name: text(payload.name), status: payload.status || 'Active', displayMode: payload.displayMode === 'Image' ? 'Image' : 'Text', logoImage: text(payload.logoImage) || null, metaTitle: text(payload.metaTitle) || null, metaDescription: text(payload.metaDescription) || null };
   }
 
   categoryData(payload) {
-    return { name: text(payload.name), status: payload.status || 'Active', image: text(payload.image) || null, metaTitle: text(payload.metaTitle), metaDescription: text(payload.metaDescription), type: text(payload.type) || null, gender: text(payload.gender) || null, collection: text(payload.collection) || null };
+    return { name: text(payload.name), status: payload.status || 'Active', image: text(payload.image) || null, metaTitle: text(payload.metaTitle) || null, metaDescription: text(payload.metaDescription) || null, type: text(payload.type) || null, gender: text(payload.gender) || null, collection: text(payload.collection) || null };
   }
 
   async validateCategory(payload) {

@@ -8,13 +8,14 @@ import { useProducts } from '../hooks/useProducts';
 import useReveal from '../hooks/useReveal';
 import useToast from '../hooks/useToast';
 import { catalogApi } from '../services/api';
+import BrandTile from '../components/BrandTile';
 
 export default function BrandsPage() {
   useReveal();
   const toast = useToast('Added to your saved list.');
   const { products, loading: productsLoading, error: productsError } = useProducts();
   const [brands, setBrands] = useState([]);
-  const [selectedBrand, setSelectedBrand] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState(() => new URLSearchParams(window.location.search).get('brand') || '');
   const [brandsLoading, setBrandsLoading] = useState(true);
   const [brandsError, setBrandsError] = useState('');
 
@@ -35,7 +36,7 @@ export default function BrandsPage() {
         {!selectedBrand && <>
           <ProductCollectionState loading={brandsLoading} error={brandsError} empty={!brandsLoading && !brandsError && brands.length === 0} />
           {!brandsLoading && !brandsError && <div className="brand-grid reveal">
-            {brands.map((brand, index) => <button className="brand-tile" type="button" key={brand.id} onClick={() => setSelectedBrand(brand.name)}><span>{brand.name.toUpperCase()}</span><small>{String(index + 1).padStart(2, '0')} →</small></button>)}
+            {brands.map((brand, index) => <BrandTile brand={brand} index={index} key={brand.id} onClick={() => setSelectedBrand(brand.name)} />)}
           </div>}
         </>}
         {selectedBrand && <>

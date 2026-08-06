@@ -65,6 +65,7 @@ try {
   if (!(await columnExists('products', 'cdn_images'))) await connection.query('ALTER TABLE products ADD COLUMN cdn_images JSON NULL AFTER color_variations');
   if (!(await columnExists('categories', 'meta_description'))) await connection.query('ALTER TABLE categories ADD COLUMN meta_description VARCHAR(320) NULL AFTER meta_title');
   if (!(await columnExists('categories', 'updated_at'))) await connection.query('ALTER TABLE categories ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at');
+  if (!(await columnExists('brands', 'display_mode'))) await connection.query("ALTER TABLE brands ADD COLUMN display_mode ENUM('Text', 'Image') NOT NULL DEFAULT 'Text' AFTER status");
   await connection.query('ALTER TABLE categories MODIFY gender VARCHAR(100) NULL');
 
   const [productsWithoutSlugs] = await connection.query('SELECT id, name FROM products WHERE slug IS NULL OR slug = ? ORDER BY id', ['']);

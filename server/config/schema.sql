@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS brands (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(150) NOT NULL,
   status ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active',
+  display_mode ENUM('Text', 'Image') NOT NULL DEFAULT 'Text',
   logo_image VARCHAR(500) NULL,
   meta_title VARCHAR(255) NULL,
   meta_description VARCHAR(320) NULL,

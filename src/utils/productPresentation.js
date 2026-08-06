@@ -19,12 +19,37 @@ export const productAvailability = (product) => {
 
 export const productDeliveryTime = (product) => product.preOrder ? '14–28 days' : '3–5 days';
 
-export const productBadgeClass = (product) => {
-  if (product.status === 'Out of Stock') return '';
-  if (product.preOrder) return 'badge--sand';
-  if (product.stock > 0) return 'badge--acid';
-  return '';
+const tagPriority = new Map([
+  ['limited edition', 10],
+  ['exclusive', 20],
+  ['new arrival', 30],
+  ['new drop', 40],
+  ['luxury', 50],
+  ['sale', 60],
+  ['pre-order', 90],
+  ['pre order', 90],
+]);
+
+export const productTags = (product) => {
+  const seen = new Set();
+  return (Array.isArray(product?.productTags) ? product.productTags : [])
+    .map((tag, index) => ({ value: String(tag).trim(), index }))
+    .filter(({ value }) => {
+      const key = value.toLowerCase();
+      if (!value || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => (tagPriority.get(a.value.toLowerCase()) ?? 70) - (tagPriority.get(b.value.toLowerCase()) ?? 70) || a.index - b.index)
+    .map(({ value }) => value);
 };
+
+export const categoryGenderLabel = (product) => ({
+  Men: "MEN'S",
+  Women: "WOMEN'S",
+  Kids: "KIDS'",
+  Unisex: 'UNISEX',
+}[product?.categoryGender] || '');
 
 export const productSizesLabel = (product) => {
   if (!product.sizes?.length) return 'SIZE ENQUIRY';

@@ -97,7 +97,7 @@ export default function AdminProductsPage() {
                 <td data-label="Category">{product.category}</td>
                 <td data-label="Price">{formatProductPrice(product.price)}</td>
                 <td data-label="Status"><div className="admin-product-status"><AdminStatusBadge tone={statusTone(product.status)}>{product.status}</AdminStatusBadge><select aria-label={`Status for ${product.name}`} value={product.status} disabled={pendingId === product.id} onChange={(event) => updateStatus(product, event.target.value)}><option>Active</option><option>Inactive</option><option>Out of Stock</option></select></div></td>
-                <td data-label="Actions"><div className="admin-actions"><a href={`/admin/products/${product.slug}/edit`}>EDIT</a><button type="button" disabled={pendingId === product.id} onClick={() => deleteProduct(product)}>{pendingId === product.id ? 'WORKING…' : 'DELETE'}</button></div></td>
+                <td data-label="Actions"><div className="admin-actions"><a href={`/admin/products/${product.slug}/edit`}>EDIT</a><a href={`/admin/products/${product.slug}/duplicate`}>DUPLICATE</a><button type="button" disabled={pendingId === product.id} onClick={() => deleteProduct(product)}>{pendingId === product.id ? 'WORKING…' : 'DELETE'}</button></div></td>
               </tr>
             ))}</tbody>
           </table>

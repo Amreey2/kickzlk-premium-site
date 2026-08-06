@@ -12,4 +12,5 @@ export const createCatalogController = (service) => ({
   updateCategory: async (request, response) => response.json({ success: true, data: await service.updateCategory(request.params.id, request.body) }),
   deleteCategory: async (request, response) => { await service.deleteCategory(request.params.id); response.status(204).send(); },
   createOption: async (request, response) => response.status(201).json({ success: true, data: await service.createOption(request.body) }),
+  updateOption: async (request, response) => response.json({ success: true, data: await service.updateOption(request.params.id, request.body) }),
 });

@@ -3,6 +3,7 @@ import AccountPage from './pages/AccountPage';
 import AboutPage from './pages/AboutPage';
 import BrandsPage from './pages/BrandsPage';
 import CartPage from './pages/CartPage';
+import CategoriesPage from './pages/CategoriesPage';
 import CheckoutPage from './pages/CheckoutPage';
 import ContactPage from './pages/ContactPage';
 import LoginPage from './pages/LoginPage';
@@ -27,6 +28,7 @@ const routes = {
   '/shop': ShopPage,
   '/new-drops': NewDropsPage,
   '/brands': BrandsPage,
+  '/categories': CategoriesPage,
   '/pre-order': PreOrderPage,
   '/about': AboutPage,
   '/about-us': AboutPage,
@@ -50,6 +52,8 @@ const routes = {
 
 export default function App() {
   const { pathname } = window.location;
+  const adminProductDuplicate = pathname.match(/^\/admin\/products\/([^/]+)\/duplicate$/);
+  if (adminProductDuplicate) return <AdminProductFormPage duplicateFrom={decodeURIComponent(adminProductDuplicate[1])} />;
   const adminProductEdit = pathname.match(/^\/admin\/products\/([^/]+)\/edit$/);
   if (adminProductEdit) return <AdminProductFormPage productId={decodeURIComponent(adminProductEdit[1])} />;
   if (pathname.endsWith('/product.html')) return <ProductPage />;

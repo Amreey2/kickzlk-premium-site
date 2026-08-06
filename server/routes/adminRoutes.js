@@ -25,6 +25,7 @@ export default function createAdminRoutes({ authService, orderService, catalogSe
   router.delete('/categories/:id', requireAdmin, asyncHandler(catalog.deleteCategory));
   router.get('/catalog-options', requireAdmin, asyncHandler(catalog.options));
   router.post('/catalog-options', requireAdmin, asyncHandler(catalog.createOption));
+  router.put('/catalog-options/:id', requireAdmin, asyncHandler(catalog.updateOption));
   router.get('/products', requireAdmin, asyncHandler(products.adminList));
   router.get('/products/:id', requireAdmin, asyncHandler(products.adminGet));
   router.get('/orders', requireAdmin, asyncHandler(orders.adminList));

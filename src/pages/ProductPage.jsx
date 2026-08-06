@@ -64,7 +64,7 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
         </div>
       </div></main>
       <ProductDetails product={product} />
-      <Recommendations productId={product.id} products={catalog.products} loading={catalog.loading} error={catalog.error} />
+      <Recommendations product={product} products={catalog.products} loading={catalog.loading} error={catalog.error} />
       <Footer />
       <FloatingActions aboveMobileBuyBar />
       <MobileBuyBar product={product} selectedSize={selectedSize} addToBag={addToBag} />

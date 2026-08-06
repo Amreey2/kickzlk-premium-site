@@ -1,5 +1,6 @@
 const mapBrand = (row) => row ? ({
   id: Number(row.id), name: row.name, status: row.status, logoImage: row.logo_image,
+  displayMode: row.display_mode || 'Text',
   metaTitle: row.meta_title, metaDescription: row.meta_description,
   createdAt: row.created_at, updatedAt: row.updated_at,
 }) : null;
@@ -24,8 +25,8 @@ export default class BrandModel {
 
   async create(data) {
     const result = await this.database.query(
-      'INSERT INTO brands (name, status, logo_image, meta_title, meta_description) VALUES (?, ?, ?, ?, ?)',
-      [data.name, data.status, data.logoImage, data.metaTitle, data.metaDescription],
+      'INSERT INTO brands (name, status, display_mode, logo_image, meta_title, meta_description) VALUES (?, ?, ?, ?, ?, ?)',
+      [data.name, data.status, data.displayMode, data.logoImage, data.metaTitle, data.metaDescription],
     );
     return this.findById(result.insertId);
   }
@@ -33,8 +34,8 @@ export default class BrandModel {
   async update(id, data) {
     await this.database.query('UPDATE products SET brand = ? WHERE brand_id = ?', [data.name, id]);
     await this.database.query(
-      'UPDATE brands SET name = ?, status = ?, logo_image = ?, meta_title = ?, meta_description = ? WHERE id = ?',
-      [data.name, data.status, data.logoImage, data.metaTitle, data.metaDescription, id],
+      'UPDATE brands SET name = ?, status = ?, display_mode = ?, logo_image = ?, meta_title = ?, meta_description = ? WHERE id = ?',
+      [data.name, data.status, data.displayMode, data.logoImage, data.metaTitle, data.metaDescription, id],
     );
     return this.findById(id);
   }

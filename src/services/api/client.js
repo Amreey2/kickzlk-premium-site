@@ -5,7 +5,7 @@ export const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '
 // Product media may be hosted by the API today and a CDN later.
 export function resolveApiAssetUrl(value) {
   if (!value) return '';
-  if (/^(data:|blob:)/i.test(value)) return value;
+  if (/^(https?:|data:|blob:)/i.test(value)) return value;
   const apiUrl = new URL(API_URL, window.location.origin);
   return new URL(value.startsWith('/') ? value : `/${value}`, apiUrl.origin).href;
 }

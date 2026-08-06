@@ -3,7 +3,15 @@ import { requireFields } from '../utils/validation.js';
 
 const productTypes = new Set(['Ready Stock', 'Pre Order']);
 const SKU_PATTERN = /^[A-Z0-9][A-Z0-9_-]{1,99}$/;
-const list = (value) => [...new Set((Array.isArray(value) ? value : []).map((item) => String(item).trim()).filter(Boolean))];
+const list = (value) => {
+  const seen = new Set();
+  return (Array.isArray(value) ? value : []).map((item) => String(item).trim()).filter((item) => {
+    const key = item.toLowerCase();
+    if (!item || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 const validUrl = (value) => {
   try { return ['http:', 'https:'].includes(new URL(value).protocol); } catch { return false; }
 };
@@ -26,10 +34,10 @@ const normalize = (payload) => ({
   deliveryTime: payload.deliveryTime?.trim() || null,
   availability: payload.availability?.trim() || 'Available',
   stock: Number(payload.stock || 0),
-  metaTitle: payload.metaTitle?.trim() || null,
-  metaDescription: payload.metaDescription?.trim() || null,
+  metaTitle: String(payload.metaTitle || '').trim() || null,
+  metaDescription: String(payload.metaDescription || '').trim() || null,
   images: payload.images || [],
-  imageAltText: payload.imageAltText?.trim() || null,
+  imageAltText: String(payload.imageAltText || '').trim() || null,
   variations: payload.variations || [],
   productTag: payload.productTag?.trim() || null,
   productTags: list(payload.productTags),
@@ -38,7 +46,7 @@ const normalize = (payload) => ({
 });
 
 const validate = (payload) => {
-  requireFields(payload, ['sku', 'brand', 'brandId', 'name', 'description', 'category', 'categoryId', 'price', 'metaTitle', 'metaDescription', 'imageAltText']);
+  requireFields(payload, ['sku', 'brand', 'brandId', 'name', 'description', 'category', 'categoryId', 'price']);
   if (!SKU_PATTERN.test(String(payload.sku).trim().toUpperCase())) throw new AppError('SKU must contain 2–100 letters, numbers, hyphens, or underscores.', 422, 'INVALID_SKU');
   if (!Number.isFinite(Number(payload.price)) || Number(payload.price) < 0) throw new AppError('Product price must be valid.', 422, 'INVALID_PRICE');
   if (!Array.isArray(payload.sizes) || !payload.sizes.length) throw new AppError('At least one product size is required.', 422, 'INVALID_SIZES');

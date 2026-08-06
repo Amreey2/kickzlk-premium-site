@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   formatProductPrice,
-  productAvailability,
-  productBadgeClass,
+  categoryGenderLabel,
   productDeliveryTime,
   productImage,
   productImageAlt,
   replaceFailedProductImage,
+  productTags,
 } from '../../utils/productPresentation';
 import ProductCard from '../ProductCard';
 import ProductCollectionState from '../ProductCollectionState';
@@ -67,20 +67,24 @@ export function ProductInfo({ product, selectedSize, setSelectedSize, payment, s
   const actionText = unavailable ? action : selectedSize ? `${action} SIZE ${selectedSize} · ${amount}` : `SELECT A SIZE TO ${action}`;
   const sizePrefix = product.brand === 'Balmain' ? 'EU' : 'US';
   const whatsappUrl = createWhatsAppUrl(product);
-  const availability = productAvailability(product);
   const deliveryTime = productDeliveryTime(product);
+  const tags = productTags(product);
+  const gender = categoryGenderLabel(product);
 
   return (
     <section className="product-info reveal delay-100">
       <div className="product-flags">
-        <span className={`badge ${productBadgeClass(product)} badge--static`}>{availability}</span>
-        {product.preOrder && <span className="badge badge--static">PRE-ORDER</span>}
+        {tags.map((tag, index) => <span className={`badge badge--static${index === 0 ? ' badge--acid' : ''}`} key={tag.toLowerCase()}>{tag.toUpperCase()}</span>)}
       </div>
-      <span className="product-brand">{product.brand.toUpperCase()} · MEN&apos;S / UNISEX</span>
+      <span className="product-brand">{product.brand.toUpperCase()}{gender ? ` · ${gender}` : ''}</span>
       <h1 className="product-title">{product.name}</h1>
       <p className="product-subtitle">{product.category.toUpperCase()} · {product.preOrder ? 'PRE-ORDER AVAILABLE' : `${product.stock} IN STOCK`}</p>
       <div className="product-rating"><span>★★★★★</span><strong>4.9</strong><span>Verified KICKZ.LK sourcing</span></div>
       <div className="product-price"><strong>{formatProductPrice(product.price)}</strong><span>Taxes and import handling included</span></div>
+      <div className="product-catalog-attributes">
+        <div><span>PRODUCT TAGS</span><strong>{tags.length ? tags.join(' · ') : 'NO TAGS'}</strong></div>
+        <div><span>AVAILABLE COLOURS</span><strong>{product.colorVariations?.length ? product.colorVariations.join(' · ') : 'COLOUR ENQUIRY'}</strong></div>
+      </div>
 
       {/* SPRINT 3.1 PRICE NOTICE: required confirmation guidance remains prominent before selection and enquiry. */}
       <p className="price-notice">Due to Sri Lanka&apos;s fluctuating USD exchange rate, customers should confirm today&apos;s final price before placing an order.</p>
@@ -131,12 +135,15 @@ export function ProductDetails({ product }) {
   );
 }
 
-export function Recommendations({ productId, products, loading, error }) {
-  const recommendations = products.filter((product) => product.id !== productId).slice(0, 3);
+export function Recommendations({ product, products, loading, error }) {
+  const recommendations = products
+    .filter((candidate) => candidate.id !== product.id)
+    .sort((a, b) => Number(b.category === product.category) - Number(a.category === product.category) || Number(b.brand === product.brand) - Number(a.brand === product.brand))
+    .slice(0, 6);
 
   return (
     <section className="drops section-pad"><div className="container">
-      <div className="section-head reveal"><div><span className="section-kicker">KEEP SCROLLING</span><h2>YOU MAY ALSO LIKE</h2></div><p>More pairs selected to complement your rotation.</p></div>
+      <div className="section-head reveal"><div><span className="section-kicker">KEEP SCROLLING</span><h2>YOU MAY ALSO LIKE</h2></div><a className="btn btn--ghost" href={`/shop?category=${encodeURIComponent(product.category)}`}>VIEW ALL <span>↗</span></a></div>
       <ProductCollectionState loading={loading} error={error} empty={!loading && !error && recommendations.length === 0} />
       <div className="product-grid">{recommendations.map((product) => <ProductCard product={product} key={product.id} showHeart={false} showCommerceDetails />)}</div>
     </div></section>

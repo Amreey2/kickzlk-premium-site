@@ -32,14 +32,16 @@ const imagePayload = (image, index, productName) => ({
   position: index + 1,
 });
 
-export default function AdminProductFormPage({ productId }) {
+export default function AdminProductFormPage({ productId, duplicateFrom }) {
   const isEdit = Boolean(productId);
+  const isDuplicate = Boolean(duplicateFrom);
+  const sourceId = productId || duplicateFrom;
   const [form, setForm] = useState(emptyProduct);
   const [images, setImages] = useState([]);
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
   const [uploadPreviews, setUploadPreviews] = useState([]);
-  const [loading, setLoading] = useState(isEdit);
+  const [loading, setLoading] = useState(Boolean(sourceId));
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -61,14 +63,14 @@ export default function AdminProductFormPage({ productId }) {
   }, []);
 
   useEffect(() => {
-    if (!isEdit) return undefined;
+    if (!sourceId) return undefined;
     let active = true;
-    productsApi.getAdmin(productId).then((product) => {
+    productsApi.getAdmin(sourceId).then((product) => {
       if (!active) return;
       setForm({
-        sku: product.sku,
+        sku: isDuplicate ? '' : product.sku,
         brand: product.brand,
-        name: product.name,
+        name: isDuplicate ? `${product.name} Copy` : product.name,
         description: product.description,
         category: product.category,
         price: String(product.price),
@@ -92,7 +94,7 @@ export default function AdminProductFormPage({ productId }) {
       setLoading(false);
     });
     return () => { active = false; };
-  }, [isEdit, productId]);
+  }, [isDuplicate, sourceId]);
 
   const updateField = (event) => {
     const { name, value, checked, type } = event.target;
@@ -168,7 +170,6 @@ export default function AdminProductFormPage({ productId }) {
     if (form.status === 'Active' && !form.preOrder && stock === 0) return setError('Active ready-stock products require at least one item in stock.');
     if (!productTags.length) return setError('Enter at least one product tag.');
     if (!colorVariations.length) return setError('Enter at least one available colour.');
-    if (!form.metaTitle.trim() || !form.metaDescription.trim() || !form.imageAltText.trim()) return setError('Complete all product SEO fields.');
     if (!images.length && !cdnImages.length) return setError('Upload an image or provide at least one CDN image URL.');
 
     setSubmitting(true);
@@ -200,7 +201,7 @@ export default function AdminProductFormPage({ productId }) {
     try {
       if (isEdit) await productsApi.update(productId, payload);
       else await productsApi.create(payload);
-      setMessage(isEdit ? 'Product updated successfully.' : 'Product created successfully.');
+      setMessage(isEdit ? 'Product updated successfully.' : isDuplicate ? 'Product copy created successfully.' : 'Product created successfully.');
       window.setTimeout(() => window.location.assign('/admin/products'), 650);
     } catch (requestError) {
       if (!handleAdminSessionError(requestError)) setError(requestError.message || 'The product could not be saved.');
@@ -211,9 +212,9 @@ export default function AdminProductFormPage({ productId }) {
   const busy = loading || uploading || submitting;
 
   return (
-    <AdminLayout title={isEdit ? 'Edit Product' : 'Add Product'}>
-      <AdminPageHeader eyebrow="CATALOG EDITOR" title={isEdit ? 'EDIT PRODUCT' : 'ADD PRODUCT'} copy="Organize product details, pricing, sizing and imagery in one focused workspace." action={<a className="btn btn--ghost" href="/admin/products">BACK TO PRODUCTS</a>} />
-      {loading ? <div className="admin-panel admin-data-state" role="status">LOADING PRODUCT…</div> : error && isEdit && !form.name ? <div className="admin-panel admin-data-state"><strong>PRODUCT UNAVAILABLE</strong><p>{error}</p><a href="/admin/products">RETURN TO PRODUCTS →</a></div> : <form className="admin-panel admin-form" onSubmit={handleSubmit} noValidate>
+    <AdminLayout title={isEdit ? 'Edit Product' : isDuplicate ? 'Duplicate Product' : 'Add Product'}>
+      <AdminPageHeader eyebrow="CATALOG EDITOR" title={isEdit ? 'EDIT PRODUCT' : isDuplicate ? 'DUPLICATE PRODUCT' : 'ADD PRODUCT'} copy={isDuplicate ? 'Review the copied product and enter a new unique SKU before saving.' : 'Organize product details, pricing, sizing and imagery in one focused workspace.'} action={<a className="btn btn--ghost" href="/admin/products">BACK TO PRODUCTS</a>} />
+      {loading ? <div className="admin-panel admin-data-state" role="status">LOADING PRODUCT…</div> : error && sourceId && !form.name ? <div className="admin-panel admin-data-state"><strong>PRODUCT UNAVAILABLE</strong><p>{error}</p><a href="/admin/products">RETURN TO PRODUCTS →</a></div> : <form className="admin-panel admin-form" onSubmit={handleSubmit} noValidate>
         {message && <p className="admin-feedback admin-feedback--success" role="status">{message}</p>}
         {error && <p className="admin-feedback admin-feedback--error" role="alert">{error}</p>}
         <section className="admin-form-section">
@@ -250,12 +251,12 @@ export default function AdminProductFormPage({ productId }) {
         <section className="admin-form-section">
           <div className="admin-form-section__head"><span>04</span><div><strong>PRODUCT SEO</strong><p>Stored catalogue metadata for the upcoming SEO integration.</p></div></div>
           <div className="admin-form-grid">
-            <AdminField label="META TITLE" name="metaTitle" value={form.metaTitle} onChange={updateField} placeholder="Product page title" required disabled={busy} />
-            <AdminField label="META DESCRIPTION" name="metaDescription" value={form.metaDescription} onChange={updateField} as="textarea" placeholder="Search result description" required disabled={busy} />
-            <AdminField label="IMAGE ALT TEXT" name="imageAltText" value={form.imageAltText} onChange={updateField} placeholder="Descriptive product image text" required disabled={busy} />
+            <AdminField label="META TITLE (OPTIONAL)" name="metaTitle" value={form.metaTitle} onChange={updateField} placeholder="Product page title" disabled={busy} />
+            <AdminField label="META DESCRIPTION (OPTIONAL)" name="metaDescription" value={form.metaDescription} onChange={updateField} as="textarea" placeholder="Search result description" disabled={busy} />
+            <AdminField label="IMAGE ALT TEXT (OPTIONAL)" name="imageAltText" value={form.imageAltText} onChange={updateField} placeholder="Descriptive product image text" disabled={busy} />
           </div>
         </section>
-        <div className="admin-form-actions"><button className="btn btn--acid" type="submit" disabled={busy}>{submitting ? 'SAVING PRODUCT…' : isEdit ? 'SAVE PRODUCT' : 'CREATE PRODUCT'} <span>→</span></button></div>
+        <div className="admin-form-actions"><button className="btn btn--acid" type="submit" disabled={busy}>{submitting ? 'SAVING PRODUCT…' : isEdit ? 'SAVE PRODUCT' : isDuplicate ? 'CREATE PRODUCT COPY' : 'CREATE PRODUCT'} <span>→</span></button></div>
       </form>}
     </AdminLayout>
   );

@@ -2,6 +2,7 @@ import { apiRequest, resolveApiAssetUrl } from './client';
 
 const normalizeBrand = (brand) => ({
   id: Number(brand.id), name: String(brand.name || ''), status: String(brand.status || 'Active'),
+  displayMode: brand.displayMode === 'Image' ? 'Image' : 'Text',
   logoImage: brand.logoImage ? resolveApiAssetUrl(brand.logoImage) : '', storageLogoImage: brand.logoImage || '',
   metaTitle: String(brand.metaTitle || ''), metaDescription: String(brand.metaDescription || ''),
 });
@@ -27,4 +28,5 @@ export const catalogApi = {
   deleteCategory: (id) => apiRequest(`/admin/categories/${id}`, { method: 'DELETE' }),
   adminOptions: () => apiRequest('/admin/catalog-options'),
   createOption: (data) => apiRequest('/admin/catalog-options', { method: 'POST', body: data }),
+  updateOption: (id, data) => apiRequest(`/admin/catalog-options/${id}`, { method: 'PUT', body: data }),
 };

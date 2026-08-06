@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   heroJordanCinematic,
   productDunk,
@@ -7,6 +7,8 @@ import {
   productNewBalance,
 } from '../../assets';
 import { useProducts } from '../../hooks/useProducts';
+import { catalogApi } from '../../services/api';
+import BrandTile from '../BrandTile';
 import ProductCard from '../ProductCard';
 import ProductCollectionState from '../ProductCollectionState';
 
@@ -115,11 +117,19 @@ export function EditorialSection() {
 }
 
 export function BrandsSection() {
-  const brands = [['NIKE', '01', 0], ['JORDAN', '02', 50], ['ADIDAS', '03', 100], ['NEW BALANCE', '04', 150], ['BALMAIN', '05', 0], ['LOUBOUTIN', '06', 50]];
+  const [brands, setBrands] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    catalogApi.brands().then((items) => { if (active) setBrands(items.slice(0, 6)); }, (requestError) => { if (active) setError(requestError); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
   return (
     <section className="brands section-pad snap-section" id="brands"><div className="container">
       <div className="section-head reveal"><div><span className="section-kicker">GLOBAL LABELS</span><h2>SHOP BY BRAND</h2></div><p>From iconic sportswear to statement luxury, sourced to match your rotation.</p></div>
-      <div className="brand-grid">{brands.map(([brand, number, delay]) => <a href="/new-drops" className={`brand-tile reveal${delay ? ` delay-${delay}` : ''}`} key={brand}><span>{brand}</span><small>{number}</small></a>)}</div>
+      <ProductCollectionState loading={loading} error={error} empty={!loading && !error && brands.length === 0} />
+      <div className="brand-grid">{brands.map((brand, index) => <BrandTile brand={brand} index={index} href={`/brands?brand=${encodeURIComponent(brand.name)}`} key={brand.id} />)}</div>
       <div className="center-action reveal"><a href="/brands" className="btn btn--ghost">VIEW ALL BRANDS <span>↗</span></a></div>
     </div></section>
   );

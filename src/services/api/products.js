@@ -1,7 +1,18 @@
 import { ApiError, apiRequest, resolveApiAssetUrl } from './client';
 
 const listCache = new Map();
+const adminListCache = new Map();
 const detailCache = new Map();
+const adminDetailCache = new Map();
+const normalizeList = (values) => {
+  const seen = new Set();
+  return (Array.isArray(values) ? values : []).map(String).map((value) => value.trim()).filter((value) => {
+    const key = value.toLowerCase();
+    if (!value || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 
 const normalizeImage = (image, index, productName) => {
   const source = typeof image === 'string' ? { url: image } : (image || {});
@@ -34,6 +45,7 @@ const normalizeProduct = (product) => {
     brand: String(product.brand || ''),
     brandId: Number(product.brandId || 0),
     category: String(product.category || ''),
+    categoryGender: String(product.categoryGender || ''),
     categoryId: Number(product.categoryId || 0),
     price: Number(product.price || 0),
     images: [...uploadedImages, ...cdnImages.map((url, index) => normalizeImage({ url, alt: product.imageAltText }, uploadedImages.length + index, product.name))].sort((a, b) => a.position - b.position),
@@ -46,8 +58,8 @@ const normalizeProduct = (product) => {
     status,
     availability,
     deliveryTime: String(product.deliveryTime || ''),
-    productTags: Array.isArray(product.productTags) ? product.productTags.map(String) : [],
-    colorVariations: Array.isArray(product.colorVariations) ? product.colorVariations.map(String) : [],
+    productTags: normalizeList(product.productTags),
+    colorVariations: normalizeList(product.colorVariations),
     metaTitle: String(product.metaTitle || ''),
     metaDescription: String(product.metaDescription || ''),
     imageAltText: String(product.imageAltText || ''),
@@ -76,39 +88,49 @@ export const productsApi = {
       return normalized;
     }).then((products) => products.filter(isCustomerVisible));
   },
-  adminList: () => cachedRequest(listCache, '', async () => {
+  adminList: () => cachedRequest(adminListCache, 'all', async () => {
     const products = await apiRequest('/admin/products');
     const normalized = Array.isArray(products) ? products.map(normalizeProduct) : [];
-    normalized.forEach((product) => detailCache.set(product.slug, Promise.resolve(product)));
+    normalized.forEach((product) => adminDetailCache.set(product.slug, Promise.resolve(product)));
     return normalized;
   }),
-  getAdmin: (slug) => cachedRequest(detailCache, String(slug), async () => normalizeProduct(
+  getAdmin: (slug) => cachedRequest(adminDetailCache, String(slug), async () => normalizeProduct(
     await apiRequest(`/admin/products/${encodeURIComponent(slug)}`),
   )),
   get: async (slug) => {
-    const product = await productsApi.getAdmin(slug);
+    const product = await cachedRequest(detailCache, String(slug), async () => normalizeProduct(
+      await apiRequest(`/products/${encodeURIComponent(slug)}`),
+    ));
     if (!isCustomerVisible(product)) throw new ApiError('Product was not found.', 404, 'PRODUCT_NOT_FOUND');
     return product;
   },
   create: async (data) => {
     const product = normalizeProduct(await apiRequest('/products', { method: 'POST', body: data }));
     listCache.clear();
+    adminListCache.clear();
     detailCache.clear();
+    adminDetailCache.clear();
     return product;
   },
   update: async (id, data) => {
     const product = normalizeProduct(await apiRequest(`/products/${encodeURIComponent(id)}`, { method: 'PUT', body: data }));
     listCache.clear();
+    adminListCache.clear();
     detailCache.clear();
+    adminDetailCache.clear();
     return product;
   },
   remove: async (id) => {
     await apiRequest(`/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
     listCache.clear();
+    adminListCache.clear();
     detailCache.clear();
+    adminDetailCache.clear();
   },
   clearCache: () => {
     listCache.clear();
+    adminListCache.clear();
     detailCache.clear();
+    adminDetailCache.clear();
   },
 };

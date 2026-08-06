@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import AuthService from '../services/AuthService.js';
 import OrderService from '../services/OrderService.js';
 import ProductService from '../services/ProductService.js';
+import CatalogService from '../services/CatalogService.js';
 
 describe('authentication services', () => {
   test('registration hashes passwords and returns a customer JWT', async () => {
@@ -100,5 +101,35 @@ describe('catalogue product services', () => {
     });
     await assert.rejects(() => service.create(payload), (error) => error.code === 'SKU_EXISTS');
     await assert.rejects(() => service.create({ ...payload, sku: 'UNIQUE-2', cdnImages: ['not-a-url'] }), (error) => error.code === 'INVALID_IMAGE_URL');
+  });
+
+  test('allows products to save without optional SEO metadata', async () => {
+    let saved;
+    const service = new ProductService({
+      productModel: { findBySku: async () => null, create: async (data) => { saved = data; return data; } },
+      brandModel: { findById: async () => ({ id: 1, name: 'Nike', status: 'Active' }) },
+      categoryModel: { findById: async () => ({ id: 2, name: 'Sneakers', status: 'Active' }) },
+    });
+    await service.create({ ...payload, metaTitle: '', metaDescription: '', imageAltText: '' });
+    assert.equal(saved.metaTitle, null);
+    assert.equal(saved.metaDescription, null);
+    assert.equal(saved.imageAltText, null);
+  });
+});
+
+describe('catalogue management services', () => {
+  test('allows brands and categories without images or SEO metadata', async () => {
+    let brandData; let categoryData;
+    const service = new CatalogService({
+      brandModel: { findByName: async () => null, create: async (data) => { brandData = data; return data; } },
+      categoryModel: { findByName: async () => null, create: async (data) => { categoryData = data; return data; } },
+      optionModel: { find: async () => ({ status: 'Active' }) },
+    });
+    await service.createBrand({ name: 'Text Brand', status: 'Active', displayMode: 'Text' });
+    await service.createCategory({ name: 'Minimal Category', status: 'Active' });
+    assert.equal(brandData.logoImage, null);
+    assert.equal(brandData.metaTitle, null);
+    assert.equal(categoryData.image, null);
+    assert.equal(categoryData.metaDescription, null);
   });
 });
