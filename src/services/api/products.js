@@ -77,13 +77,13 @@ export const productsApi = {
     }).then((products) => products.filter(isCustomerVisible));
   },
   adminList: () => cachedRequest(listCache, '', async () => {
-    const products = await apiRequest('/products');
+    const products = await apiRequest('/admin/products');
     const normalized = Array.isArray(products) ? products.map(normalizeProduct) : [];
     normalized.forEach((product) => detailCache.set(product.slug, Promise.resolve(product)));
     return normalized;
   }),
   getAdmin: (slug) => cachedRequest(detailCache, String(slug), async () => normalizeProduct(
-    await apiRequest(`/products/${encodeURIComponent(slug)}`),
+    await apiRequest(`/admin/products/${encodeURIComponent(slug)}`),
   )),
   get: async (slug) => {
     const product = await productsApi.getAdmin(slug);

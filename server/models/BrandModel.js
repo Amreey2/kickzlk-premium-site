@@ -31,6 +31,7 @@ export default class BrandModel {
   }
 
   async update(id, data) {
+    await this.database.query('UPDATE products SET brand = ? WHERE brand_id = ?', [data.name, id]);
     await this.database.query(
       'UPDATE brands SET name = ?, status = ?, logo_image = ?, meta_title = ?, meta_description = ? WHERE id = ?',
       [data.name, data.status, data.logoImage, data.metaTitle, data.metaDescription, id],

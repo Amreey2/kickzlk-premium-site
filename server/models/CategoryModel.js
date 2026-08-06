@@ -34,6 +34,7 @@ export default class CategoryModel {
   }
 
   async update(id, data) {
+    await this.database.query('UPDATE products SET category = ? WHERE category_id = ?', [data.name, id]);
     await this.database.query(
       'UPDATE categories SET name = ?, meta_title = ?, meta_description = ?, image = ?, status = ?, type = ?, gender = ?, collection = ? WHERE id = ?',
       [data.name, data.metaTitle, data.metaDescription, data.image, data.status, data.type, data.gender, data.collection, id],
