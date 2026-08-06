@@ -23,12 +23,13 @@ CREATE TABLE IF NOT EXISTS categories (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(150) NOT NULL,
   meta_title VARCHAR(255) NULL,
+  meta_description VARCHAR(320) NULL,
   description TEXT NULL,
   image VARCHAR(500) NULL,
   status ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active',
   brand VARCHAR(150) NULL,
   type VARCHAR(150) NULL,
-  gender ENUM('Men', 'Women', 'Kids', 'Unisex') NULL,
+  gender VARCHAR(100) NULL,
   collection VARCHAR(150) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -36,9 +37,34 @@ CREATE TABLE IF NOT EXISTS categories (
   KEY idx_categories_filters (status, brand, type, gender, collection)
 );
 
+CREATE TABLE IF NOT EXISTS brands (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(150) NOT NULL,
+  status ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active',
+  logo_image VARCHAR(500) NULL,
+  meta_title VARCHAR(255) NULL,
+  meta_description VARCHAR(320) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_brands_name (name)
+);
+
+CREATE TABLE IF NOT EXISTS catalog_options (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  kind ENUM('type', 'gender', 'collection') NOT NULL,
+  value VARCHAR(150) NOT NULL,
+  status ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_catalog_options_kind_value (kind, value)
+);
+
 CREATE TABLE IF NOT EXISTS products (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   slug VARCHAR(180) NOT NULL,
+  sku VARCHAR(100) NOT NULL,
+  brand_id BIGINT UNSIGNED NULL,
   category_id BIGINT UNSIGNED NULL,
   brand VARCHAR(150) NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -56,10 +82,15 @@ CREATE TABLE IF NOT EXISTS products (
   image_alt_text VARCHAR(255) NULL,
   variations JSON NULL,
   product_tag VARCHAR(100) NULL,
+  product_tags JSON NOT NULL,
+  color_variations JSON NOT NULL,
+  cdn_images JSON NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_products_slug (slug),
+  UNIQUE KEY uq_products_sku (sku),
+  KEY idx_products_brand_id (brand_id),
   KEY idx_products_brand (brand),
   KEY idx_products_category (category),
   KEY idx_products_type (product_type),

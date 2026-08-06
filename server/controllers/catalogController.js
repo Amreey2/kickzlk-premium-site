@@ -1,0 +1,15 @@
+export const createCatalogController = (service) => ({
+  publicBrands: async (request, response) => { void request; response.json({ success: true, data: await service.listBrands(true) }); },
+  publicCategories: async (request, response) => { void request; response.json({ success: true, data: await service.listCategories(true) }); },
+  publicOptions: async (request, response) => { void request; response.json({ success: true, data: await service.listOptions(true) }); },
+  brands: async (request, response) => { void request; response.json({ success: true, data: await service.listBrands() }); },
+  categories: async (request, response) => { void request; response.json({ success: true, data: await service.listCategories() }); },
+  options: async (request, response) => { void request; response.json({ success: true, data: await service.listOptions() }); },
+  createBrand: async (request, response) => response.status(201).json({ success: true, data: await service.createBrand(request.body) }),
+  updateBrand: async (request, response) => response.json({ success: true, data: await service.updateBrand(request.params.id, request.body) }),
+  deleteBrand: async (request, response) => { await service.deleteBrand(request.params.id); response.status(204).send(); },
+  createCategory: async (request, response) => response.status(201).json({ success: true, data: await service.createCategory(request.body) }),
+  updateCategory: async (request, response) => response.json({ success: true, data: await service.updateCategory(request.params.id, request.body) }),
+  deleteCategory: async (request, response) => { await service.deleteCategory(request.params.id); response.status(204).send(); },
+  createOption: async (request, response) => response.status(201).json({ success: true, data: await service.createOption(request.body) }),
+});

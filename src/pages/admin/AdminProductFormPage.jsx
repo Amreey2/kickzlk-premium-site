@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import AdminField from '../../components/admin/AdminField';
 import AdminLayout from '../../components/admin/AdminLayout';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
-import { productsApi, resolveApiAssetUrl, uploadsApi } from '../../services/api';
+import { catalogApi, productsApi, resolveApiAssetUrl, uploadsApi } from '../../services/api';
 import { handleAdminSessionError } from '../../utils/adminSession';
 import { replaceFailedProductImage } from '../../utils/productPresentation';
 
 const emptyProduct = {
+  sku: '',
   brand: '',
   name: '',
   description: '',
@@ -17,6 +18,12 @@ const emptyProduct = {
   preOrder: true,
   stock: '0',
   status: 'Active',
+  productTags: '',
+  colorVariations: '',
+  metaTitle: '',
+  metaDescription: '',
+  imageAltText: '',
+  cdnImages: '',
 };
 
 const imagePayload = (image, index, productName) => ({
@@ -29,6 +36,8 @@ export default function AdminProductFormPage({ productId }) {
   const isEdit = Boolean(productId);
   const [form, setForm] = useState(emptyProduct);
   const [images, setImages] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [uploadPreviews, setUploadPreviews] = useState([]);
   const [loading, setLoading] = useState(isEdit);
   const [uploading, setUploading] = useState(false);
@@ -40,11 +49,24 @@ export default function AdminProductFormPage({ productId }) {
   useEffect(() => () => previewUrls.current.forEach((url) => URL.revokeObjectURL(url)), []);
 
   useEffect(() => {
+    let active = true;
+    Promise.all([catalogApi.brands(), catalogApi.categories()]).then(([nextBrands, nextCategories]) => {
+      if (!active) return;
+      setBrands(nextBrands);
+      setCategories(nextCategories);
+    }).catch((requestError) => {
+      if (active && !handleAdminSessionError(requestError)) setError(requestError.message || 'Catalogue options could not be loaded.');
+    });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
     if (!isEdit) return undefined;
     let active = true;
     productsApi.getAdmin(productId).then((product) => {
       if (!active) return;
       setForm({
+        sku: product.sku,
         brand: product.brand,
         name: product.name,
         description: product.description,
@@ -55,8 +77,14 @@ export default function AdminProductFormPage({ productId }) {
         preOrder: product.preOrder,
         stock: String(product.stock),
         status: product.status,
+        productTags: product.productTags.join(', '),
+        colorVariations: product.colorVariations.join(', '),
+        metaTitle: product.metaTitle,
+        metaDescription: product.metaDescription,
+        imageAltText: product.imageAltText,
+        cdnImages: product.cdnImages.join(', '),
       });
-      setImages(product.images);
+      setImages(product.uploadedImages);
       setLoading(false);
     }).catch((requestError) => {
       if (!active || handleAdminSessionError(requestError)) return;
@@ -128,20 +156,31 @@ export default function AdminProductFormPage({ productId }) {
     const sizes = [...new Set(form.sizes.split(',').map((size) => size.trim()).filter(Boolean))];
     const price = Number(form.price);
     const stock = Number(form.stock);
-    if (!form.name.trim() || !form.brand.trim() || !form.category.trim() || !form.description.trim()) return setError('Complete all product information fields.');
+    const brand = brands.find((item) => item.name === form.brand);
+    const category = categories.find((item) => item.name === form.category);
+    const productTags = [...new Set(form.productTags.split(',').map((value) => value.trim()).filter(Boolean))];
+    const colorVariations = [...new Set(form.colorVariations.split(',').map((value) => value.trim()).filter(Boolean))];
+    const cdnImages = [...new Set(form.cdnImages.split(',').map((value) => value.trim()).filter(Boolean))];
+    if (!form.sku.trim() || !form.name.trim() || !brand || !category || !form.description.trim()) return setError('Complete all required product information fields.');
     if (!Number.isFinite(price) || price <= 0) return setError('Enter a valid product price.');
     if (!sizes.length) return setError('Enter at least one available size.');
     if (!Number.isInteger(stock) || stock < 0) return setError('Stock must be a non-negative whole number.');
     if (form.status === 'Active' && !form.preOrder && stock === 0) return setError('Active ready-stock products require at least one item in stock.');
-    if (!images.length) return setError('Upload at least one product image.');
+    if (!productTags.length) return setError('Enter at least one product tag.');
+    if (!colorVariations.length) return setError('Enter at least one available colour.');
+    if (!form.metaTitle.trim() || !form.metaDescription.trim() || !form.imageAltText.trim()) return setError('Complete all product SEO fields.');
+    if (!images.length && !cdnImages.length) return setError('Upload an image or provide at least one CDN image URL.');
 
     setSubmitting(true);
     setError('');
     setMessage('');
     const payload = {
+      sku: form.sku.trim().toUpperCase(),
       name: form.name.trim(),
       brand: form.brand.trim(),
+      brandId: brand.id,
       category: form.category.trim(),
+      categoryId: category.id,
       price,
       description: form.description.trim(),
       sizes,
@@ -150,7 +189,12 @@ export default function AdminProductFormPage({ productId }) {
       availability: form.status,
       deliveryTime: form.deliveryTime.trim(),
       images: images.map((image, index) => imagePayload(image, index, form.name.trim())),
-      imageAltText: `${form.brand.trim()} ${form.name.trim()} sneaker`,
+      productTags,
+      colorVariations,
+      cdnImages,
+      metaTitle: form.metaTitle.trim(),
+      metaDescription: form.metaDescription.trim(),
+      imageAltText: form.imageAltText.trim(),
     };
 
     try {
@@ -175,11 +219,14 @@ export default function AdminProductFormPage({ productId }) {
         <section className="admin-form-section">
           <div className="admin-form-section__head"><span>01</span><div><strong>PRODUCT INFORMATION</strong><p>Core catalog information shown throughout the storefront.</p></div></div>
           <div className="admin-form-grid">
-            <AdminField label="BRAND" name="brand" value={form.brand} onChange={updateField} placeholder="Nike, Jordan, Adidas..." required disabled={busy} />
+            <AdminField label="SKU" name="sku" value={form.sku} onChange={updateField} placeholder="NK-AJ1-SHD-0001" required disabled={busy} />
+            <AdminField label="BRAND" name="brand" value={form.brand} onChange={updateField} as="select" options={['', ...brands.map((brand) => brand.name)]} required disabled={busy} />
             <AdminField label="PRODUCT NAME" name="name" value={form.name} onChange={updateField} placeholder="Product name" required disabled={busy} />
-            <AdminField label="CATEGORY" name="category" value={form.category} onChange={updateField} placeholder="Sneakers, Luxury Sneakers..." required disabled={busy} />
+            <AdminField label="CATEGORY" name="category" value={form.category} onChange={updateField} as="select" options={['', ...categories.map((category) => category.name)]} required disabled={busy} />
             <AdminField label="PRICE (LKR)" name="price" value={form.price} onChange={updateField} type="number" placeholder="64900" required disabled={busy} />
             <AdminField label="DESCRIPTION" name="description" value={form.description} onChange={updateField} as="textarea" placeholder="Product description" required disabled={busy} />
+            <AdminField label="PRODUCT TAGS" name="productTags" value={form.productTags} onChange={updateField} placeholder="New Arrival, Lifestyle" required disabled={busy} />
+            <AdminField label="COLOUR VARIATIONS" name="colorVariations" value={form.colorVariations} onChange={updateField} placeholder="Black, White, Red" required disabled={busy} />
           </div>
         </section>
         <section className="admin-form-section">
@@ -196,6 +243,17 @@ export default function AdminProductFormPage({ productId }) {
           <div className="admin-form-section__head"><span>03</span><div><strong>PRODUCT IMAGERY</strong><p>Upload up to eight JPG, PNG or WebP product views.</p></div></div>
           {(images.length > 0 || uploadPreviews.length > 0) && <div className="admin-image-previews">{[...images, ...uploadPreviews].map((image, index) => <figure key={`${image.url}-${index}`}><img src={image.url} alt={image.alt || `Product view ${index + 1}`} onError={replaceFailedProductImage} />{index < images.length && <button type="button" aria-label={`Remove image ${index + 1}`} onClick={() => removeImage(index)} disabled={busy}>×</button>}{index >= images.length && <span>UPLOADING</span>}</figure>)}</div>}
           <label className={`admin-upload${uploading ? ' is-uploading' : ''}`}><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={uploadImages} disabled={busy} /><span>{uploading ? '↻' : '＋'}</span><strong>{uploading ? 'UPLOADING IMAGES…' : 'SELECT PRODUCT IMAGES'}</strong><small>JPG, PNG or WebP · Maximum 8 files</small></label>
+          <div className="admin-form-grid">
+            <AdminField label="CDN IMAGE URLS" name="cdnImages" value={form.cdnImages} onChange={updateField} as="textarea" placeholder="https://cdn.example.com/front.jpg, https://cdn.example.com/side.jpg" disabled={busy} />
+          </div>
+        </section>
+        <section className="admin-form-section">
+          <div className="admin-form-section__head"><span>04</span><div><strong>PRODUCT SEO</strong><p>Stored catalogue metadata for the upcoming SEO integration.</p></div></div>
+          <div className="admin-form-grid">
+            <AdminField label="META TITLE" name="metaTitle" value={form.metaTitle} onChange={updateField} placeholder="Product page title" required disabled={busy} />
+            <AdminField label="META DESCRIPTION" name="metaDescription" value={form.metaDescription} onChange={updateField} as="textarea" placeholder="Search result description" required disabled={busy} />
+            <AdminField label="IMAGE ALT TEXT" name="imageAltText" value={form.imageAltText} onChange={updateField} placeholder="Descriptive product image text" required disabled={busy} />
+          </div>
         </section>
         <div className="admin-form-actions"><button className="btn btn--acid" type="submit" disabled={busy}>{submitting ? 'SAVING PRODUCT…' : isEdit ? 'SAVE PRODUCT' : 'CREATE PRODUCT'} <span>→</span></button></div>
       </form>}

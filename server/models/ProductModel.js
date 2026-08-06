@@ -13,8 +13,10 @@ const mapProduct = (row) => {
   if (!row) return null;
   const product = {
     id: row.slug || String(row.id),
+    sku: row.sku,
     name: row.name,
     brand: row.brand,
+    brandId: row.brand_id,
     category: row.category,
     price: Number(row.price),
     images: parseJson(row.images, []),
@@ -25,6 +27,9 @@ const mapProduct = (row) => {
     availability: row.availability,
     deliveryTime: row.delivery_time,
     productTag: row.product_tag,
+    productTags: parseJson(row.product_tags, row.product_tag ? [row.product_tag] : []),
+    colorVariations: parseJson(row.color_variations, []),
+    cdnImages: parseJson(row.cdn_images, []),
     categoryId: row.category_id,
     metaTitle: row.meta_title,
     metaDescription: row.meta_description,
@@ -50,6 +55,11 @@ export default class ProductModel {
     if (filters.category) { clauses.push('category = ?'); values.push(filters.category); }
     if (filters.brand) { clauses.push('brand = ?'); values.push(filters.brand); }
     if (filters.productType) { clauses.push('product_type = ?'); values.push(filters.productType); }
+    if (filters.search) {
+      clauses.push('(sku LIKE ? OR name LIKE ? OR brand LIKE ?)');
+      const term = `%${filters.search}%`;
+      values.push(term, term, term);
+    }
     const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : '';
     const rows = await this.database.query(`SELECT * FROM products${where} ORDER BY created_at DESC`, values);
     return rows.map(mapProduct);
@@ -64,27 +74,36 @@ export default class ProductModel {
     return mapProduct(rows[0]);
   }
 
+  async findBySku(sku) {
+    const rows = await this.database.query('SELECT * FROM products WHERE sku = ? LIMIT 1', [sku]);
+    return mapProduct(rows[0]);
+  }
+
   async create(data) {
     const result = await this.database.query(
       `INSERT INTO products
-       (slug, category_id, brand, name, description, category, price, size, product_type, delivery_time,
-        availability, stock, meta_title, meta_description, images, image_alt_text, variations, product_tag)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [data.slug, data.categoryId, data.brand, data.name, data.description, data.category, data.price, JSON.stringify(data.sizes),
+       (slug, sku, brand_id, category_id, brand, name, description, category, price, size, product_type, delivery_time,
+        availability, stock, meta_title, meta_description, images, image_alt_text, variations, product_tag,
+        product_tags, color_variations, cdn_images)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [data.slug, data.sku, data.brandId, data.categoryId, data.brand, data.name, data.description, data.category, data.price, JSON.stringify(data.sizes),
         data.productType, data.deliveryTime, data.availability, data.stock, data.metaTitle, data.metaDescription,
-        JSON.stringify(data.images), data.imageAltText, JSON.stringify(data.variations), data.productTag],
+        JSON.stringify(data.images), data.imageAltText, JSON.stringify(data.variations), data.productTags[0] || null,
+        JSON.stringify(data.productTags), JSON.stringify(data.colorVariations), JSON.stringify(data.cdnImages)],
     );
     return this.findById(result.insertId);
   }
 
   async update(id, data) {
     await this.database.query(
-      `UPDATE products SET slug = ?, category_id = ?, brand = ?, name = ?, description = ?, category = ?, price = ?,
+      `UPDATE products SET slug = ?, sku = ?, brand_id = ?, category_id = ?, brand = ?, name = ?, description = ?, category = ?, price = ?,
        size = ?, product_type = ?, delivery_time = ?, availability = ?, stock = ?, meta_title = ?, meta_description = ?,
-       images = ?, image_alt_text = ?, variations = ?, product_tag = ? WHERE ${/^\d+$/.test(String(id)) ? 'id' : 'slug'} = ?`,
-      [data.slug, data.categoryId, data.brand, data.name, data.description, data.category, data.price, JSON.stringify(data.sizes),
+       images = ?, image_alt_text = ?, variations = ?, product_tag = ?, product_tags = ?, color_variations = ?, cdn_images = ?
+       WHERE ${/^\d+$/.test(String(id)) ? 'id' : 'slug'} = ?`,
+      [data.slug, data.sku, data.brandId, data.categoryId, data.brand, data.name, data.description, data.category, data.price, JSON.stringify(data.sizes),
         data.productType, data.deliveryTime, data.availability, data.stock, data.metaTitle, data.metaDescription,
-        JSON.stringify(data.images), data.imageAltText, JSON.stringify(data.variations), data.productTag, id],
+        JSON.stringify(data.images), data.imageAltText, JSON.stringify(data.variations), data.productTags[0] || null,
+        JSON.stringify(data.productTags), JSON.stringify(data.colorVariations), JSON.stringify(data.cdnImages), id],
     );
     return this.findById(data.slug);
   }

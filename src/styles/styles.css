@@ -670,6 +670,7 @@ button { color: inherit; }
 
 .brand-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
 .brand-tile { min-height: 170px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 25px; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden; transition: background .3s; }
+.brand-tile { width: 100%; color: inherit; background: transparent; text-align: left; cursor: pointer; }
 .brand-tile::before { content: ""; position: absolute; inset: auto -30% -120% auto; width: 220px; height: 220px; border-radius: 50%; background: var(--acid); filter: blur(35px); opacity: 0; transition: opacity .35s, transform .35s; }
 .brand-tile:hover { background: rgba(184,255,53,.05); }
 .brand-tile:hover::before { opacity: .12; transform: translate(-40px,-70px); }

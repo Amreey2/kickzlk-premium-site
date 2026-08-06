@@ -11,6 +11,7 @@ import { env } from './config/env.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import createAdminRoutes from './routes/adminRoutes.js';
 import createAuthRoutes from './routes/authRoutes.js';
+import createCatalogRoutes from './routes/catalogRoutes.js';
 import createOrderRoutes from './routes/orderRoutes.js';
 import createProductRoutes from './routes/productRoutes.js';
 import createUploadRoutes from './routes/uploadRoutes.js';
@@ -47,6 +48,7 @@ export const createApp = ({ services = defaultServices, databaseCheck = testData
     }
   });
   app.use('/api/auth', createAuthRoutes(services.authService));
+  app.use('/api', createCatalogRoutes(services.catalogService));
   app.use('/api/products', createProductRoutes(services.productService));
   app.use('/api/orders', createOrderRoutes(services.orderService));
   app.use('/api/admin', createAdminRoutes(services));

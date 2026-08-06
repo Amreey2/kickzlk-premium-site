@@ -22,16 +22,23 @@ const normalizeProduct = (product) => {
     : availability.toLowerCase() === 'out of stock'
       ? 'Out of Stock'
       : 'Active';
+  const uploadedImages = Array.isArray(product.images)
+    ? product.images.map((image, index) => normalizeImage(image, index, product.name))
+    : [];
+  const cdnImages = Array.isArray(product.cdnImages) ? product.cdnImages.map(String) : [];
   return {
     id,
     slug: String(product.slug || id),
+    sku: String(product.sku || ''),
     name: String(product.name || ''),
     brand: String(product.brand || ''),
+    brandId: Number(product.brandId || 0),
     category: String(product.category || ''),
+    categoryId: Number(product.categoryId || 0),
     price: Number(product.price || 0),
-    images: Array.isArray(product.images)
-      ? product.images.map((image, index) => normalizeImage(image, index, product.name)).sort((a, b) => a.position - b.position)
-      : [],
+    images: [...uploadedImages, ...cdnImages.map((url, index) => normalizeImage({ url, alt: product.imageAltText }, uploadedImages.length + index, product.name))].sort((a, b) => a.position - b.position),
+    uploadedImages,
+    cdnImages,
     sizes: Array.isArray(product.sizes) ? product.sizes.map(String) : [],
     description: String(product.description || ''),
     preOrder: Boolean(product.preOrder),
@@ -39,6 +46,11 @@ const normalizeProduct = (product) => {
     status,
     availability,
     deliveryTime: String(product.deliveryTime || ''),
+    productTags: Array.isArray(product.productTags) ? product.productTags.map(String) : [],
+    colorVariations: Array.isArray(product.colorVariations) ? product.colorVariations.map(String) : [],
+    metaTitle: String(product.metaTitle || ''),
+    metaDescription: String(product.metaDescription || ''),
+    imageAltText: String(product.imageAltText || ''),
   };
 };
 

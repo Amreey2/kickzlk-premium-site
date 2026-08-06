@@ -5,6 +5,7 @@ export const createProductController = (service) => ({
       category: request.query.category,
       brand: request.query.brand,
       productType: request.query.productType,
+      search: request.query.search,
     }),
   }),
   get: async (request, response) => response.json({ success: true, data: await service.get(request.params.id) }),

@@ -3,9 +3,11 @@ import { logoWordmarkWhite } from '../../assets';
 const items = [
   ['/admin/dashboard', 'Dashboard', '01'],
   ['/admin/products', 'Products', '02'],
-  ['/admin/orders', 'Orders', '03'],
-  ['/admin/customers', 'Customers', '04'],
-  ['/admin/settings', 'Settings', '05'],
+  ['/admin/brands', 'Brands', '03'],
+  ['/admin/categories', 'Categories', '04'],
+  ['/admin/orders', 'Orders', '05'],
+  ['/admin/customers', 'Customers', '06'],
+  ['/admin/settings', 'Settings', '07'],
 ];
 
 export default function AdminSidebar({ open, onClose }) {

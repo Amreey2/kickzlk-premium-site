@@ -40,6 +40,14 @@ const services = () => ({
     updateStatus: async (id, status, note) => ({ ...order, id: Number(id), order_status: status, note }),
   },
   imageService: { serializeUploads: (files) => files },
+  catalogService: {
+    listBrands: async () => [{ id: 1, name: 'Nike', status: 'Active' }],
+    listCategories: async () => [{ id: 1, name: 'Sneakers', status: 'Active' }],
+    listOptions: async () => [{ id: 1, kind: 'gender', value: 'Unisex', status: 'Active' }],
+    createBrand: async (payload) => ({ id: 2, ...payload }), updateBrand: async (id, payload) => ({ id: Number(id), ...payload }), deleteBrand: async () => undefined,
+    createCategory: async (payload) => ({ id: 2, ...payload }), updateCategory: async (id, payload) => ({ id: Number(id), ...payload }), deleteCategory: async () => undefined,
+    createOption: async (payload) => ({ id: 2, ...payload }),
+  },
 });
 
 const app = () => createApp({ services: services(), databaseCheck: async () => true });
@@ -82,6 +90,14 @@ describe('API contract', () => {
       .send(product)
       .expect(201);
     assert.equal(response.body.data.name, product.name);
+  });
+
+  test('live brands are public while brand management is administrator-only', async () => {
+    const instance = app();
+    assert.equal((await request(instance).get('/api/brands').expect(200)).body.data[0].name, 'Nike');
+    await request(instance).post('/api/admin/brands').send({ name: 'Puma' }).expect(401);
+    const created = await request(instance).post('/api/admin/brands').set('Authorization', `Bearer ${adminToken}`).send({ name: 'Puma' }).expect(201);
+    assert.equal(created.body.data.name, 'Puma');
   });
 
   test('guest checkout and verified guest tracking work without an account', async () => {

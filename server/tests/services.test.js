@@ -3,6 +3,7 @@ import { describe, test } from 'node:test';
 import bcrypt from 'bcryptjs';
 import AuthService from '../services/AuthService.js';
 import OrderService from '../services/OrderService.js';
+import ProductService from '../services/ProductService.js';
 
 describe('authentication services', () => {
   test('registration hashes passwords and returns a customer JWT', async () => {
@@ -66,5 +67,38 @@ describe('order services', () => {
       shippingAddress: 'Kandy', items: [{ productId: 6, selectedSize: 'US 8' }],
     }, 42);
     assert.equal(result.userId, 42);
+  });
+});
+
+describe('catalogue product services', () => {
+  const payload = {
+    sku: 'NK-AJ1-SHD-0001', brand: 'Nike', brandId: 1, category: 'Sneakers', categoryId: 2,
+    name: 'Air Jordan 1', description: 'A premium high-top sneaker.', price: 64900,
+    sizes: ['8', '9'], preOrder: true, stock: 0, images: [], cdnImages: ['https://cdn.example.com/aj1.jpg'],
+    productTags: ['New Arrival', 'Basketball'], colorVariations: ['Black', 'Red'],
+    metaTitle: 'Air Jordan 1 Sri Lanka', metaDescription: 'Shop the Air Jordan 1 at KICKZ.LK.', imageAltText: 'Black and red Air Jordan 1',
+  };
+
+  test('creates products only with unique SKUs and valid catalogue relations', async () => {
+    let saved;
+    const service = new ProductService({
+      productModel: { findBySku: async () => null, create: async (data) => { saved = data; return data; } },
+      brandModel: { findById: async () => ({ id: 1, name: 'Nike', status: 'Active' }) },
+      categoryModel: { findById: async () => ({ id: 2, name: 'Sneakers', status: 'Active' }) },
+    });
+    await service.create(payload);
+    assert.equal(saved.sku, payload.sku);
+    assert.deepEqual(saved.productTags, payload.productTags);
+    assert.deepEqual(saved.colorVariations, payload.colorVariations);
+  });
+
+  test('rejects duplicate SKUs and invalid CDN URLs', async () => {
+    const service = new ProductService({
+      productModel: { findBySku: async () => ({ id: 'existing' }) },
+      brandModel: { findById: async () => ({ id: 1, name: 'Nike', status: 'Active' }) },
+      categoryModel: { findById: async () => ({ id: 2, name: 'Sneakers', status: 'Active' }) },
+    });
+    await assert.rejects(() => service.create(payload), (error) => error.code === 'SKU_EXISTS');
+    await assert.rejects(() => service.create({ ...payload, sku: 'UNIQUE-2', cdnImages: ['not-a-url'] }), (error) => error.code === 'INVALID_IMAGE_URL');
   });
 });
