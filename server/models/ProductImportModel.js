@@ -50,10 +50,13 @@ export default class ProductImportModel {
   }
 
   async list(limit = 50) {
+    const requestedLimit = Number(limit);
+    const safeLimit = Number.isInteger(requestedLimit) && requestedLimit > 0
+      ? Math.min(requestedLimit, 100)
+      : 50;
     const rows = await this.database.query(
       `SELECT i.*, a.email AS admin_email FROM product_imports i
-       LEFT JOIN administrators a ON a.id = i.imported_by ORDER BY i.created_at DESC LIMIT ?`,
-      [Number(limit)],
+       LEFT JOIN administrators a ON a.id = i.imported_by ORDER BY i.created_at DESC LIMIT ${safeLimit}`,
     );
     return rows.map(mapImport);
   }

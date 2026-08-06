@@ -6,6 +6,7 @@ import OrderService from '../services/OrderService.js';
 import ProductService from '../services/ProductService.js';
 import CatalogService from '../services/CatalogService.js';
 import ProductImportService, { CSV_COLUMNS } from '../services/ProductImportService.js';
+import ProductImportModel from '../models/ProductImportModel.js';
 import { serializeCsv } from '../utils/csv.js';
 
 describe('authentication services', () => {
@@ -199,5 +200,40 @@ describe('bulk product import services', () => {
     const report = await service.failedReport(55);
     assert.match(report.csv, /DUPLICATE_SKU_IN_CSV/);
     assert.match(report.csv, /BRAND_NOT_FOUND/);
+  });
+});
+
+describe('product import history model', () => {
+  test('lists an empty import history without binding a LIMIT parameter', async () => {
+    let statement; let parameters;
+    const model = new ProductImportModel({
+      query: async (sql, values) => {
+        statement = sql;
+        parameters = values;
+        return [];
+      },
+    });
+
+    assert.deepEqual(await model.list(), []);
+    assert.match(statement, /LIMIT 50$/);
+    assert.equal(parameters, undefined);
+    assert.equal((statement.match(/\?/g) || []).length, 0);
+  });
+
+  test('normalizes custom history limits before placing them in SQL', async () => {
+    const statements = [];
+    const model = new ProductImportModel({
+      query: async (sql) => { statements.push(sql); return []; },
+    });
+
+    await model.list(25);
+    await model.list(500);
+    await model.list(undefined);
+    await model.list('invalid');
+
+    assert.match(statements[0], /LIMIT 25$/);
+    assert.match(statements[1], /LIMIT 100$/);
+    assert.match(statements[2], /LIMIT 50$/);
+    assert.match(statements[3], /LIMIT 50$/);
   });
 });
