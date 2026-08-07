@@ -30,6 +30,7 @@ const mapProduct = (row) => {
     productTag: row.product_tag,
     productTags: parseJson(row.product_tags, row.product_tag ? [row.product_tag] : []),
     colorVariations: parseJson(row.color_variations, []),
+    colorVariants: parseJson(row.color_variants, []),
     cdnImages: parseJson(row.cdn_images, []),
     categoryId: row.category_id,
     metaTitle: row.meta_title,
@@ -87,12 +88,12 @@ export default class ProductModel {
       `INSERT INTO products
        (slug, sku, brand_id, category_id, brand, name, description, category, price, size, product_type, delivery_time,
         availability, stock, meta_title, meta_description, images, image_alt_text, variations, product_tag,
-        product_tags, color_variations, cdn_images)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        product_tags, color_variations, color_variants, cdn_images)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [data.slug, data.sku, data.brandId, data.categoryId, data.brand, data.name, data.description, data.category, data.price, JSON.stringify(data.sizes),
         data.productType, data.deliveryTime, data.availability, data.stock, data.metaTitle, data.metaDescription,
         JSON.stringify(data.images), data.imageAltText, JSON.stringify(data.variations), data.productTags[0] || null,
-        JSON.stringify(data.productTags), JSON.stringify(data.colorVariations), JSON.stringify(data.cdnImages)],
+        JSON.stringify(data.productTags), JSON.stringify(data.colorVariations), JSON.stringify(data.colorVariants), JSON.stringify(data.cdnImages)],
     );
     return this.findById(result.insertId);
   }
@@ -101,12 +102,12 @@ export default class ProductModel {
     await this.database.query(
       `UPDATE products SET slug = ?, sku = ?, brand_id = ?, category_id = ?, brand = ?, name = ?, description = ?, category = ?, price = ?,
        size = ?, product_type = ?, delivery_time = ?, availability = ?, stock = ?, meta_title = ?, meta_description = ?,
-       images = ?, image_alt_text = ?, variations = ?, product_tag = ?, product_tags = ?, color_variations = ?, cdn_images = ?
+       images = ?, image_alt_text = ?, variations = ?, product_tag = ?, product_tags = ?, color_variations = ?, color_variants = ?, cdn_images = ?
        WHERE ${/^\d+$/.test(String(id)) ? 'id' : 'slug'} = ?`,
       [data.slug, data.sku, data.brandId, data.categoryId, data.brand, data.name, data.description, data.category, data.price, JSON.stringify(data.sizes),
         data.productType, data.deliveryTime, data.availability, data.stock, data.metaTitle, data.metaDescription,
         JSON.stringify(data.images), data.imageAltText, JSON.stringify(data.variations), data.productTags[0] || null,
-        JSON.stringify(data.productTags), JSON.stringify(data.colorVariations), JSON.stringify(data.cdnImages), id],
+        JSON.stringify(data.productTags), JSON.stringify(data.colorVariations), JSON.stringify(data.colorVariants), JSON.stringify(data.cdnImages), id],
     );
     return this.findById(data.slug);
   }

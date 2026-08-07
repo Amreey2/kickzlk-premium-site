@@ -7,7 +7,6 @@ export default function CartItem({
   onQuantityChange,
   onRemove,
 }) {
-  const sizePrefix = product.brand === 'Balmain' ? 'EU' : 'US';
 
   return (
     <article className="cart-item">
@@ -18,7 +17,7 @@ export default function CartItem({
         <span className="brand-label">{product.brand}</span>
         <h2><a href={`/product/${product.id}`}>{product.name}</a></h2>
         <p>{product.preOrder ? `Pre-order · ${product.deliveryTime}` : `Ready stock · ${product.deliveryTime}`}</p>
-        <span className="cart-item__size">SIZE <strong>{sizePrefix} {selectedSize}</strong></span>
+        <span className="cart-item__size">SIZE <strong>{selectedSize}</strong></span>
       </div>
       <div className="cart-item__controls">
         <label className="quantity-control">

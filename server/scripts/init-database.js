@@ -64,7 +64,8 @@ try {
   if (!(await columnExists('products', 'brand_id'))) await connection.query('ALTER TABLE products ADD COLUMN brand_id BIGINT UNSIGNED NULL AFTER sku');
   if (!(await columnExists('products', 'product_tags'))) await connection.query('ALTER TABLE products ADD COLUMN product_tags JSON NULL AFTER product_tag');
   if (!(await columnExists('products', 'color_variations'))) await connection.query('ALTER TABLE products ADD COLUMN color_variations JSON NULL AFTER product_tags');
-  if (!(await columnExists('products', 'cdn_images'))) await connection.query('ALTER TABLE products ADD COLUMN cdn_images JSON NULL AFTER color_variations');
+  if (!(await columnExists('products', 'color_variants'))) await connection.query('ALTER TABLE products ADD COLUMN color_variants JSON NULL AFTER color_variations');
+  if (!(await columnExists('products', 'cdn_images'))) await connection.query('ALTER TABLE products ADD COLUMN cdn_images JSON NULL AFTER color_variants');
   if (!(await columnExists('categories', 'meta_description'))) await connection.query('ALTER TABLE categories ADD COLUMN meta_description VARCHAR(320) NULL AFTER meta_title');
   if (!(await columnExists('categories', 'updated_at'))) await connection.query('ALTER TABLE categories ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at');
   if (!(await columnExists('brands', 'display_mode'))) await connection.query("ALTER TABLE brands ADD COLUMN display_mode ENUM('Text', 'Image') NOT NULL DEFAULT 'Text' AFTER status");

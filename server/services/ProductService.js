@@ -15,11 +15,31 @@ const list = (value) => {
 const validUrl = (value) => {
   try { return ['http:', 'https:'].includes(new URL(value).protocol); } catch { return false; }
 };
+const normalizeImages = (images = []) => images.map((image, index) => ({
+  url: String(image?.url || image?.storageUrl || '').trim(),
+  alt: String(image?.alt || '').trim() || null,
+  position: Number(image?.position || index + 1),
+})).filter((image) => image.url);
+const normalizeColorVariants = (variants) => {
+  const seen = new Set();
+  return (Array.isArray(variants) ? variants : []).map((variant) => ({
+    color: String(variant?.color || '').trim(),
+    images: normalizeImages(Array.isArray(variant?.images) ? variant.images : []),
+    cdnImages: list(variant?.cdnImages),
+  })).filter((variant) => {
+    const key = variant.color.toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 const slugify = (value) => String(value).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const resolveProductType = (payload) => typeof payload.preOrder === 'boolean'
   ? (payload.preOrder ? 'Pre Order' : 'Ready Stock')
   : (payload.productType || 'Ready Stock');
-const normalize = (payload) => ({
+const normalize = (payload) => {
+  const colorVariants = normalizeColorVariants(payload.colorVariants);
+  return ({
   slug: slugify(payload.slug || payload.name),
   sku: String(payload.sku).trim().toUpperCase(),
   brandId: Number(payload.brandId),
@@ -41,9 +61,11 @@ const normalize = (payload) => ({
   variations: payload.variations || [],
   productTag: payload.productTag?.trim() || null,
   productTags: list(payload.productTags),
-  colorVariations: list(payload.colorVariations),
+  colorVariations: list([...(payload.colorVariations || []), ...colorVariants.map((variant) => variant.color)]),
+  colorVariants,
   cdnImages: list(payload.cdnImages),
-});
+  });
+};
 
 const validate = (payload) => {
   requireFields(payload, ['sku', 'brand', 'brandId', 'name', 'description', 'category', 'categoryId', 'price']);
@@ -56,6 +78,10 @@ const validate = (payload) => {
   if (payload.images !== undefined && !Array.isArray(payload.images)) throw new AppError('Product images must be an array.', 422, 'INVALID_IMAGES');
   if (!Array.isArray(payload.productTags) || list(payload.productTags).some((value) => value.length > 60 || /[,\r\n]/.test(value))) throw new AppError('Product tags must be valid values with a maximum of 60 characters each.', 422, 'INVALID_PRODUCT_TAGS');
   if (!Array.isArray(payload.colorVariations) || list(payload.colorVariations).some((value) => value.length > 60 || /[,\r\n]/.test(value))) throw new AppError('Colours must be valid values with a maximum of 60 characters each.', 422, 'INVALID_COLORS');
+  if (payload.colorVariants !== undefined && !Array.isArray(payload.colorVariants)) throw new AppError('Colour variants must be an array.', 422, 'INVALID_COLOR_VARIANTS');
+  const variants = normalizeColorVariants(payload.colorVariants);
+  if ((payload.colorVariants || []).length !== variants.length || variants.some((variant) => variant.color.length > 60)) throw new AppError('Every colour variant must have a unique valid colour name.', 422, 'INVALID_COLOR_VARIANTS');
+  if (variants.some((variant) => variant.cdnImages.some((url) => !validUrl(url)))) throw new AppError('Variant CDN images must contain valid HTTP or HTTPS URLs.', 422, 'INVALID_IMAGE_URL');
   if (String(payload.metaTitle).trim().length > 255) throw new AppError('Meta title cannot exceed 255 characters.', 422, 'INVALID_META_TITLE');
   if (String(payload.metaDescription).trim().length > 320) throw new AppError('Meta description cannot exceed 320 characters.', 422, 'INVALID_META_DESCRIPTION');
   if (String(payload.imageAltText).trim().length > 255) throw new AppError('Image alt text cannot exceed 255 characters.', 422, 'INVALID_IMAGE_ALT_TEXT');
@@ -109,6 +135,7 @@ export default class ProductService {
       productTag: current.productTag,
       productTags: current.productTags,
       colorVariations: current.colorVariations,
+      colorVariants: current.colorVariants,
       cdnImages: current.cdnImages,
       ...payload,
     };

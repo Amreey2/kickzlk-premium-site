@@ -14,6 +14,7 @@ import createAuthRoutes from './routes/authRoutes.js';
 import createCatalogRoutes from './routes/catalogRoutes.js';
 import createOrderRoutes from './routes/orderRoutes.js';
 import createProductRoutes from './routes/productRoutes.js';
+import createSiteSettingRoutes from './routes/siteSettingRoutes.js';
 import createUploadRoutes from './routes/uploadRoutes.js';
 
 const uploads = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'uploads');
@@ -50,6 +51,7 @@ export const createApp = ({ services = defaultServices, databaseCheck = testData
   app.use('/api/auth', createAuthRoutes(services.authService));
   app.use('/api', createCatalogRoutes(services.catalogService));
   app.use('/api/products', createProductRoutes(services.productService));
+  app.use('/api', createSiteSettingRoutes(services.siteSettingService));
   app.use('/api/orders', createOrderRoutes(services.orderService));
   app.use('/api/admin', createAdminRoutes(services));
   app.use('/api/uploads', createUploadRoutes(services.imageService));

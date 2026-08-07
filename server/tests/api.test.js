@@ -47,6 +47,10 @@ const services = () => ({
     updateStatus: async (id, status, note) => ({ ...order, id: Number(id), order_status: status, note }),
   },
   imageService: { serializeUploads: (files) => files },
+  siteSettingService: {
+    sizeGuide: async () => ({ imageUrl: '/uploads/size-guide.webp', altText: 'Size guide' }),
+    updateSizeGuide: async (payload) => payload,
+  },
   catalogService: {
     listBrands: async () => [{ id: 1, name: 'Nike', status: 'Active' }],
     listCategories: async () => [{ id: 1, name: 'Sneakers', status: 'Active' }],
@@ -125,6 +129,13 @@ describe('API contract', () => {
     await request(instance).post('/api/admin/brands').send({ name: 'Puma' }).expect(401);
     const created = await request(instance).post('/api/admin/brands').set('Authorization', `Bearer ${adminToken}`).send({ name: 'Puma' }).expect(201);
     assert.equal(created.body.data.name, 'Puma');
+  });
+
+  test('global size guide is public and management remains administrator-only', async () => {
+    const instance = app();
+    assert.equal((await request(instance).get('/api/size-guide').expect(200)).body.data.imageUrl, '/uploads/size-guide.webp');
+    await request(instance).put('/api/admin/size-guide').send({ imageUrl: '/uploads/new.webp' }).expect(401);
+    await request(instance).put('/api/admin/size-guide').set('Authorization', `Bearer ${adminToken}`).send({ imageUrl: '/uploads/new.webp' }).expect(200);
   });
 
   test('bulk product import APIs require admin authentication', async () => {

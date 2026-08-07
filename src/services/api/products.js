@@ -23,6 +23,18 @@ const normalizeImage = (image, index, productName) => {
     position: Number(source.position || index + 1),
   };
 };
+const normalizeColorVariants = (variants, productName) => (Array.isArray(variants) ? variants : []).map((variant) => {
+  const uploadedImages = Array.isArray(variant?.images)
+    ? variant.images.map((image, index) => normalizeImage(image, index, `${productName} ${variant.color || ''}`.trim()))
+    : [];
+  const cdnImages = Array.isArray(variant?.cdnImages) ? variant.cdnImages.map(String).filter(Boolean) : [];
+  return {
+    color: String(variant?.color || '').trim(),
+    images: [...uploadedImages, ...cdnImages.map((url, index) => normalizeImage({ url }, uploadedImages.length + index, `${productName} ${variant.color || ''}`.trim()))],
+    uploadedImages,
+    cdnImages,
+  };
+}).filter((variant) => variant.color);
 
 // Keep the storefront isolated from database naming and from optional API metadata.
 const normalizeProduct = (product) => {
@@ -60,6 +72,7 @@ const normalizeProduct = (product) => {
     deliveryTime: String(product.deliveryTime || ''),
     productTags: normalizeList(product.productTags),
     colorVariations: normalizeList(product.colorVariations),
+    colorVariants: normalizeColorVariants(product.colorVariants, product.name),
     metaTitle: String(product.metaTitle || ''),
     metaDescription: String(product.metaDescription || ''),
     imageAltText: String(product.imageAltText || ''),

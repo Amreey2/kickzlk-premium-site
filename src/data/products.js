@@ -37,7 +37,7 @@ export const products = catalog.map((product, index) => ({
           ? 'badge--mint'
           : '',
   priceLabel: formatPrice(product.price),
-  sizesLabel: `${product.brand === 'Balmain' ? 'EU' : 'US'} ${product.sizes[0]}–${product.sizes.at(-1)}`,
+  sizesLabel: product.sizes.length === 1 ? product.sizes[0] : `${product.sizes[0]}–${product.sizes.at(-1)}`,
   ariaLabel: `View ${product.name}`,
   loading: index === 0 ? 'eager' : 'lazy',
   delay: (index % 3) * 70,

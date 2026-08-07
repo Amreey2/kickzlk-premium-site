@@ -118,6 +118,7 @@ CREATE TABLE IF NOT EXISTS products (
   product_tag VARCHAR(100) NULL,
   product_tags JSON NOT NULL,
   color_variations JSON NOT NULL,
+  color_variants JSON NULL,
   cdn_images JSON NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -129,6 +130,13 @@ CREATE TABLE IF NOT EXISTS products (
   KEY idx_products_category (category),
   KEY idx_products_type (product_type),
   CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS site_settings (
+  setting_key VARCHAR(100) NOT NULL,
+  setting_value JSON NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (setting_key)
 );
 
 CREATE TABLE IF NOT EXISTS orders (

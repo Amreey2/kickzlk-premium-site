@@ -5,6 +5,11 @@ export const formatProductPrice = (price) => `LKR ${Number(price || 0).toLocaleS
 export const productImage = (product, index = 0) => product?.images?.[index]?.url || productDunk;
 export const productImageAlt = (product, index = 0) => product?.images?.[index]?.alt || `${product?.brand || ''} ${product?.name || 'KICKZ.LK'} sneaker`;
 
+export const productGallery = (product, color) => {
+  const variant = product?.colorVariants?.find((item) => item.color.toLowerCase() === String(color || '').toLowerCase());
+  return variant?.images?.length ? variant.images : (product?.images || []);
+};
+
 export const replaceFailedProductImage = (event) => {
   if (event.currentTarget.dataset.fallbackApplied) return;
   event.currentTarget.dataset.fallbackApplied = 'true';
@@ -53,6 +58,5 @@ export const categoryGenderLabel = (product) => ({
 
 export const productSizesLabel = (product) => {
   if (!product.sizes?.length) return 'SIZE ENQUIRY';
-  const prefix = product.brand === 'Balmain' ? 'EU' : 'US';
-  return `${prefix} ${product.sizes[0]}–${product.sizes.at(-1)}`;
+  return product.sizes.length === 1 ? product.sizes[0] : `${product.sizes[0]}–${product.sizes.at(-1)}`;
 };

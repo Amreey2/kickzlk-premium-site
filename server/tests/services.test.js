@@ -7,6 +7,7 @@ import ProductService from '../services/ProductService.js';
 import CatalogService from '../services/CatalogService.js';
 import ProductImportService, { CSV_COLUMNS } from '../services/ProductImportService.js';
 import ProductImportModel from '../models/ProductImportModel.js';
+import SiteSettingService from '../services/SiteSettingService.js';
 import { serializeCsv } from '../utils/csv.js';
 
 describe('authentication services', () => {
@@ -124,6 +125,7 @@ describe('catalogue product services', () => {
     name: 'Air Jordan 1', description: 'A premium high-top sneaker.', price: 64900,
     sizes: ['8', '9'], preOrder: true, stock: 0, images: [], cdnImages: ['https://cdn.example.com/aj1.jpg'],
     productTags: ['New Arrival', 'Basketball'], colorVariations: ['Black', 'Red'],
+    colorVariants: [{ color: 'Black', images: [{ url: '/uploads/black.jpg' }], cdnImages: ['https://cdn.example.com/black.jpg'] }],
     metaTitle: 'Air Jordan 1 Sri Lanka', metaDescription: 'Shop the Air Jordan 1 at KICKZ.LK.', imageAltText: 'Black and red Air Jordan 1',
   };
 
@@ -138,6 +140,7 @@ describe('catalogue product services', () => {
     assert.equal(saved.sku, payload.sku);
     assert.deepEqual(saved.productTags, payload.productTags);
     assert.deepEqual(saved.colorVariations, payload.colorVariations);
+    assert.equal(saved.colorVariants[0].color, 'Black');
   });
 
   test('rejects duplicate SKUs and invalid CDN URLs', async () => {
@@ -161,6 +164,16 @@ describe('catalogue product services', () => {
     assert.equal(saved.metaTitle, null);
     assert.equal(saved.metaDescription, null);
     assert.equal(saved.imageAltText, null);
+  });
+
+  test('rejects duplicate colour names and invalid variant CDN images', async () => {
+    const service = new ProductService({
+      productModel: { findBySku: async () => null, create: async (data) => data },
+      brandModel: { findById: async () => ({ id: 1, name: 'Nike', status: 'Active' }) },
+      categoryModel: { findById: async () => ({ id: 2, name: 'Sneakers', status: 'Active' }) },
+    });
+    await assert.rejects(() => service.create({ ...payload, colorVariants: [{ color: 'Black' }, { color: 'black' }] }), (error) => error.code === 'INVALID_COLOR_VARIANTS');
+    await assert.rejects(() => service.create({ ...payload, colorVariants: [{ color: 'Black', cdnImages: ['invalid'] }] }), (error) => error.code === 'INVALID_IMAGE_URL');
   });
 });
 
@@ -279,5 +292,46 @@ describe('product import history model', () => {
     assert.match(statements[1], /LIMIT 100$/);
     assert.match(statements[2], /LIMIT 50$/);
     assert.match(statements[3], /LIMIT 50$/);
+  });
+});
+
+describe('bulk colour variant import', () => {
+  test('appends repeated SKU colour rows to one product', async () => {
+    const row = (color, image) => CSV_COLUMNS.map((column) => ({
+      sku: 'AJ1-RETRO-001', brand: 'Nike', category: 'Lifestyle Sneakers', product_name: 'Air Jordan 1 Retro',
+      price: '65000', status: 'Active', stock: '4', available_sizes: 'EU 40,UK 8', pre_order_available: 'NO',
+      product_tags: 'Limited Edition', color, color_variations: '', cdn_images: image,
+    })[column]);
+    const csv = serializeCsv([CSV_COLUMNS, row('Black', 'https://cdn.example.com/black.jpg'), row('White', 'https://cdn.example.com/white.jpg')]);
+    const created = []; const updated = [];
+    const service = new ProductImportService({
+      productService: {
+        create: async (payload) => { const product = { ...payload, id: payload.slug }; created.push(product); return product; },
+        update: async (id, payload) => { const product = { ...payload, id }; updated.push(product); return product; },
+      },
+      productModel: { findBySku: async () => null },
+      brandModel: { list: async () => [{ id: 1, name: 'Nike', status: 'Active' }] },
+      categoryModel: { list: async () => [{ id: 2, name: 'Lifestyle Sneakers', status: 'Active' }] },
+      importModel: { create: async () => 80, addFailures: async () => undefined, complete: async () => undefined },
+    });
+
+    const preview = await service.preview(csv);
+    assert.equal(preview.validRows, 2);
+    assert.deepEqual(preview.rows.map((item) => item.action), ['CREATE', 'APPEND_VARIANT']);
+    const result = await service.import(csv, { adminId: 1 });
+    assert.equal(result.createdRows, 1);
+    assert.equal(result.updatedRows, 1);
+    assert.equal(created[0].colorVariants[0].color, 'Black');
+    assert.deepEqual(updated[0].colorVariants.map((variant) => variant.color), ['Black', 'White']);
+  });
+});
+
+describe('global size guide settings', () => {
+  test('validates and persists one global uploaded image', async () => {
+    let saved;
+    const service = new SiteSettingService({ get: async () => saved, set: async (key, value) => { assert.equal(key, 'size_guide'); saved = value; return value; } });
+    const guide = await service.updateSizeGuide({ imageUrl: '/uploads/guide.webp', altText: 'Sneaker size conversion chart' });
+    assert.equal(guide.imageUrl, '/uploads/guide.webp');
+    await assert.rejects(() => service.updateSizeGuide({ imageUrl: 'javascript:alert(1)' }), (error) => error.code === 'INVALID_SIZE_GUIDE_IMAGE');
   });
 });

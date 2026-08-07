@@ -4,7 +4,7 @@ import { parseCsv, serializeCsv } from '../utils/csv.js';
 export const CSV_COLUMNS = [
   'sku', 'brand', 'category', 'product_name', 'price', 'status', 'description', 'stock',
   'delivery_timeline', 'available_sizes', 'pre_order_available', 'product_tags',
-  'color_variations', 'cdn_images', 'image_alt_text', 'meta_title', 'meta_description',
+  'color', 'color_variations', 'cdn_images', 'image_alt_text', 'meta_title', 'meta_description',
 ];
 const requiredColumns = ['sku', 'brand', 'category', 'product_name', 'price', 'status'];
 const statuses = new Set(['Active', 'Inactive', 'Out of Stock']);
@@ -42,8 +42,12 @@ export default class ProductImportService {
       CSV_COLUMNS,
       ['KZ-NIKE-001', 'Nike', 'Lifestyle Sneakers', 'Nike Dunk Low Panda', '45000', 'Active',
         'Authentic Nike Dunk Low Panda sneakers.', '5', '2 Weeks', '40,41,42', 'FALSE',
-        'New Arrival,Limited Edition', 'Black,White', 'https://cdn.example.com/front.jpg,https://cdn.example.com/side.jpg',
+        'New Arrival,Limited Edition', 'Black', '', 'https://cdn.example.com/black-front.jpg,https://cdn.example.com/black-side.jpg',
         'Nike Dunk Low Panda in black and white', 'Nike Dunk Low Panda Sri Lanka', 'Authentic Nike sneakers at KICKZ.LK.'],
+      ['KZ-NIKE-001', 'Nike', 'Lifestyle Sneakers', 'Nike Dunk Low Panda', '45000', 'Active',
+        'Authentic Nike Dunk Low Panda sneakers.', '5', '2 Weeks', '40,41,42', 'FALSE',
+        'New Arrival,Limited Edition', 'White', '', 'https://cdn.example.com/white-front.jpg,https://cdn.example.com/white-side.jpg',
+        'Nike Dunk Low Panda in white', 'Nike Dunk Low Panda Sri Lanka', 'Authentic Nike sneakers at KICKZ.LK.'],
     ]);
   }
 
@@ -58,15 +62,19 @@ export default class ProductImportService {
     const importId = await this.importModel.create({ fileName: safeFileName, importedBy: Number(adminId), totalRows: validation.rows.length });
     const failures = validation.rows.filter((row) => row.errors.length).map((row) => this.failure(row));
     let createdRows = 0; let updatedRows = 0;
+    const importedProducts = new Map();
 
     for (const row of validation.rows.filter((item) => !item.errors.length)) {
       try {
+        row.existing = importedProducts.get(row.sku) || row.existing;
         const payload = this.productPayload(row);
         if (row.existing) {
-          await this.productService.update(row.existing.id, payload);
+          const updated = await this.productService.update(row.existing.id, payload);
+          importedProducts.set(row.sku, updated);
           updatedRows += 1;
         } else {
-          await this.productService.create(payload);
+          const created = await this.productService.create(payload);
+          importedProducts.set(row.sku, created);
           createdRows += 1;
         }
       } catch (error) {
@@ -127,23 +135,31 @@ export default class ProductImportService {
       };
     });
     const skuCounts = new Map();
+    const skuColorCounts = new Map();
+    const skuFirstRows = new Map();
     records.forEach((row) => {
       const sku = row.source.sku.toUpperCase();
       skuCounts.set(sku, (skuCounts.get(sku) || 0) + 1);
+      if (!skuFirstRows.has(sku)) skuFirstRows.set(sku, row.rowNumber);
+      const color = row.source.color.trim().toLowerCase();
+      if (sku && color) skuColorCounts.set(`${sku}\u0000${color}`, (skuColorCounts.get(`${sku}\u0000${color}`) || 0) + 1);
     });
+    const existingBySku = new Map();
 
     for (const row of records) {
-      await this.validateRow(row, { brandMap, categoryMap, skuCounts });
+      await this.validateRow(row, { brandMap, categoryMap, skuCounts, skuColorCounts, skuFirstRows, existingBySku });
     }
     return { rows: records };
   }
 
-  async validateRow(row, { brandMap, categoryMap, skuCounts }) {
+  async validateRow(row, { brandMap, categoryMap, skuCounts, skuColorCounts, skuFirstRows, existingBySku }) {
     const data = row.source;
     for (const field of requiredColumns) if (!data[field]) row.errors.push(issue('REQUIRED_FIELD', `${field} is required.`));
     row.sku = data.sku.toUpperCase();
     if (data.sku && !skuPattern.test(row.sku)) row.errors.push(issue('INVALID_SKU', 'SKU must contain 2–100 letters, numbers, hyphens, or underscores.'));
-    if (data.sku && skuCounts.get(row.sku) > 1) row.errors.push(issue('DUPLICATE_SKU_IN_CSV', 'SKU appears more than once in this CSV.'));
+    row.color = data.color.trim();
+    if (data.sku && skuCounts.get(row.sku) > 1 && !row.color) row.errors.push(issue('DUPLICATE_SKU_IN_CSV', 'Repeated SKUs must provide one distinct color per row.'));
+    if (row.color && skuColorCounts.get(`${row.sku}\u0000${row.color.toLowerCase()}`) > 1) row.errors.push(issue('DUPLICATE_SKU_COLOR', 'This SKU and color combination appears more than once in the CSV.'));
 
     row.brand = brandMap.get(data.brand.toLowerCase());
     if (data.brand && !row.brand) row.errors.push(issue('BRAND_NOT_FOUND', 'Brand does not exist.'));
@@ -163,7 +179,7 @@ export default class ProductImportService {
     row.preOrder = trueValues.has(boolean);
     row.sizes = uniqueList(data.available_sizes);
     row.tags = uniqueList(data.product_tags);
-    row.colors = uniqueList(data.color_variations);
+    row.colors = row.color ? [row.color] : uniqueList(data.color_variations);
     row.cdnImages = uniqueList(data.cdn_images);
     if (row.tags.some((tag) => tag.length > 60)) row.errors.push(issue('INVALID_PRODUCT_TAGS', 'Tags cannot exceed 60 characters each.'));
     if (row.colors.some((color) => color.length > 60)) row.errors.push(issue('INVALID_COLORS', 'Colours cannot exceed 60 characters each.'));
@@ -172,15 +188,30 @@ export default class ProductImportService {
     if (data.meta_title.length > 255) row.errors.push(issue('INVALID_META_TITLE', 'Meta title cannot exceed 255 characters.'));
     if (data.meta_description.length > 320) row.errors.push(issue('INVALID_META_DESCRIPTION', 'Meta description cannot exceed 320 characters.'));
 
-    if (data.sku && skuCounts.get(row.sku) === 1) {
-      row.existing = await this.productModel.findBySku(row.sku);
+    if (data.sku && skuPattern.test(row.sku)) {
+      if (!existingBySku.has(row.sku)) existingBySku.set(row.sku, await this.productModel.findBySku(row.sku));
+      row.existing = existingBySku.get(row.sku);
       if (row.existing) row.notices.push(issue('SKU_EXISTS', 'Existing product will be updated using SKU.'));
     }
-    row.action = row.existing ? 'UPDATE' : 'CREATE';
+    row.action = row.existing ? 'UPDATE' : skuFirstRows.get(row.sku) === row.rowNumber ? 'CREATE' : 'APPEND_VARIANT';
   }
 
   productPayload(row) {
     const data = row.source;
+    const existingVariants = Array.isArray(row.existing?.colorVariants) ? row.existing.colorVariants : [];
+    let colorVariants = existingVariants;
+    let colorVariations = row.colors;
+    if (row.color) {
+      const nextVariant = { color: row.color, images: [], cdnImages: row.cdnImages };
+      const match = existingVariants.findIndex((variant) => variant.color.toLowerCase() === row.color.toLowerCase());
+      colorVariants = match < 0
+        ? [...existingVariants, nextVariant]
+        : existingVariants.map((variant, index) => index === match ? {
+          ...variant,
+          cdnImages: [...new Set([...(variant.cdnImages || []), ...row.cdnImages])],
+        } : variant);
+      colorVariations = [...new Set([...(row.existing?.colorVariations || []), ...colorVariants.map((variant) => variant.color)])];
+    }
     return {
       ...(row.existing ? {} : { slug: `${slugify(data.product_name)}-${slugify(row.sku)}` }),
       sku: row.sku,
@@ -197,8 +228,9 @@ export default class ProductImportService {
       sizes: row.sizes.length ? row.sizes : (row.existing?.sizes?.length ? row.existing.sizes : ['One Size']),
       preOrder: row.preOrder,
       productTags: row.tags,
-      colorVariations: row.colors,
-      cdnImages: row.cdnImages,
+      colorVariations,
+      colorVariants,
+      cdnImages: row.color ? (row.existing?.cdnImages || []) : row.cdnImages,
       ...(row.existing ? {} : { images: [] }),
       imageAltText: data.image_alt_text || null,
       metaTitle: data.meta_title || null,

@@ -2,7 +2,6 @@ import { formatPrice } from '../../data/products';
 import PriceNotice from './PriceNotice';
 
 export default function CheckoutSummary({ product, selectedSize, setSelectedSize, quantity = 1 }) {
-  const sizePrefix = product.brand === 'Balmain' ? 'EU' : 'US';
   const subtotal = product.price * quantity;
 
   return (
@@ -17,7 +16,7 @@ export default function CheckoutSummary({ product, selectedSize, setSelectedSize
           <span className="brand-label">{product.brand}</span>
           <h2>{product.name}</h2>
           <dl className="checkout-product__meta">
-            <div><dt>Size</dt><dd>{sizePrefix} {selectedSize}</dd></div>
+            <div><dt>Size</dt><dd>{selectedSize}</dd></div>
             <div><dt>Quantity</dt><dd>{quantity}</dd></div>
           </dl>
           <strong>{formatPrice(product.price)}</strong>
@@ -27,7 +26,7 @@ export default function CheckoutSummary({ product, selectedSize, setSelectedSize
       <label className="form-field">
         <span>SELECTED SIZE</span>
         <select value={selectedSize} onChange={(event) => setSelectedSize(event.target.value)}>
-          {product.sizes.map((size) => <option value={size} key={size}>{sizePrefix} {size}</option>)}
+          {product.sizes.map((size) => <option value={size} key={size}>{size}</option>)}
         </select>
       </label>
       <div className="checkout-totals" aria-label="Order totals">
