@@ -6,11 +6,14 @@ import CartPage from './pages/CartPage';
 import CategoriesPage from './pages/CategoriesPage';
 import CheckoutPage from './pages/CheckoutPage';
 import ContactPage from './pages/ContactPage';
+import CheckoutChoicePage from './pages/CheckoutChoicePage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import LoginPage from './pages/LoginPage';
 import NewDropsPage from './pages/NewDropsPage';
 import PreOrderPage from './pages/PreOrderPage';
 import ProductPage from './pages/ProductPage';
 import RegisterPage from './pages/RegisterPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import ShopPage from './pages/ShopPage';
 import AdminCustomersPage from './pages/admin/AdminCustomersPage';
 import AdminBrandsPage from './pages/admin/AdminBrandsPage';
@@ -37,9 +40,12 @@ const routes = {
   '/contact': ContactPage,
   '/login': LoginPage,
   '/register': RegisterPage,
+  '/forgot-password': ForgotPasswordPage,
+  '/reset-password': ResetPasswordPage,
   '/account': AccountPage,
   '/cart': CartPage,
   '/checkout': CheckoutPage,
+  '/checkout/start': CheckoutChoicePage,
   '/admin/login': AdminLoginPage,
   '/admin/dashboard': AdminDashboardPage,
   '/admin/products': AdminProductsPage,

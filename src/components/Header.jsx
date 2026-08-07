@@ -55,6 +55,9 @@ export default function Header({ bagCount = 0 }) {
           <button className="icon-btn" aria-label="Search">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
           </button>
+          <a className="icon-btn account-btn" href="/account" aria-label="Customer account">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></svg>
+          </a>
           <a className="icon-btn bag-btn" href="/cart" aria-label="Shopping bag and cart">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z" /><path d="M9 8a3 3 0 0 1 6 0" /></svg>
             <span className="bag-count">{bagCount}</span>
@@ -77,6 +80,7 @@ export default function Header({ bagCount = 0 }) {
             </a>
           ))}
         </nav>
+        <a className="mobile-account-link" href="/account" onClick={closeMenu}>MY ACCOUNT <span>→</span></a>
         <div className="mobile-drawer__meta"><span>Colombo, Sri Lanka</span><span>Online · Islandwide</span></div>
       </div>
     </header>

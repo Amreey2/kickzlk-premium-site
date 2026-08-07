@@ -20,4 +20,16 @@ export default class UserModel {
     );
     return this.findById(result.insertId);
   }
+
+  async update(id, { name, email, phoneNumber }) {
+    await this.database.query(
+      'UPDATE customers SET name = ?, email = ?, phone_number = ? WHERE id = ?',
+      [name, email, phoneNumber, id],
+    );
+    return this.findById(id);
+  }
+
+  async updatePassword(id, passwordHash) {
+    await this.database.query('UPDATE customers SET password_hash = ? WHERE id = ?', [passwordHash, id]);
+  }
 }

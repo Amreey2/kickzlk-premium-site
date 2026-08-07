@@ -23,6 +23,13 @@ const services = () => ({
     register: async () => ({ user: customer, token: customerToken }),
     login: async () => ({ user: customer, token: customerToken }),
     profile: async () => customer,
+    updateProfile: async (id, payload) => ({ id: Number(id), ...payload }),
+    addresses: async () => [],
+    createAddress: async (id, payload) => ({ id: 1, customerId: Number(id), ...payload }),
+    updateAddress: async (customerId, id, payload) => ({ id: Number(id), customerId: Number(customerId), ...payload }),
+    deleteAddress: async () => undefined,
+    requestPasswordReset: async () => ({ message: 'Reset prepared.' }),
+    resetPassword: async () => ({ message: 'Password updated.' }),
     adminLogin: async () => ({ admin, token: adminToken }),
   },
   productService: {
@@ -68,10 +75,23 @@ describe('API contract', () => {
   test('customer registration creates a secure session usable by profile', async () => {
     const agent = request.agent(app());
     const response = await agent.post('/api/auth/register').send({
-      name: 'Customer', email: customer.email, password: 'StrongPassword1',
+      name: 'Customer', email: customer.email, phoneNumber: '+94771234567', password: 'StrongPassword1',
     }).expect(201);
     assert.match(response.headers['set-cookie'][0], /customer_token=.*HttpOnly/);
     assert.equal((await agent.get('/api/auth/profile').expect(200)).body.data.id, customer.id);
+  });
+
+  test('customer profile, addresses, recovery, and logout APIs are correctly protected', async () => {
+    const instance = app();
+    await request(instance).get('/api/auth/addresses').expect(401);
+    const updated = await request(instance).put('/api/auth/profile').set('Authorization', `Bearer ${customerToken}`)
+      .send({ name: 'Updated Customer', email: customer.email, phoneNumber: '+94771234567' }).expect(200);
+    assert.equal(updated.body.data.name, 'Updated Customer');
+    await request(instance).post('/api/auth/addresses').set('Authorization', `Bearer ${customerToken}`)
+      .send({ label: 'Home' }).expect(201);
+    await request(instance).post('/api/auth/forgot-password').send({ email: customer.email }).expect(200);
+    await request(instance).post('/api/auth/reset-password').send({ token: 'token', password: 'NewPassword1' }).expect(200);
+    await request(instance).post('/api/auth/logout').set('Authorization', `Bearer ${customerToken}`).expect(204);
   });
 
   test('customer and administrator login issue separate secure sessions', async () => {

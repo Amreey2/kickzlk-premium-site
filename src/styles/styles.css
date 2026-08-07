@@ -194,6 +194,7 @@ button { color: inherit; }
 .mobile-drawer nav a i { color: var(--faint); font: normal 12px/1 var(--body); }
 .mobile-drawer nav a:hover { padding-left: 6px; color: var(--acid); }
 .mobile-drawer nav a.active { color: var(--acid); }
+.mobile-account-link { margin-top: 18px; min-height: 50px; border: 1px solid rgba(184,255,53,.3); border-radius: 12px; padding: 0 16px; display: none; align-items: center; justify-content: space-between; color: var(--acid); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
 .mobile-drawer__meta { margin-top: 28px; padding-top: 20px; display: flex; justify-content: space-between; gap: 20px; color: var(--muted); font-size: 10px; }
 
 /* SPRINT 5.1.1 HERO CHROME + TOP RHYTHM
@@ -941,6 +942,10 @@ button { color: inherit; }
 .form-field small { color: var(--danger); font-size: 10px; }
 .customer-form > .btn { width: 100%; margin-top: 2px; }
 .form-message { margin: 0; padding: 12px 14px; border: 1px solid rgba(184,255,53,.24); border-radius: 10px; color: var(--acid); font-size: 11px; }
+.form-message--error { border-color: rgba(255,95,95,.34); color: #ff9898; }
+.form-link { justify-self: end; margin-top: -6px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+.form-link:hover { color: var(--acid); }
+.btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 .auth-switch { margin: 25px 0 0; padding-top: 22px; border-top: 1px solid var(--line); color: var(--faint); font-size: 10px; letter-spacing: .08em; text-align: center; }
 .auth-switch a { color: var(--text); font-weight: 800; }
 
@@ -955,10 +960,38 @@ button { color: inherit; }
 .profile-card dt { color: var(--faint); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
 .profile-card dd { margin: 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 .profile-card .btn { width: 100%; }
+.account-logout { width: 100%; margin-top: 14px; border: 0; background: transparent; color: var(--faint); padding: 8px; font: 800 9px/1 var(--body); letter-spacing: .12em; cursor: pointer; }
+.account-logout:hover { color: var(--acid); }
 .account-heading { margin-bottom: 26px; }
 .account-heading h2,
 .checkout-heading h2 { margin: 9px 0 0; font: 800 clamp(35px, 4vw, 58px)/.92 var(--display); letter-spacing: -.045em; }
 .order-history { min-width: 0; display: grid; gap: 24px; }
+.account-content { min-width: 0; display: grid; gap: 28px; }
+.account-panel { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius-md); padding: clamp(24px, 3vw, 38px); background: linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.01)); }
+.account-panel__head { display: flex; justify-content: space-between; align-items: start; gap: 20px; }
+.account-panel__head .btn { flex: 0 0 auto; min-height: 42px; padding: 0 18px; }
+.account-form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.account-form-actions .btn { width: 100%; }
+.address-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.address-card { min-width: 0; border: 1px solid var(--line); border-radius: 13px; padding: 20px; background: rgba(0,0,0,.22); }
+.address-card > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.address-card > div span { color: var(--acid); font-size: 9px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.address-card > div strong { border: 1px solid rgba(184,255,53,.28); border-radius: 999px; padding: 5px 8px; color: var(--acid); font-size: 7px; letter-spacing: .1em; }
+.address-card h3 { margin: 18px 0 7px; font: 800 18px/1 var(--display); }
+.address-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+.address-card footer { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; gap: 18px; }
+.address-card footer button { border: 0; padding: 0; background: transparent; color: var(--text); font: 800 8px/1 var(--body); letter-spacing: .12em; cursor: pointer; }
+.address-card footer button:last-child { color: #ff9898; }
+.address-form { margin-top: 20px; padding-top: 24px; border-top: 1px solid var(--line); }
+.account-check { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 10px; }
+.account-check input { width: 17px; height: 17px; accent-color: var(--acid); }
+.account-empty { margin: 0; border: 1px dashed var(--line); border-radius: 12px; padding: 24px; color: var(--muted); font-size: 11px; text-align: center; }
+.account-orders { display: grid; gap: 10px; }
+.account-orders article { min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 17px 18px; display: grid; grid-template-columns: 1.2fr .8fr .8fr auto; align-items: center; gap: 18px; background: rgba(0,0,0,.18); }
+.account-orders article div { min-width: 0; display: grid; gap: 4px; }
+.account-orders article span { color: var(--faint); font-size: 7px; letter-spacing: .12em; }
+.account-orders article strong { font-size: 10px; overflow-wrap: anywhere; }
+.account-orders article em { border: 1px solid rgba(184,255,53,.3); border-radius: 999px; padding: 7px 10px; color: var(--acid); font-size: 8px; font-style: normal; font-weight: 800; text-align: center; }
 .order-card { min-width: 0; padding: clamp(22px, 3vw, 34px); }
 .order-card__head { padding-bottom: 20px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 24px; align-items: center; }
 .order-card__head > div { display: grid; gap: 3px; }
@@ -1021,6 +1054,20 @@ button { color: inherit; }
 .checkout-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .checkout-actions .btn { min-width: 0; width: 100%; padding-inline: 18px; text-align: center; }
 .checkout-whatsapp { width: 100%; }
+
+/* SPRINT 6.3A CUSTOMER JOURNEY CHOICE */
+.journey-choice { min-height: calc(100svh - var(--top-chrome-height)); display: grid; align-items: center; }
+.journey-choice > .container { min-width: 0; }
+.journey-choice__panel { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(32px, 6vw, 78px); background: radial-gradient(circle at 88% 14%, rgba(184,255,53,.12), transparent 27%), linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.01)); }
+.journey-choice h1 { max-width: 920px; margin: 20px 0; font: 800 clamp(45px, 6vw, 88px)/.88 var(--display); letter-spacing: -.055em; }
+.journey-choice__panel > p { max-width: 680px; margin: 0; color: var(--muted); }
+.journey-choice__grid { margin-top: clamp(30px, 5vw, 58px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.journey-choice__grid a { min-width: 0; min-height: 190px; border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: grid; grid-template-rows: auto 1fr auto; gap: 12px; background: rgba(0,0,0,.24); transition: border-color .2s, transform .2s, background .2s; }
+.journey-choice__grid a:hover { border-color: var(--acid); background: rgba(184,255,53,.04); transform: translateY(-3px); }
+.journey-choice__grid strong { font: 800 19px/1 var(--display); }
+.journey-choice__grid span { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.journey-choice__grid i { color: var(--acid); font-style: normal; font-size: 20px; }
+.journey-choice__back { display: inline-block; margin-top: 28px; color: var(--faint); font-size: 9px; font-weight: 800; letter-spacing: .1em; }
 
 /* SPRINT 6.0 SHARED PRICE NOTICE
    Keeps exchange-rate guidance visible without competing with totals or primary actions. */
@@ -1440,6 +1487,8 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
   .profile-card,
   .checkout-summary,
   .cart-summary { position: static; }
+  .journey-choice__grid { grid-template-columns: 1fr; }
+  .journey-choice__grid a { min-height: 145px; }
   /* TABLET CART ORDERING
      Keeps products first and places the complete summary immediately below without sticky interference. */
   .cart-item { grid-template-columns: 180px minmax(0, 1fr) auto; }
@@ -1483,6 +1532,7 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
   .mobile-drawer { inset: 100% 0 auto; height: calc(100dvh - var(--header-height)); min-height: 0; }
   .mobile-drawer nav { min-width: 0; grid-template-columns: minmax(0, 1fr); }
   .mobile-drawer nav a { min-width: 0; }
+  .mobile-account-link { display: flex; }
 
   /* SPRINT 6.1A MOBILE HERO IMAGE FIT
      Retains the cinematic asset, glow, orbits and float animation while containing the full shoe inside the first viewport. */
@@ -1637,6 +1687,15 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
   .order-card,
   .checkout-form,
   .checkout-summary { padding: 22px 18px; }
+  .account-panel { padding: 22px 18px; }
+  .account-panel__head { display: grid; }
+  .address-grid { grid-template-columns: 1fr; }
+  .account-form-actions { grid-template-columns: 1fr; }
+  .account-orders article { grid-template-columns: 1fr 1fr; gap: 14px; }
+  .account-orders article em { justify-self: start; }
+  .journey-choice { min-height: 0; }
+  .journey-choice__panel { padding: 30px 20px; }
+  .journey-choice h1 { font-size: clamp(34px, 10.5vw, 46px); }
   .order-card__head { grid-template-columns: 1fr 1fr; gap: 15px; }
   .order-status { justify-self: start; }
   .order-card__product { grid-template-columns: 95px 1fr; gap: 15px; }

@@ -3,6 +3,8 @@ import AuthLayout from '../components/account/AuthLayout';
 import FormField from '../components/account/FormField';
 import PageShell from '../components/PageShell';
 import useReveal from '../hooks/useReveal';
+import { authApi } from '../services/api';
+import { currentNext } from '../utils/customerNavigation';
 import { isValidEmail, isValidPhone } from '../utils/validation';
 
 export default function RegisterPage() {
@@ -10,6 +12,8 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const next = currentNext();
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -18,7 +22,7 @@ export default function RegisterPage() {
     setMessage('');
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const nextErrors = {};
     if (form.name.trim().length < 2) nextErrors.name = 'Enter your full name.';
@@ -28,17 +32,25 @@ export default function RegisterPage() {
     if (!form.confirmPassword) nextErrors.confirmPassword = 'Confirm your password.';
     else if (form.confirmPassword !== form.password) nextErrors.confirmPassword = 'Passwords do not match.';
     setErrors(nextErrors);
-    setMessage(Object.keys(nextErrors).length ? '' : 'Registration UI validated. Account creation will connect in a future backend sprint.');
+    if (Object.keys(nextErrors).length) return;
+    setSubmitting(true);
+    try {
+      await authApi.register({ name: form.name, email: form.email, phoneNumber: form.phone, password: form.password });
+      window.location.assign(next);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <PageShell>
-      {/* SPRINT 3.2 REGISTRATION UI: keeps customer details local until backend account services are introduced. */}
       <AuthLayout
         kicker="JOIN THE ROTATION"
         title="CREATE ACCOUNT."
         copy="Prepare a KICKZ.LK profile for faster enquiries, saved delivery details and transparent order tracking."
-        footer={<p className="auth-switch">ALREADY REGISTERED? <a href="/login">SIGN IN →</a></p>}
+        footer={<p className="auth-switch">ALREADY REGISTERED? <a href={`/login?next=${encodeURIComponent(next)}`}>SIGN IN →</a></p>}
       >
         <form className="customer-form" onSubmit={handleSubmit} noValidate>
           <FormField label="FULL NAME" name="name" value={form.name} onChange={updateField} error={errors.name} autoComplete="name" placeholder="Your full name" />
@@ -50,9 +62,9 @@ export default function RegisterPage() {
             <FormField label="PASSWORD" name="password" type="password" value={form.password} onChange={updateField} error={errors.password} autoComplete="new-password" placeholder="Minimum 8 characters" />
             <FormField label="CONFIRM PASSWORD" name="confirmPassword" type="password" value={form.confirmPassword} onChange={updateField} error={errors.confirmPassword} autoComplete="new-password" placeholder="Repeat your password" />
           </div>
-          <button className="btn btn--acid" type="submit">CREATE ACCOUNT <span>→</span></button>
-          <a className="btn btn--ghost" href="/checkout?guest=1">CONTINUE AS GUEST</a>
-          {message && <p className="form-message" role="status">{message}</p>}
+          <button className="btn btn--acid" type="submit" disabled={submitting}>{submitting ? 'CREATING ACCOUNT…' : 'CREATE ACCOUNT'} <span>→</span></button>
+          {next.startsWith('/checkout') && <a className="btn btn--ghost" href={`${next}${next.includes('?') ? '&' : '?'}guest=1`}>CONTINUE AS GUEST</a>}
+          {message && <p className="form-message form-message--error" role="alert">{message}</p>}
         </form>
       </AuthLayout>
     </PageShell>

@@ -5,8 +5,41 @@ CREATE TABLE IF NOT EXISTS customers (
   password_hash VARCHAR(255) NOT NULL,
   phone_number VARCHAR(30) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_customers_email (email)
+);
+
+CREATE TABLE IF NOT EXISTS customer_addresses (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  customer_id BIGINT UNSIGNED NOT NULL,
+  label VARCHAR(60) NOT NULL,
+  full_name VARCHAR(150) NOT NULL,
+  phone_number VARCHAR(30) NOT NULL,
+  address_line_1 VARCHAR(255) NOT NULL,
+  address_line_2 VARCHAR(255) NULL,
+  city VARCHAR(120) NOT NULL,
+  postal_code VARCHAR(20) NULL,
+  country VARCHAR(100) NOT NULL DEFAULT 'Sri Lanka',
+  is_default BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_customer_addresses_customer (customer_id, is_default),
+  CONSTRAINT fk_customer_addresses_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS customer_password_resets (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  customer_id BIGINT UNSIGNED NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_customer_password_resets_token (token_hash),
+  KEY idx_customer_password_resets_customer (customer_id, expires_at),
+  CONSTRAINT fk_customer_password_resets_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 );
 
 -- Administrators intentionally use a separate table and token flow; no public role system.

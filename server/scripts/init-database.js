@@ -55,6 +55,8 @@ try {
 
   await connection.query(schema);
 
+  if (!(await columnExists('customers', 'updated_at'))) await connection.query('ALTER TABLE customers ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at');
+
   // CREATE TABLE IF NOT EXISTS does not add Sprint 6 product fields to an existing database.
   if (!(await columnExists('products', 'slug'))) await connection.query('ALTER TABLE products ADD COLUMN slug VARCHAR(180) NULL AFTER id');
   if (!(await columnExists('products', 'stock'))) await connection.query('ALTER TABLE products ADD COLUMN stock INT UNSIGNED NOT NULL DEFAULT 0 AFTER availability');

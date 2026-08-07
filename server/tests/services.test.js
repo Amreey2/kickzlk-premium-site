@@ -41,6 +41,50 @@ describe('authentication services', () => {
     assert.equal(result.admin.id, 1);
     assert.equal(typeof result.token, 'string');
   });
+
+  test('customer login returns a controlled error for a wrong password', async () => {
+    const service = new AuthService({
+      adminModel: {}, addressModel: {}, passwordResetModel: {},
+      userModel: { findByEmail: async () => ({ id: 7, email: 'customer@example.com', password_hash: await bcrypt.hash('CorrectPassword1', 4) }) },
+    });
+    await assert.rejects(
+      () => service.login({ email: 'customer@example.com', password: 'WrongPassword1' }),
+      (error) => error.code === 'INVALID_CREDENTIALS' && error.status === 401,
+    );
+  });
+
+  test('enforces the two-address maximum', async () => {
+    const service = new AuthService({
+      userModel: {}, adminModel: {}, passwordResetModel: {},
+      addressModel: { list: async () => [{ id: 1 }, { id: 2 }] },
+    });
+    await assert.rejects(
+      () => service.createAddress(7, { label: 'Other', fullName: 'Customer', phoneNumber: '+94771234567', addressLine1: 'Street', city: 'Colombo' }),
+      (error) => error.code === 'ADDRESS_LIMIT',
+    );
+  });
+
+  test('prepares hashed one-time password reset tokens', async () => {
+    let storedHash; let updatedPasswordHash;
+    const user = { id: 7, email: 'customer@example.com' };
+    const service = new AuthService({
+      adminModel: {}, addressModel: {},
+      userModel: {
+        findByEmail: async () => user,
+        updatePassword: async (id, hash) => { assert.equal(id, user.id); updatedPasswordHash = hash; },
+      },
+      passwordResetModel: {
+        replace: async (id, hash) => { assert.equal(id, user.id); storedHash = hash; },
+        findUsable: async (hash) => hash === storedHash ? { id: 9, customer_id: user.id } : null,
+        use: async (id) => id === 9,
+      },
+    });
+    const prepared = await service.requestPasswordReset({ email: user.email });
+    assert.equal(storedHash.length, 64);
+    assert.notEqual(storedHash, prepared.resetToken);
+    await service.resetPassword({ token: prepared.resetToken, password: 'NewPassword1' });
+    assert.equal(await bcrypt.compare('NewPassword1', updatedPasswordHash), true);
+  });
 });
 
 describe('order services', () => {

@@ -17,6 +17,7 @@ export default function CartPage() {
   const [hasItem, setHasItem] = useState(true);
   const subtotal = product.price * quantity;
   const checkoutHref = `/checkout?product=${encodeURIComponent(product.id)}&size=${encodeURIComponent(selectedSize)}&quantity=${quantity}`;
+  const checkoutStartHref = `/checkout/start?next=${encodeURIComponent(checkoutHref)}`;
 
   return (
     <PageShell>
@@ -47,7 +48,7 @@ export default function CartPage() {
                   <div className="cart-summary__total"><span>Total</span><strong>{formatPrice(subtotal)}</strong></div>
                 </div>
                 <PriceNotice />
-                <a className="btn btn--acid" href={checkoutHref}>CONTINUE TO CHECKOUT <span>→</span></a>
+                <a className="btn btn--acid" href={checkoutStartHref}>CONTINUE TO CHECKOUT <span>→</span></a>
                 <a className="cart-continue" href="/shop">CONTINUE SHOPPING</a>
               </aside>
             </div>
