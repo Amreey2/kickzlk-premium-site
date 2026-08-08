@@ -19,4 +19,25 @@ export default class SiteSettingService {
     if (imageUrl.length > 500 || altText.length > 255) throw new AppError('Size guide details exceed the allowed length.', 422, 'INVALID_SIZE_GUIDE');
     return this.model.set('size_guide', { imageUrl, altText });
   }
+
+  async paymentSettings() {
+    return (await this.model.get('payment_settings')) || {
+      methodName: 'Bank Transfer', bankName: 'Configure in Admin Settings', accountName: 'KICKZ.LK',
+      accountNumber: 'Configure in Admin Settings', branch: 'Configure in Admin Settings',
+      instructions: 'Use your order number as the transfer reference.', advancePercentage: 30, updatedAt: null,
+    };
+  }
+
+  async updatePaymentSettings(payload) {
+    const clean = {
+      methodName: String(payload.methodName || 'Bank Transfer').trim(),
+      bankName: String(payload.bankName || '').trim(), accountName: String(payload.accountName || '').trim(),
+      accountNumber: String(payload.accountNumber || '').trim(), branch: String(payload.branch || '').trim(),
+      instructions: String(payload.instructions || '').trim(), advancePercentage: Number(payload.advancePercentage),
+    };
+    if (!clean.bankName || !clean.accountName || !clean.accountNumber || !clean.branch) throw new AppError('Complete all required bank details.', 422, 'INVALID_PAYMENT_SETTINGS');
+    if (Object.values(clean).some((value) => String(value).length > 500)) throw new AppError('Payment settings exceed the allowed length.', 422, 'INVALID_PAYMENT_SETTINGS');
+    if (!Number.isFinite(clean.advancePercentage) || clean.advancePercentage < 0 || clean.advancePercentage > 100) throw new AppError('Advance percentage must be between 0 and 100.', 422, 'INVALID_ADVANCE_PERCENTAGE');
+    return this.model.set('payment_settings', clean);
+  }
 }

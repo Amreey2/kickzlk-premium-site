@@ -20,6 +20,7 @@ const mapProduct = (row) => {
     category: row.category,
     categoryGender: row.category_gender || null,
     price: Number(row.price),
+    originalPrice: row.original_price === null || row.original_price === undefined ? null : Number(row.original_price),
     images: parseJson(row.images, []),
     sizes: parseJson(row.size, []),
     description: row.description,
@@ -86,11 +87,11 @@ export default class ProductModel {
   async create(data) {
     const result = await this.database.query(
       `INSERT INTO products
-       (slug, sku, brand_id, category_id, brand, name, description, category, price, size, product_type, delivery_time,
+       (slug, sku, brand_id, category_id, brand, name, description, category, price, original_price, size, product_type, delivery_time,
         availability, stock, meta_title, meta_description, images, image_alt_text, variations, product_tag,
         product_tags, color_variations, color_variants, cdn_images)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [data.slug, data.sku, data.brandId, data.categoryId, data.brand, data.name, data.description, data.category, data.price, JSON.stringify(data.sizes),
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [data.slug, data.sku, data.brandId, data.categoryId, data.brand, data.name, data.description, data.category, data.price, data.originalPrice ?? null, JSON.stringify(data.sizes),
         data.productType, data.deliveryTime, data.availability, data.stock, data.metaTitle, data.metaDescription,
         JSON.stringify(data.images), data.imageAltText, JSON.stringify(data.variations), data.productTags[0] || null,
         JSON.stringify(data.productTags), JSON.stringify(data.colorVariations), JSON.stringify(data.colorVariants), JSON.stringify(data.cdnImages)],
@@ -100,11 +101,11 @@ export default class ProductModel {
 
   async update(id, data) {
     await this.database.query(
-      `UPDATE products SET slug = ?, sku = ?, brand_id = ?, category_id = ?, brand = ?, name = ?, description = ?, category = ?, price = ?,
+      `UPDATE products SET slug = ?, sku = ?, brand_id = ?, category_id = ?, brand = ?, name = ?, description = ?, category = ?, price = ?, original_price = ?,
        size = ?, product_type = ?, delivery_time = ?, availability = ?, stock = ?, meta_title = ?, meta_description = ?,
        images = ?, image_alt_text = ?, variations = ?, product_tag = ?, product_tags = ?, color_variations = ?, color_variants = ?, cdn_images = ?
        WHERE ${/^\d+$/.test(String(id)) ? 'id' : 'slug'} = ?`,
-      [data.slug, data.sku, data.brandId, data.categoryId, data.brand, data.name, data.description, data.category, data.price, JSON.stringify(data.sizes),
+      [data.slug, data.sku, data.brandId, data.categoryId, data.brand, data.name, data.description, data.category, data.price, data.originalPrice ?? null, JSON.stringify(data.sizes),
         data.productType, data.deliveryTime, data.availability, data.stock, data.metaTitle, data.metaDescription,
         JSON.stringify(data.images), data.imageAltText, JSON.stringify(data.variations), data.productTags[0] || null,
         JSON.stringify(data.productTags), JSON.stringify(data.colorVariations), JSON.stringify(data.colorVariants), JSON.stringify(data.cdnImages), id],

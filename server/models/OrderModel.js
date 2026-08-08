@@ -16,17 +16,19 @@ export default class OrderModel {
       await connection.beginTransaction();
       const [result] = await connection.execute(
         `INSERT INTO orders
-         (user_id, customer_name, email, phone_number, shipping_address, order_notes, order_number,
-          total_amount, paid_amount, pending_amount, payment_status, order_status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [data.userId, data.customerName, data.email, data.phoneNumber, data.shippingAddress, data.orderNotes,
-          data.orderNumber, data.totalAmount, data.paidAmount, data.pendingAmount, data.paymentStatus, data.orderStatus],
+         (user_id, customer_name, email, phone_number, shipping_address, shipping_city, order_notes, order_number,
+          tracking_number, idempotency_key, subtotal_amount, discount_amount, coupon_code, total_amount, advance_amount,
+          paid_amount, pending_amount, payment_method, payment_status, order_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [data.userId, data.customerName, data.email, data.phoneNumber, data.shippingAddress, data.shippingCity, data.orderNotes,
+          data.orderNumber, data.trackingNumber, data.idempotencyKey, data.subtotalAmount, data.discountAmount, data.couponCode,
+          data.totalAmount, data.advanceAmount, data.paidAmount, data.pendingAmount, data.paymentMethod, data.paymentStatus, data.orderStatus],
       );
       for (const item of data.items) {
         await connection.execute(
-          `INSERT INTO order_items (order_id, product_id, product_name, selected_size, quantity, price)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [result.insertId, item.productId, item.productName, item.selectedSize, item.quantity, item.price],
+          `INSERT INTO order_items (order_id, product_id, product_name, selected_color, selected_size, quantity, price, original_price, discount_amount)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [result.insertId, item.productId, item.productName, item.selectedColor, item.selectedSize, item.quantity, item.price, item.originalPrice, item.discountAmount],
         );
       }
       await connection.execute(
@@ -45,8 +47,8 @@ export default class OrderModel {
 
   async findById(identifier) {
     const numeric = /^\d+$/.test(String(identifier));
-    const sql = numeric ? 'SELECT * FROM orders WHERE id = ? LIMIT 1' : 'SELECT * FROM orders WHERE order_number = ? LIMIT 1';
-    const rows = await this.database.query(sql, [identifier]);
+    const sql = numeric ? 'SELECT * FROM orders WHERE id = ? LIMIT 1' : 'SELECT * FROM orders WHERE order_number = ? OR tracking_number = ? LIMIT 1';
+    const rows = await this.database.query(sql, numeric ? [identifier] : [identifier, identifier]);
     if (!rows[0]) return null;
     const connection = await this.database.pool.getConnection();
     try {
@@ -57,11 +59,30 @@ export default class OrderModel {
   }
 
   async findByUserId(userId) {
-    return this.database.query('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [userId]);
+    const orders = await this.database.query('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [userId]);
+    const connection = await this.database.pool.getConnection();
+    try {
+      const hydrated = [];
+      for (const order of orders) hydrated.push(await loadOrderRelations(connection, order));
+      return hydrated;
+    } finally { connection.release(); }
   }
 
-  findAll() {
-    return this.database.query('SELECT * FROM orders ORDER BY created_at DESC');
+  async findByIdempotencyKey(key) {
+    const rows = await this.database.query('SELECT * FROM orders WHERE idempotency_key = ? LIMIT 1', [key]);
+    if (!rows[0]) return null;
+    const connection = await this.database.pool.getConnection();
+    try { return await loadOrderRelations(connection, rows[0]); } finally { connection.release(); }
+  }
+
+  async findAll() {
+    const orders = await this.database.query('SELECT * FROM orders ORDER BY created_at DESC');
+    const connection = await this.database.pool.getConnection();
+    try {
+      const hydrated = [];
+      for (const order of orders) hydrated.push(await loadOrderRelations(connection, order));
+      return hydrated;
+    } finally { connection.release(); }
   }
 
   async updateStatus(id, status, note) {
@@ -81,5 +102,14 @@ export default class OrderModel {
     } finally {
       connection.release();
     }
+  }
+
+  async updatePaymentStatus(id, status) {
+    await this.database.query(
+      `UPDATE orders SET payment_status = ?, paid_amount = CASE WHEN ? = 'Payment Confirmed' THEN advance_amount ELSE 0 END
+       WHERE id = ?`,
+      [status, status, id],
+    );
+    return this.findById(id);
   }
 }

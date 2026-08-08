@@ -1,6 +1,7 @@
 import { apiRequest } from './client';
 
 export const ordersApi = {
+  quote: (data) => apiRequest('/orders/quote', { method: 'POST', body: data }),
   create: (data) => apiRequest('/orders', { method: 'POST', body: data }),
   get: (id, verification = {}) => {
     const query = new URLSearchParams(verification).toString();
@@ -11,5 +12,9 @@ export const ordersApi = {
   updateStatus: (id, status, note) => apiRequest(`/admin/orders/${id}/status`, {
     method: 'PUT',
     body: { status, note },
+  }),
+  updatePaymentStatus: (id, status) => apiRequest(`/admin/orders/${id}/payment-status`, {
+    method: 'PUT',
+    body: { status },
   }),
 };

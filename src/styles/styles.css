@@ -1146,6 +1146,90 @@ button { color: inherit; }
 .cart-empty h1 { margin: 18px 0; font: 800 clamp(48px, 6vw, 88px)/.86 var(--display); letter-spacing: -.055em; }
 .cart-empty p { max-width: 540px; margin: 0 0 30px; color: var(--muted); }
 
+/* SPRINT 6.3C CART, PAYMENT AND ORDER JOURNEY */
+.cart-item + .cart-item { margin-top: 28px; border-top: 1px solid var(--line); }
+.cart-item__selection { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.cart-item__selection span { color: var(--faint); font-size: 8px; letter-spacing: .1em; }
+.cart-item__selection strong { color: var(--text); }
+.cart-item__unit-price { margin-top: 14px; display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.cart-item__unit-price strong { font-size: 12px; }
+.cart-item__unit-price del,
+.checkout-product del { color: var(--faint); font-size: 10px; }
+.quantity-stepper { min-width: 116px; height: 42px; border: 1px solid var(--line); border-radius: 999px; display: grid; grid-template-columns: 38px 1fr 38px; place-items: center; }
+.quantity-stepper button { width: 100%; height: 100%; border: 0; background: transparent; color: var(--text); font-size: 17px; cursor: pointer; }
+.quantity-stepper span { font-size: 11px; font-weight: 800; }
+.coupon-form { margin-top: 22px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.coupon-form label > span { color: var(--faint); font-size: 8px; font-weight: 800; letter-spacing: .12em; }
+.coupon-form label > div { margin-top: 8px; display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.coupon-form input { min-width: 0; height: 45px; border: 1px solid var(--line); border-radius: 10px; padding-inline: 13px; background: rgba(0,0,0,.25); color: var(--text); }
+.coupon-form button { border: 1px solid var(--line-strong); border-radius: 10px; padding-inline: 14px; background: rgba(255,255,255,.04); color: var(--text); font-size: 9px; font-weight: 800; cursor: pointer; }
+.coupon-form p { margin: 9px 0 0; font-size: 9px; }
+.coupon-form .is-success, .cart-discount strong, .checkout-discount strong { color: var(--acid); }
+.coupon-form .is-error { color: #ff9898; }
+.cart-summary .btn.is-disabled { opacity: .45; pointer-events: none; }
+.cart-empty { min-height: 350px; justify-items: center; text-align: center; }
+.cart-empty__icon { width: 64px; height: 64px; margin-bottom: 20px; border: 1px solid rgba(184,255,53,.35); border-radius: 50%; display: grid; place-items: center; color: var(--acid); font-size: 26px; }
+.cart-empty h1 { max-width: 720px; font-size: clamp(42px, 5vw, 68px); }
+.checkout-product-list { display: grid; }
+.checkout-product-list .checkout-product + .checkout-product { margin-top: 0; border-top: 1px solid var(--line); }
+.checkout-product { grid-template-columns: 110px 1fr; margin: 20px 0; padding: 0 0 20px; }
+.checkout-product__image { min-height: 105px; }
+.checkout-product section > del { width: max-content; }
+.checkout-advance { color: var(--text) !important; font-weight: 800; }
+.checkout-advance strong { color: var(--acid) !important; }
+button.bank-transfer { width: 100%; color: var(--text); text-align: left; cursor: pointer; }
+.bank-transfer i { margin-top: 8px; color: var(--acid); font-size: 8px; font-style: normal; font-weight: 800; letter-spacing: .1em; }
+.payment-modal { position: fixed; inset: 0; z-index: 120; padding: 18px; display: grid; place-items: center; background: rgba(0,0,0,.84); backdrop-filter: blur(16px); }
+.payment-modal > section { width: min(680px, 100%); max-height: calc(100svh - 36px); overflow: auto; border: 1px solid var(--line-strong); border-radius: var(--radius-md); padding: clamp(22px, 4vw, 36px); background: #0d0d0f; }
+.payment-modal header { display: flex; justify-content: space-between; gap: 20px; align-items: start; margin-bottom: 24px; }
+.payment-modal h2 { margin: 8px 0 0; font: 800 clamp(28px, 4vw, 44px)/.95 var(--display); }
+.payment-modal header > button { width: 40px; height: 40px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--text); font-size: 21px; cursor: pointer; }
+.bank-detail-list { display: grid; }
+.bank-detail-list > div { min-width: 0; padding: 14px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; align-items: center; gap: 14px; }
+.bank-detail-list span { color: var(--faint); font-size: 8px; letter-spacing: .1em; }
+.bank-detail-list strong { min-width: 0; font-size: 11px; overflow-wrap: anywhere; }
+.bank-detail-list button { border: 0; background: transparent; color: var(--acid); font-size: 8px; font-weight: 800; cursor: pointer; }
+.payment-modal > section > .btn { width: 100%; margin-top: 18px; }
+.confirmation-section { padding-top: 40px; }
+.confirmation-card { border: 1px solid var(--line); border-radius: var(--radius-lg); padding: clamp(28px, 5vw, 64px); background: radial-gradient(circle at 85% 10%, rgba(184,255,53,.11), transparent 28%), rgba(255,255,255,.018); }
+.confirmation-mark { width: 66px; height: 66px; border-radius: 50%; display: grid; place-items: center; background: var(--acid); color: #050505; font-size: 25px; }
+.confirmation-head { margin: 24px 0 30px; }
+.confirmation-head h2 { margin: 8px 0; font: 800 clamp(32px, 4vw, 54px)/.95 var(--display); overflow-wrap: anywhere; }
+.confirmation-head p { margin: 0; color: var(--muted); }
+.confirmation-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.confirmation-grid > div { min-width: 0; padding: 18px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: grid; gap: 7px; }
+.confirmation-grid dt { color: var(--faint); font-size: 8px; letter-spacing: .1em; text-transform: uppercase; }
+.confirmation-grid dd { margin: 0; font-size: 11px; font-weight: 800; overflow-wrap: anywhere; }
+.confirmation-next { margin-top: 26px; padding: 22px; border-left: 2px solid var(--acid); background: var(--acid-soft); }
+.confirmation-next strong { color: var(--acid); font-size: 9px; letter-spacing: .12em; }
+.confirmation-next ol { margin: 12px 0 0; padding-left: 18px; color: var(--muted); font-size: 11px; line-height: 1.8; }
+.confirmation-actions { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px; }
+.tracking-section { padding-top: 40px; }
+.tracking-layout { display: grid; grid-template-columns: minmax(300px, .72fr) minmax(0, 1.28fr); gap: clamp(20px, 4vw, 54px); align-items: start; }
+.tracking-form,
+.tracking-result,
+.tracking-placeholder { border: 1px solid var(--line); border-radius: var(--radius-md); padding: clamp(24px, 4vw, 42px); background: rgba(255,255,255,.018); }
+.tracking-form { display: grid; gap: 18px; }
+.tracking-form h2,
+.tracking-result h2,
+.tracking-placeholder h2 { margin: 4px 0 8px; font: 800 clamp(28px, 3vw, 43px)/.92 var(--display); overflow-wrap: anywhere; }
+.tracking-form label { display: grid; gap: 8px; }
+.tracking-form label > span { color: var(--faint); font-size: 8px; font-weight: 800; letter-spacing: .12em; }
+.tracking-form input { width: 100%; min-width: 0; min-height: 54px; border: 1px solid var(--line); border-radius: 10px; padding: 0 15px; background: rgba(0,0,0,.2); color: var(--text); font: inherit; }
+.tracking-result__head { display: flex; justify-content: space-between; gap: 20px; align-items: start; margin-bottom: 30px; }
+.tracking-result__head p { margin: 0; color: var(--muted); overflow-wrap: anywhere; }
+.tracking-result__head > strong { padding: 9px 12px; border-radius: 999px; background: var(--acid-soft); color: var(--acid); font-size: 9px; white-space: nowrap; }
+.tracking-result .confirmation-grid { margin-top: 28px; }
+.tracking-placeholder { min-height: 330px; display: grid; align-content: center; background: radial-gradient(circle at 85% 10%, rgba(184,255,53,.1), transparent 35%), rgba(255,255,255,.018); }
+.tracking-placeholder > span { color: var(--acid); font: 800 12px/1 var(--display); }
+.tracking-placeholder p { max-width: 480px; color: var(--muted); }
+.admin-order-search { max-width: 480px; display: grid; gap: 8px; margin-bottom: 22px; }
+.admin-order-search span { color: var(--faint); font-size: 9px; letter-spacing: .12em; }
+.admin-order-search input { min-height: 46px; border: 1px solid var(--line); border-radius: 10px; padding-inline: 14px; background: rgba(0,0,0,.25); color: var(--text); }
+.admin-order-items { margin-top: 20px; display: grid; gap: 8px; }
+.admin-order-items article { border: 1px solid var(--line); border-radius: 10px; padding: 13px; display: grid; grid-template-columns: 1fr auto auto; gap: 15px; font-size: 10px; }
+.admin-order-items span { color: var(--muted); }
+
 /* SPRINT 4 PRIVATE ADMIN SYSTEM
    Every selector is admin-scoped so the approved customer storefront remains visually and behaviorally isolated. */
 .admin-app { min-height: 100svh; background: #080809; }
@@ -1776,18 +1860,40 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
   .cart-item__details h2 { font-size: 17px; }
   .cart-item__details p { margin-bottom: 12px; }
   .cart-item__controls { min-width: 0; grid-column: 1 / -1; padding-top: 18px; border-top: 1px solid var(--line); grid-template-columns: auto 1fr; justify-items: start; align-items: end; gap: 10px 20px; text-align: left; }
-  .quantity-control { justify-items: start; }
+  .quantity-stepper { min-width: 112px; }
   .cart-item__price { justify-self: end; align-self: center; }
   .cart-remove { grid-column: 1 / -1; min-height: 36px; padding-top: 10px; }
   .cart-summary__rows > div { gap: 14px; }
   .cart-empty { min-height: 370px; padding: 42px 24px; }
-  .cart-empty h1 { font-size: clamp(36px, 11vw, 48px); }
+  .cart-empty h1 { font-size: clamp(30px, 9vw, 40px); }
   .checkout-form.customer-form { gap: 14px; }
   .checkout-heading > p { margin-top: 11px; }
   .checkout-product { margin-block: 18px 20px; }
   .checkout-totals { margin-top: 19px; }
   .checkout-actions { grid-template-columns: 1fr; }
   .checkout-actions .btn { min-height: 50px; }
+  .checkout-product-list .checkout-product { grid-template-columns: 88px minmax(0, 1fr); gap: 12px; }
+  .checkout-product__image { min-height: 88px; }
+  .checkout-totals > div { gap: 12px; }
+  .bank-detail-list > div { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; }
+  .bank-detail-list span { grid-column: 1 / -1; }
+  .payment-modal { padding: 10px; }
+  .payment-modal > section { max-height: calc(100svh - 20px); padding: 22px 18px; }
+  .payment-modal h2 { font-size: clamp(25px, 8vw, 34px); }
+  .confirmation-section { padding-top: 28px !important; }
+  .confirmation-card { padding: 26px 18px; }
+  .confirmation-grid { grid-template-columns: 1fr 1fr; }
+  .confirmation-grid > div { padding: 14px 12px; }
+  .confirmation-actions { display: grid; }
+  .confirmation-actions .btn { width: 100%; }
+  .tracking-section { padding-top: 28px !important; }
+  .tracking-layout { grid-template-columns: 1fr; }
+  .tracking-form,
+  .tracking-result,
+  .tracking-placeholder { min-width: 0; padding: 24px 18px; }
+  .tracking-placeholder { min-height: 240px; }
+  .tracking-result__head { display: grid; }
+  .tracking-result__head > strong { justify-self: start; }
 
   /* MOBILE FOOTER FIX
      Maintains the two-column link layout while allowing every column to shrink safely. */

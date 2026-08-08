@@ -13,6 +13,7 @@ const emptyProduct = {
   description: '',
   category: '',
   price: '',
+  originalPrice: '',
   deliveryTime: '',
   sizes: '',
   preOrder: true,
@@ -75,6 +76,7 @@ export default function AdminProductFormPage({ productId, duplicateFrom }) {
         description: product.description,
         category: product.category,
         price: String(product.price),
+        originalPrice: product.originalPrice ? String(product.originalPrice) : '',
         deliveryTime: product.deliveryTime,
         sizes: product.sizes.join(', '),
         preOrder: product.preOrder,
@@ -190,6 +192,7 @@ export default function AdminProductFormPage({ productId, duplicateFrom }) {
     event.preventDefault();
     const sizes = [...new Set(form.sizes.split(',').map((size) => size.trim()).filter(Boolean))];
     const price = Number(form.price);
+    const originalPrice = form.originalPrice ? Number(form.originalPrice) : null;
     const stock = Number(form.stock);
     const brand = brands.find((item) => item.name === form.brand);
     const category = categories.find((item) => item.name === form.category);
@@ -202,6 +205,7 @@ export default function AdminProductFormPage({ productId, duplicateFrom }) {
     }));
     if (!form.sku.trim() || !form.name.trim() || !brand || !category || !form.description.trim()) return setError('Complete all required product information fields.');
     if (!Number.isFinite(price) || price <= 0) return setError('Enter a valid product price.');
+    if (originalPrice !== null && (!Number.isFinite(originalPrice) || originalPrice <= price)) return setError('Original price must be higher than the selling price.');
     if (!sizes.length) return setError('Enter at least one available size.');
     if (!Number.isInteger(stock) || stock < 0) return setError('Stock must be a non-negative whole number.');
     if (form.status === 'Active' && !form.preOrder && stock === 0) return setError('Active ready-stock products require at least one item in stock.');
@@ -222,6 +226,7 @@ export default function AdminProductFormPage({ productId, duplicateFrom }) {
       category: form.category.trim(),
       categoryId: category.id,
       price,
+      originalPrice,
       description: form.description.trim(),
       sizes,
       preOrder: form.preOrder,
@@ -265,6 +270,7 @@ export default function AdminProductFormPage({ productId, duplicateFrom }) {
             <AdminField label="PRODUCT NAME" name="name" value={form.name} onChange={updateField} placeholder="Product name" required disabled={busy} />
             <AdminField label="CATEGORY" name="category" value={form.category} onChange={updateField} as="select" options={['', ...categories.map((category) => category.name)]} required disabled={busy} />
             <AdminField label="PRICE (LKR)" name="price" value={form.price} onChange={updateField} type="number" placeholder="64900" required disabled={busy} />
+            <AdminField label="ORIGINAL PRICE (OPTIONAL)" name="originalPrice" value={form.originalPrice} onChange={updateField} type="number" placeholder="79900" disabled={busy} />
             <AdminField label="DESCRIPTION" name="description" value={form.description} onChange={updateField} as="textarea" placeholder="Product description" required disabled={busy} />
             <AdminField label="PRODUCT TAGS" name="productTags" value={form.productTags} onChange={updateField} placeholder="New Arrival, Lifestyle" required disabled={busy} />
           </div>

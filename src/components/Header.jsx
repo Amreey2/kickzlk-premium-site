@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { logoWordmarkWhite } from '../assets';
+import { CART_EVENT, cartCount, readCart } from '../utils/cart';
 
 const navItems = [
   ['/', 'Home'],
@@ -15,6 +16,7 @@ const navItems = [
 export default function Header({ bagCount = 0, cartHref = '/cart' }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [storedCartCount, setStoredCartCount] = useState(() => typeof window === 'undefined' ? 0 : cartCount(readCart()));
   const currentPath = window.location.pathname;
   const activePath = currentPath.startsWith('/product/')
     || currentPath.endsWith('/product.html')
@@ -29,6 +31,12 @@ export default function Header({ bagCount = 0, cartHref = '/cart' }) {
     document.body.classList.toggle('nav-open', menuOpen);
     return () => document.body.classList.remove('nav-open');
   }, [menuOpen]);
+
+  useEffect(() => {
+    const update = () => setStoredCartCount(cartCount(readCart()));
+    window.addEventListener(CART_EVENT, update); window.addEventListener('storage', update);
+    return () => { window.removeEventListener(CART_EVENT, update); window.removeEventListener('storage', update); };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,9 +66,9 @@ export default function Header({ bagCount = 0, cartHref = '/cart' }) {
           <a className="icon-btn account-btn" href="/account" aria-label="Customer account">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></svg>
           </a>
-          <a className="icon-btn bag-btn" href={cartHref} aria-label={`Shopping cart${bagCount ? `, ${bagCount} item` : ''}`}>
+          <a className="icon-btn bag-btn" href={cartHref} aria-label={`Shopping cart${Math.max(bagCount, storedCartCount) ? `, ${Math.max(bagCount, storedCartCount)} item` : ''}`}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z" /><path d="M9 8a3 3 0 0 1 6 0" /></svg>
-            <span className="bag-count">{bagCount}</span>
+            <span className="bag-count">{Math.max(bagCount, storedCartCount)}</span>
           </a>
           <button
             className="menu-toggle"

@@ -60,7 +60,7 @@ const normalizeProduct = (product) => {
     categoryGender: String(product.categoryGender || ''),
     categoryId: Number(product.categoryId || 0),
     price: Number(product.price || 0),
-    originalPrice: Number(product.originalPrice || product.compareAtPrice || 0),
+    originalPrice: Number(product.originalPrice || product.compareAtPrice || 0) || null,
     images: [...uploadedImages, ...cdnImages.map((url, index) => normalizeImage({ url, alt: product.imageAltText }, uploadedImages.length + index, product.name))].sort((a, b) => a.position - b.position),
     uploadedImages,
     cdnImages,

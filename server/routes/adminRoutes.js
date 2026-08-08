@@ -36,9 +36,11 @@ export default function createAdminRoutes({ authService, orderService, catalogSe
   router.get('/products/import/history/:id/failures.csv', requireAdmin, asyncHandler(productImports.failedReport));
   router.post('/products/import', requireAdmin, uploadProductCsv, asyncHandler(productImports.process));
   router.put('/size-guide', requireAdmin, asyncHandler(settings.updateSizeGuide));
+  router.put('/payment-settings', requireAdmin, asyncHandler(settings.updatePaymentSettings));
   router.get('/products', requireAdmin, asyncHandler(products.adminList));
   router.get('/products/:id', requireAdmin, asyncHandler(products.adminGet));
   router.get('/orders', requireAdmin, asyncHandler(orders.adminList));
   router.put('/orders/:id/status', requireAdmin, asyncHandler(orders.updateStatus));
+  router.put('/orders/:id/payment-status', requireAdmin, asyncHandler(orders.updatePaymentStatus));
   return router;
 }

@@ -119,7 +119,7 @@ export default function AccountPage() {
           </section>
 
           <section className="account-panel"><div className="account-heading"><span className="section-kicker">ORDER HISTORY</span><h2>YOUR ROTATION</h2></div>
-            <div className="account-orders">{orders.map((order) => <article key={order.id}><div><span>ORDER</span><strong>{order.order_number}</strong></div><div><span>PLACED</span><strong>{new Date(order.created_at).toLocaleDateString('en-LK')}</strong></div><div><span>TOTAL</span><strong>{money(order.total_amount)}</strong></div><em>{order.order_status}</em></article>)}</div>
+            <div className="account-orders">{orders.map((order) => <article key={order.id}><div><span>ORDER</span><strong>{order.order_number}</strong><small>{order.tracking_number}</small></div><div><span>PLACED</span><strong>{new Date(order.created_at).toLocaleDateString('en-LK')}</strong></div><div><span>TOTAL</span><strong>{money(order.total_amount)}</strong><small>{order.payment_status}</small></div><em>{order.order_status}</em></article>)}</div>
             {!loading && !orders.length && <p className="account-empty">No account orders yet. Guest checkout remains available whenever you need it.</p>}
           </section>
         </div>

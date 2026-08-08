@@ -1,39 +1,8 @@
-import { formatPrice } from '../../data/products';
-import PriceNotice from './PriceNotice';
+import { formatProductPrice, productImage, productImageAlt } from '../../utils/productPresentation';
 
-export default function CheckoutSummary({ product, selectedSize, setSelectedSize, quantity = 1 }) {
-  const subtotal = product.price * quantity;
-
-  return (
-    <aside className="checkout-summary">
-      <div className="checkout-summary__heading">
-        <span className="section-kicker">ORDER SUMMARY</span>
-        <span>{quantity} {quantity === 1 ? 'ITEM' : 'ITEMS'}</span>
-      </div>
-      <div className="checkout-product">
-        <div className="checkout-product__image"><img src={product.image} alt={product.alt} /></div>
-        <section>
-          <span className="brand-label">{product.brand}</span>
-          <h2>{product.name}</h2>
-          <dl className="checkout-product__meta">
-            <div><dt>Size</dt><dd>{selectedSize}</dd></div>
-            <div><dt>Quantity</dt><dd>{quantity}</dd></div>
-          </dl>
-          <strong>{formatPrice(product.price)}</strong>
-          <small>{product.preOrder ? `Pre-order · ${product.deliveryTime}` : `Available · ${product.deliveryTime}`}</small>
-        </section>
-      </div>
-      <label className="form-field">
-        <span>SELECTED SIZE</span>
-        <select value={selectedSize} onChange={(event) => setSelectedSize(event.target.value)}>
-          {product.sizes.map((size) => <option value={size} key={size}>{size}</option>)}
-        </select>
-      </label>
-      <div className="checkout-totals" aria-label="Order totals">
-        <div><span>Subtotal</span><strong>{formatPrice(subtotal)}</strong></div>
-        <div className="checkout-totals__total"><span>Total</span><strong>{formatPrice(subtotal)}</strong></div>
-      </div>
-      <PriceNotice />
-    </aside>
-  );
+export default function CheckoutSummary({ entries, quote }) {
+  return <aside className="checkout-summary"><div className="checkout-summary__heading"><span className="section-kicker">ORDER SUMMARY</span><span>{entries.reduce((sum, entry) => sum + entry.item.quantity, 0)} ITEMS</span></div>
+    <div className="checkout-product-list">{entries.map(({ item, product }) => <article className="checkout-product" key={`${product.id}-${item.selectedSize}-${item.selectedColor}`}><div className="checkout-product__image"><img src={productImage(product, item.selectedColor)} alt={productImageAlt(product)} /></div><section><span className="brand-label">{product.brand}</span><h2>{product.name}</h2><dl className="checkout-product__meta"><div><dt>Colour</dt><dd>{item.selectedColor || 'Standard'}</dd></div><div><dt>Size</dt><dd>{item.selectedSize}</dd></div><div><dt>Quantity</dt><dd>{item.quantity}</dd></div></dl><strong>{formatProductPrice(product.price * item.quantity)}</strong>{product.originalPrice > product.price && <del>{formatProductPrice(product.originalPrice * item.quantity)}</del>}</section></article>)}</div>
+    <div className="checkout-totals" aria-label="Order totals"><div><span>Subtotal</span><strong>{formatProductPrice(quote?.subtotalAmount || 0)}</strong></div>{quote?.discountAmount > 0 && <div className="checkout-discount"><span>Coupon discount</span><strong>− {formatProductPrice(quote.discountAmount)}</strong></div>}<div className="checkout-totals__total"><span>Order Total</span><strong>{formatProductPrice(quote?.totalAmount || 0)}</strong></div><div className="checkout-advance"><span>Advance / Pay Now</span><strong>{formatProductPrice(quote?.advanceAmount || 0)}</strong></div><div><span>Balance on Delivery</span><strong>{formatProductPrice(quote?.balanceAmount || 0)}</strong></div></div>
+  </aside>;
 }

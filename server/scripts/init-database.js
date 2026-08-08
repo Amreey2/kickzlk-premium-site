@@ -67,6 +67,18 @@ try {
   if (!(await columnExists('products', 'color_variations'))) await connection.query('ALTER TABLE products ADD COLUMN color_variations JSON NULL AFTER product_tags');
   await ensureProductColorVariantsColumn(connection, env.database.name);
   if (!(await columnExists('products', 'cdn_images'))) await connection.query('ALTER TABLE products ADD COLUMN cdn_images JSON NULL AFTER color_variants');
+  if (!(await columnExists('products', 'original_price'))) await connection.query('ALTER TABLE products ADD COLUMN original_price DECIMAL(12,2) NULL AFTER price');
+  if (!(await columnExists('orders', 'tracking_number'))) await connection.query('ALTER TABLE orders ADD COLUMN tracking_number VARCHAR(50) NULL AFTER order_number');
+  if (!(await columnExists('orders', 'idempotency_key'))) await connection.query('ALTER TABLE orders ADD COLUMN idempotency_key VARCHAR(100) NULL AFTER tracking_number');
+  if (!(await columnExists('orders', 'shipping_city'))) await connection.query('ALTER TABLE orders ADD COLUMN shipping_city VARCHAR(120) NULL AFTER shipping_address');
+  if (!(await columnExists('orders', 'subtotal_amount'))) await connection.query('ALTER TABLE orders ADD COLUMN subtotal_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER idempotency_key');
+  if (!(await columnExists('orders', 'discount_amount'))) await connection.query('ALTER TABLE orders ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER subtotal_amount');
+  if (!(await columnExists('orders', 'coupon_code'))) await connection.query('ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(50) NULL AFTER discount_amount');
+  if (!(await columnExists('orders', 'advance_amount'))) await connection.query('ALTER TABLE orders ADD COLUMN advance_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER total_amount');
+  if (!(await columnExists('orders', 'payment_method'))) await connection.query("ALTER TABLE orders ADD COLUMN payment_method VARCHAR(50) NOT NULL DEFAULT 'Bank Transfer' AFTER pending_amount");
+  if (!(await columnExists('order_items', 'selected_color'))) await connection.query('ALTER TABLE order_items ADD COLUMN selected_color VARCHAR(100) NULL AFTER product_name');
+  if (!(await columnExists('order_items', 'original_price'))) await connection.query('ALTER TABLE order_items ADD COLUMN original_price DECIMAL(12,2) NULL AFTER price');
+  if (!(await columnExists('order_items', 'discount_amount'))) await connection.query('ALTER TABLE order_items ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER original_price');
   if (!(await columnExists('categories', 'meta_description'))) await connection.query('ALTER TABLE categories ADD COLUMN meta_description VARCHAR(320) NULL AFTER meta_title');
   if (!(await columnExists('categories', 'updated_at'))) await connection.query('ALTER TABLE categories ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at');
   if (!(await columnExists('brands', 'display_mode'))) await connection.query("ALTER TABLE brands ADD COLUMN display_mode ENUM('Text', 'Image') NOT NULL DEFAULT 'Text' AFTER status");
@@ -102,6 +114,12 @@ try {
   if (!(await indexExists('products', 'uq_products_slug'))) await connection.query('ALTER TABLE products ADD UNIQUE KEY uq_products_slug (slug)');
   if (!(await indexExists('products', 'uq_products_sku'))) await connection.query('ALTER TABLE products ADD UNIQUE KEY uq_products_sku (sku)');
   if (!(await indexExists('products', 'idx_products_brand_id'))) await connection.query('ALTER TABLE products ADD KEY idx_products_brand_id (brand_id)');
+  await connection.query("UPDATE orders SET tracking_number = CONCAT('KZTRK-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 8, '0')) WHERE tracking_number IS NULL OR tracking_number = ''");
+  await connection.query('UPDATE orders SET subtotal_amount = total_amount + discount_amount WHERE subtotal_amount = 0');
+  await connection.query('UPDATE orders SET advance_amount = paid_amount WHERE advance_amount = 0 AND paid_amount > 0');
+  await connection.query('ALTER TABLE orders MODIFY tracking_number VARCHAR(50) NOT NULL');
+  if (!(await indexExists('orders', 'uq_orders_tracking'))) await connection.query('ALTER TABLE orders ADD UNIQUE KEY uq_orders_tracking (tracking_number)');
+  if (!(await indexExists('orders', 'uq_orders_idempotency'))) await connection.query('ALTER TABLE orders ADD UNIQUE KEY uq_orders_idempotency (idempotency_key)');
 
   const defaultBrands = ['Nike', 'Jordan', 'Adidas', 'New Balance', 'Puma', 'Balmain', 'Christian Louboutin'];
   for (const brand of defaultBrands) {

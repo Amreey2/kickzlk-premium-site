@@ -95,29 +95,60 @@ describe('order services', () => {
     let saved;
     const service = new OrderService({
       productModel: { findById: async () => ({ id: 5, name: 'Retro High', price: 64900, size: ['US 9'] }) },
-      orderModel: { create: async (payload) => { saved = payload; return payload; } },
+      orderModel: { findByIdempotencyKey: async () => null, create: async (payload) => { saved = payload; return payload; } },
     });
     await service.create({
       customerName: 'Guest', email: 'guest@example.com', phoneNumber: '+94771234567',
-      shippingAddress: 'Colombo', paidAmount: 10000,
-      items: [{ productId: 5, selectedSize: 'US 9', quantity: 2, price: 1 }],
+      shippingAddress: 'Colombo', shippingCity: 'Colombo', idempotencyKey: 'guest-order-test-0001',
+      paymentStatus: 'Payment Confirmed', items: [{ productId: 5, selectedSize: 'US 9', quantity: 2, price: 1 }],
     });
     assert.equal(saved.userId, null);
     assert.equal(saved.totalAmount, 129800);
-    assert.equal(saved.pendingAmount, 119800);
+    assert.equal(saved.advanceAmount, 38940);
+    assert.equal(saved.pendingAmount, 90860);
+    assert.equal(saved.paidAmount, 0);
+    assert.equal(saved.paymentStatus, 'Payment Pending');
+    assert.match(saved.trackingNumber, /^KZTRK-/);
     assert.match(saved.orderNumber, /^KZ-/);
   });
 
   test('logged-in orders retain the authenticated customer id', async () => {
     const service = new OrderService({
       productModel: { findById: async () => ({ id: 6, name: 'Dunk Low', price: 47500, size: ['US 8'] }) },
-      orderModel: { create: async (payload) => payload },
+      orderModel: { findByIdempotencyKey: async () => null, create: async (payload) => payload },
     });
     const result = await service.create({
       customerName: 'Customer', email: 'customer@example.com', phoneNumber: '+94771234567',
-      shippingAddress: 'Kandy', items: [{ productId: 6, selectedSize: 'US 8' }],
+      shippingAddress: 'Kandy', shippingCity: 'Kandy', idempotencyKey: 'customer-order-test-0001', items: [{ productId: 6, selectedSize: 'US 8' }],
     }, 42);
     assert.equal(result.userId, 42);
+  });
+
+  test('validates coupons and calculates advance amounts from server prices', async () => {
+    const service = new OrderService({
+      productModel: { findById: async () => ({ id: 6, name: 'Dunk Low', price: 50000, originalPrice: 60000, size: ['40'], colorVariations: ['Black'] }) },
+      orderModel: {}, siteSettingService: { paymentSettings: async () => ({ advancePercentage: 25, methodName: 'Bank Transfer' }) },
+    });
+    const quote = await service.quote({ couponCode: 'KICKZ10', items: [{ productId: 6, selectedSize: '40', selectedColor: 'Black', quantity: 2 }] });
+    assert.equal(quote.subtotalAmount, 100000);
+    assert.equal(quote.discountAmount, 10000);
+    assert.equal(quote.totalAmount, 90000);
+    assert.equal(quote.advanceAmount, 22500);
+    assert.equal(quote.balanceAmount, 67500);
+    await assert.rejects(() => service.quote({ couponCode: 'INVALID', items: [{ productId: 6, selectedSize: '40' }] }), (error) => error.code === 'INVALID_COUPON');
+  });
+
+  test('returns the original order when an idempotency key is submitted again', async () => {
+    const existing = { id: 91, order_number: 'KZ-EXISTING', idempotency_key: 'repeat-order-test-0001' };
+    const service = new OrderService({
+      productModel: { findById: async () => { throw new Error('Products should not be reprocessed.'); } },
+      orderModel: { findByIdempotencyKey: async () => existing, create: async () => { throw new Error('Duplicate order created.'); } },
+    });
+    const result = await service.create({
+      customerName: 'Guest', email: 'guest@example.com', phoneNumber: '+94771234567', shippingAddress: 'Colombo',
+      shippingCity: 'Colombo', idempotencyKey: 'repeat-order-test-0001', items: [{ productId: 5, selectedSize: '9' }],
+    });
+    assert.equal(result, existing);
   });
 });
 

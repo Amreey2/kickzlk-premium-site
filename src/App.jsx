@@ -14,6 +14,8 @@ import PreOrderPage from './pages/PreOrderPage';
 import ProductPage from './pages/ProductPage';
 import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
 import ShopPage from './pages/ShopPage';
 import AdminCustomersPage from './pages/admin/AdminCustomersPage';
 import AdminBrandsPage from './pages/admin/AdminBrandsPage';
@@ -46,6 +48,8 @@ const routes = {
   '/cart': CartPage,
   '/checkout': CheckoutPage,
   '/checkout/start': CheckoutChoicePage,
+  '/order-confirmation': OrderConfirmationPage,
+  '/track-order': OrderTrackingPage,
   '/admin/login': AdminLoginPage,
   '/admin/dashboard': AdminDashboardPage,
   '/admin/products': AdminProductsPage,

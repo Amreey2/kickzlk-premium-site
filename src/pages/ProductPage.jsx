@@ -10,6 +10,7 @@ import { useProduct, useProducts } from '../hooks/useProducts';
 import useReveal from '../hooks/useReveal';
 import useToast from '../hooks/useToast';
 import { resolveApiAssetUrl, settingsApi } from '../services/api';
+import { addCartItem, cartCount } from '../utils/cart';
 
 export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }) {
   useReveal();
@@ -37,8 +38,8 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
     }
     const color = selectedColor || product.colorVariations?.[0] || '';
     const query = new URLSearchParams({ product: product.id, size: selectedSize, quantity: '1', ...(color ? { color } : {}) });
-    setBagCount(1);
-    setCartHref(`/cart?${query}`);
+    if (!buyImmediately) setBagCount(cartCount(addCartItem({ productId: product.id, selectedSize, selectedColor: color, quantity: 1 })));
+    setCartHref('/cart');
     if (buyImmediately) {
       const checkoutHref = `/checkout?${query}`;
       window.location.assign(`/checkout/start?next=${encodeURIComponent(checkoutHref)}`);

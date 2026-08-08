@@ -29,6 +29,7 @@ const importModel = new ProductImportModel(database);
 const addressModel = new CustomerAddressModel(database);
 const passwordResetModel = new PasswordResetModel(database);
 const siteSettingModel = new SiteSettingModel(database);
+const siteSettingService = new SiteSettingService(siteSettingModel);
 const productService = new ProductService({ productModel, brandModel, categoryModel });
 
 // Central composition keeps controllers testable and database implementations replaceable.
@@ -37,7 +38,7 @@ export const services = {
   productService,
   productImportService: new ProductImportService({ productService, productModel, brandModel, categoryModel, importModel }),
   catalogService: new CatalogService({ brandModel, categoryModel, optionModel }),
-  orderService: new OrderService({ orderModel, productModel }),
+  orderService: new OrderService({ orderModel, productModel, siteSettingService }),
   imageService: new ImageService(),
-  siteSettingService: new SiteSettingService(siteSettingModel),
+  siteSettingService,
 };

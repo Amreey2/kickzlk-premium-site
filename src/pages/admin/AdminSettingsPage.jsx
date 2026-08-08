@@ -22,12 +22,17 @@ export default function AdminSettingsPage() {
   const [sizeGuideMessage, setSizeGuideMessage] = useState('');
   const [sizeGuideError, setSizeGuideError] = useState('');
   const [sizeGuideBusy, setSizeGuideBusy] = useState(false);
+  const [payment, setPayment] = useState({ methodName: 'Bank Transfer', bankName: '', accountName: '', accountNumber: '', branch: '', instructions: '', advancePercentage: 30 });
+  const [paymentMessage, setPaymentMessage] = useState('');
+  const [paymentError, setPaymentError] = useState('');
+  const [paymentBusy, setPaymentBusy] = useState(false);
 
   useEffect(() => {
     settingsApi.sizeGuide().then((value) => setSizeGuide(value)).catch((error) => {
       if (!handleAdminSessionError(error)) setSizeGuideError(error.message);
     });
   }, []);
+  useEffect(() => { settingsApi.paymentSettings().then(setPayment).catch((error) => { if (!handleAdminSessionError(error)) setPaymentError(error.message); }); }, []);
   const updateField = (event) => {
     const { name, value } = event.target;
     setSettings((current) => ({ ...current, [name]: value }));
@@ -60,6 +65,8 @@ export default function AdminSettingsPage() {
     finally { setSizeGuideBusy(false); }
   };
 
+  const savePayment = async () => { setPaymentBusy(true); setPaymentMessage(''); setPaymentError(''); try { setPayment(await settingsApi.updatePaymentSettings(payment)); setPaymentMessage('Bank-transfer settings published.'); } catch (error) { if (!handleAdminSessionError(error)) setPaymentError(error.message); } finally { setPaymentBusy(false); } };
+
   return (
     <AdminLayout title="Settings">
       <AdminPageHeader eyebrow="STOREFRONT CONTROL" title="SETTINGS" copy="Configuration placeholders ready for a future persisted settings API." />
@@ -76,6 +83,16 @@ export default function AdminSettingsPage() {
           <button className="btn btn--acid" type="button" onClick={saveSizeGuide} disabled={sizeGuideBusy || !sizeGuide.imageUrl}>PUBLISH SIZE GUIDE <span>→</span></button>
           {sizeGuideMessage && <p className="admin-feedback admin-feedback--success" role="status">{sizeGuideMessage}</p>}
           {sizeGuideError && <p className="admin-feedback admin-feedback--error" role="alert">{sizeGuideError}</p>}
+        </div></section>
+        <section className="admin-panel admin-settings-section"><div><span>06</span><h2>BANK TRANSFER</h2><p>Public checkout payment details and centrally managed advance percentage.</p></div><div className="admin-size-guide">
+          <AdminField label="PAYMENT METHOD NAME" name="methodName" value={payment.methodName || ''} onChange={(event) => setPayment((value) => ({ ...value, methodName: event.target.value }))} />
+          <AdminField label="BANK NAME" name="bankName" value={payment.bankName || ''} onChange={(event) => setPayment((value) => ({ ...value, bankName: event.target.value }))} />
+          <AdminField label="ACCOUNT NAME" name="accountName" value={payment.accountName || ''} onChange={(event) => setPayment((value) => ({ ...value, accountName: event.target.value }))} />
+          <AdminField label="ACCOUNT NUMBER" name="accountNumber" value={payment.accountNumber || ''} onChange={(event) => setPayment((value) => ({ ...value, accountNumber: event.target.value }))} />
+          <AdminField label="BRANCH" name="branch" value={payment.branch || ''} onChange={(event) => setPayment((value) => ({ ...value, branch: event.target.value }))} />
+          <AdminField label="PAYMENT INSTRUCTIONS" name="instructions" value={payment.instructions || ''} onChange={(event) => setPayment((value) => ({ ...value, instructions: event.target.value }))} as="textarea" rows={3} />
+          <AdminField label="ADVANCE PERCENTAGE" name="advancePercentage" value={String(payment.advancePercentage ?? 30)} onChange={(event) => setPayment((value) => ({ ...value, advancePercentage: Number(event.target.value) }))} type="number" />
+          <button className="btn btn--acid" type="button" onClick={savePayment} disabled={paymentBusy}>PUBLISH PAYMENT DETAILS <span>→</span></button>{paymentMessage && <p className="admin-feedback admin-feedback--success">{paymentMessage}</p>}{paymentError && <p className="admin-feedback admin-feedback--error">{paymentError}</p>}
         </div></section>
         <div className="admin-settings-actions"><button className="btn btn--acid" type="submit">SAVE SETTINGS <span>→</span></button>{saved && <p role="status">Settings saved in frontend state. Backend persistence pending.</p>}</div>
       </form>

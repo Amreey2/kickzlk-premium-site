@@ -49,6 +49,7 @@ const normalize = (payload) => {
   description: String(payload.description).trim(),
   category: String(payload.category).trim(),
   price: Number(payload.price),
+  originalPrice: Number(payload.originalPrice || 0) > Number(payload.price) ? Number(payload.originalPrice) : null,
   sizes: payload.sizes,
   productType: resolveProductType(payload),
   deliveryTime: payload.deliveryTime?.trim() || null,
@@ -71,6 +72,7 @@ const validate = (payload) => {
   requireFields(payload, ['sku', 'brand', 'brandId', 'name', 'description', 'category', 'categoryId', 'price']);
   if (!SKU_PATTERN.test(String(payload.sku).trim().toUpperCase())) throw new AppError('SKU must contain 2–100 letters, numbers, hyphens, or underscores.', 422, 'INVALID_SKU');
   if (!Number.isFinite(Number(payload.price)) || Number(payload.price) < 0) throw new AppError('Product price must be valid.', 422, 'INVALID_PRICE');
+  if (payload.originalPrice && (!Number.isFinite(Number(payload.originalPrice)) || Number(payload.originalPrice) <= Number(payload.price))) throw new AppError('Original price must be greater than the selling price.', 422, 'INVALID_ORIGINAL_PRICE');
   if (!Array.isArray(payload.sizes) || !payload.sizes.length) throw new AppError('At least one product size is required.', 422, 'INVALID_SIZES');
   const productType = resolveProductType(payload);
   if (!productTypes.has(productType)) throw new AppError('Product type must be Ready Stock or Pre Order.', 422, 'INVALID_PRODUCT_TYPE');
@@ -122,6 +124,7 @@ export default class ProductService {
       description: current.description,
       category: current.category,
       price: current.price,
+      originalPrice: current.originalPrice,
       sizes: current.sizes,
       productType: current.preOrder ? 'Pre Order' : 'Ready Stock',
       deliveryTime: current.deliveryTime,

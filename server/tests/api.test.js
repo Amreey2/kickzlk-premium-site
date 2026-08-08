@@ -40,16 +40,20 @@ const services = () => ({
     delete: async () => undefined,
   },
   orderService: {
+    quote: async () => ({ subtotalAmount: 47500, discountAmount: 0, totalAmount: 47500, advanceAmount: 14250, balanceAmount: 33250 }),
     create: async (payload, userId) => ({ ...order, user_id: userId, ...payload }),
     get: async () => order,
     listForUser: async () => [{ ...order, user_id: customer.id }],
     listAll: async () => [order],
     updateStatus: async (id, status, note) => ({ ...order, id: Number(id), order_status: status, note }),
+    updatePaymentStatus: async (id, status) => ({ ...order, id: Number(id), payment_status: status }),
   },
   imageService: { serializeUploads: (files) => files },
   siteSettingService: {
     sizeGuide: async () => ({ imageUrl: '/uploads/size-guide.webp', altText: 'Size guide' }),
     updateSizeGuide: async (payload) => payload,
+    paymentSettings: async () => ({ methodName: 'Bank Transfer', bankName: 'Test Bank', accountName: 'KICKZ.LK', accountNumber: '123', branch: 'Colombo', advancePercentage: 30 }),
+    updatePaymentSettings: async (payload) => payload,
   },
   catalogService: {
     listBrands: async () => [{ id: 1, name: 'Nike', status: 'Active' }],
@@ -138,6 +142,15 @@ describe('API contract', () => {
     await request(instance).put('/api/admin/size-guide').set('Authorization', `Bearer ${adminToken}`).send({ imageUrl: '/uploads/new.webp' }).expect(200);
   });
 
+  test('payment settings are public, editable only by admins, and checkout quotes are server-calculated', async () => {
+    const instance = app();
+    assert.equal((await request(instance).get('/api/payment-settings').expect(200)).body.data.bankName, 'Test Bank');
+    await request(instance).put('/api/admin/payment-settings').send({ bankName: 'Other' }).expect(401);
+    await request(instance).put('/api/admin/payment-settings').set('Authorization', `Bearer ${adminToken}`).send({ bankName: 'Other' }).expect(200);
+    const quote = await request(instance).post('/api/orders/quote').send({ items: [{ productId: 12, selectedSize: 'US 9' }] }).expect(200);
+    assert.equal(quote.body.data.advanceAmount, 14250);
+  });
+
   test('bulk product import APIs require admin authentication', async () => {
     const instance = app();
     await request(instance).get('/api/admin/products/import/template').expect(401);
@@ -174,5 +187,11 @@ describe('API contract', () => {
       .send({ status: 'Processing' })
       .expect(200);
     assert.equal(updated.body.data.order_status, 'Processing');
+    const payment = await request(instance)
+      .put(`/api/admin/orders/${order.id}/payment-status`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ status: 'Payment Confirmed' })
+      .expect(200);
+    assert.equal(payment.body.data.payment_status, 'Payment Confirmed');
   });
 });
