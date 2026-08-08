@@ -13,8 +13,7 @@ export const createOrderController = (service) => ({
       if (String(order.user_id) !== String(request.user.sub)) throw new AppError('This order does not belong to the authenticated customer.', 403, 'ORDER_FORBIDDEN');
     } else {
       const email = String(request.query.email || '').trim().toLowerCase();
-      const phone = String(request.query.phoneNumber || '').trim();
-      if ((!email || email !== String(order.email).toLowerCase()) && (!phone || phone !== String(order.phone_number))) {
+      if (!email || email !== String(order.email).toLowerCase()) {
         throw new AppError('Guest order verification is required.', 401, 'GUEST_ORDER_VERIFICATION_REQUIRED');
       }
     }
@@ -28,9 +27,5 @@ export const createOrderController = (service) => ({
   updateStatus: async (request, response) => response.json({
     success: true,
     data: await service.updateStatus(request.params.id, request.body.status, request.body.note),
-  }),
-  updatePaymentStatus: async (request, response) => response.json({
-    success: true,
-    data: await service.updatePaymentStatus(request.params.id, request.body.status),
   }),
 });

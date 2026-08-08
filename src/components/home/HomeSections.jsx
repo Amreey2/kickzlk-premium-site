@@ -39,7 +39,7 @@ export function HeroSection() {
           <p>Imported heat. Verified quality. A premium pre-order experience for Sri Lanka’s sneaker and streetwear community.</p>
           <div className="hero-actions">
             <a href="/shop" className="btn btn--acid">SHOP SNEAKERS <span>↗</span></a>
-            <a href="/pre-order" className="btn btn--ghost">PRE-ORDER NOW</a>
+            <a href="/track-order" className="btn btn--ghost">ORDER TRACKING</a>
           </div>
           <div className="hero-badges" aria-label="Trust badges">
             <div><strong>100%</strong><span>Authentic</span></div>
@@ -139,7 +139,7 @@ export function WhySection() {
   const benefits = [
     ['01', '100% Authentic', 'Every pair is sourced from verified retailers and trusted global partners.', 0],
     ['02', 'Islandwide Delivery', 'Secure tracked delivery to your doorstep anywhere in Sri Lanka.', 80],
-    ['03', 'Easy Pre-Orders', 'Reserve with a deposit and pay the balance before final delivery.', 160],
+    ['03', 'Easy Pre-Orders', 'Reserve with the 50% advance and pay the balance on delivery.', 160],
     ['04', 'Human Support', 'Real guidance through WhatsApp—from sizing to order updates.', 240],
   ];
   return (
@@ -151,7 +151,7 @@ export function WhySection() {
 }
 
 export function PreorderSection() {
-  const steps = [['01', 'Select Your Pair', 'Choose the style, colorway and size you want.'], ['02', 'Pay the Deposit', 'Secure your order with the displayed deposit.'], ['03', 'We Import It', 'We source, verify and arrange international shipping.'], ['04', 'Delivered to You', 'Pay the balance and receive it islandwide.']];
+  const steps = [['01', 'Select Your Pair', 'Choose the style, colorway and size you want.'], ['02', 'Choose Payment', 'Pay the displayed 50% advance or the full amount.'], ['03', 'We Import It', 'We source, verify and arrange international shipping.'], ['04', 'Delivered to You', 'Pay any remaining balance on delivery and receive it islandwide.']];
   return (
     <section className="preorder section-pad snap-section" id="preorder"><div className="container">
       <div className="section-head section-head--center reveal"><div><span className="section-kicker">SIMPLE. CLEAR. SECURE.</span><h2>HOW PRE-ORDER WORKS</h2></div><p>Four simple steps between you and your next pair.</p></div>

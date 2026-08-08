@@ -156,6 +156,8 @@ CREATE TABLE IF NOT EXISTS orders (
   discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
   coupon_code VARCHAR(50) NULL,
   total_amount DECIMAL(12,2) NOT NULL,
+  payment_option VARCHAR(20) NOT NULL DEFAULT 'advance',
+  advance_percentage DECIMAL(5,2) NOT NULL DEFAULT 50,
   advance_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
   paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
   pending_amount DECIMAL(12,2) NOT NULL DEFAULT 0,

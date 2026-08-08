@@ -11,6 +11,7 @@ import {
 } from '../../utils/productPresentation';
 import ProductCard from '../ProductCard';
 import ProductCollectionState from '../ProductCollectionState';
+import PaymentOptionSelector from '../checkout/PaymentOptionSelector';
 
 const WHATSAPP_NUMBER = '94700000000';
 
@@ -64,9 +65,8 @@ export function ProductHeading({ product, mobile = false }) {
   );
 }
 
-export function ProductInfo({ product, selectedSize, setSelectedSize, selectedColor, setSelectedColor, payment, setPayment, addToBag, buyNow, openSizeGuide }) {
-  const deposit = Math.round((product.price * 0.3) / 1000) * 1000;
-  const amount = payment === 'deposit' ? `${formatProductPrice(deposit)} DEPOSIT` : formatProductPrice(product.price);
+export function ProductInfo({ product, selectedSize, setSelectedSize, selectedColor, setSelectedColor, payment, setPayment, paymentQuote, addToBag, buyNow, openSizeGuide }) {
+  const amount = paymentQuote ? `${formatProductPrice(paymentQuote.advanceAmount)} PAY NOW` : formatProductPrice(product.price);
   const unavailable = product.status === 'Out of Stock' || (!product.preOrder && product.stock <= 0);
   const action = 'ADD TO CART';
   const actionText = unavailable ? 'OUT OF STOCK' : selectedSize ? `${action} · ${amount}` : action;
@@ -89,7 +89,7 @@ export function ProductInfo({ product, selectedSize, setSelectedSize, selectedCo
       </div>}
       <div className="option-section">
         <div className="option-head"><h3>SELECT SIZE</h3><button className="size-guide-link" type="button" onClick={openSizeGuide}>SIZE GUIDE ↗</button></div>
-        <div className="sizes" role="group" aria-label="Available sizes">
+        <div className={`sizes${product.sizes.length === 1 ? ' sizes--single' : ''}`} role="group" aria-label="Available sizes">
           {product.sizes.map((size) => (
             <button className={`size-btn${selectedSize === size ? ' active' : ''}`} key={size} onClick={() => setSelectedSize(size)}>
               {size}
@@ -97,15 +97,9 @@ export function ProductInfo({ product, selectedSize, setSelectedSize, selectedCo
           ))}
         </div>
       </div>
-      {product.preOrder && (
-        <div className="option-section">
-          <div className="option-head"><h3>PAYMENT OPTION</h3><span>FRONTEND DEMO</span></div>
-          <div className="payment-options">
-            <label className="payment-card"><input type="radio" name="payment" value="deposit" checked={payment === 'deposit'} onChange={(event) => setPayment(event.target.value)} /><span><strong>Pay deposit</strong><small>{formatProductPrice(deposit)} today</small></span></label>
-            <label className="payment-card"><input type="radio" name="payment" value="full" checked={payment === 'full'} onChange={(event) => setPayment(event.target.value)} /><span><strong>Pay in full</strong><small>{formatProductPrice(product.price)} today</small></span></label>
-          </div>
-        </div>
-      )}
+      <div className="option-section"><PaymentOptionSelector value={payment} onChange={setPayment} quote={paymentQuote} compact />
+        {paymentQuote && <div className="product-payment-summary"><span>PAY NOW <strong>{formatProductPrice(paymentQuote.advanceAmount)}</strong></span><span>BALANCE ON DELIVERY <strong>{formatProductPrice(paymentQuote.balanceAmount)}</strong></span></div>}
+      </div>
       <div className="delivery-box"><b>↗</b><div><strong>Estimated delivery: {deliveryTime}</strong><span>Regular WhatsApp updates from sourcing to islandwide delivery.</span></div></div>
       <div className="product-cta">
         <button className="btn btn--acid" id="preorder-button" onClick={addToBag} disabled={unavailable}>{actionText} <span>→</span></button>
@@ -122,7 +116,7 @@ export function ProductDetails({ product }) {
   const [activeTab, setActiveTab] = useState('details');
   const tabs = [
     { id: 'details', label: 'PRODUCT DETAILS', content: <><h3>{product.name}</h3><p>{product.description}</p><ul><li>Curated by KICKZ.LK</li><li>Verified global sourcing</li><li>Premium protective packaging</li><li>Islandwide delivery support</li></ul></> },
-    { id: 'delivery', label: 'DELIVERY & PRE-ORDER', content: <><h3>Clear delivery timeline.</h3><p>{product.preOrder ? 'Secure the order with the selected deposit. KICKZ.LK confirms sourcing, shares progress through WhatsApp, and collects the remaining balance before islandwide dispatch.' : 'This pair is currently available for local fulfilment. KICKZ.LK confirms the order and shares dispatch progress through WhatsApp.'} Estimated delivery is {productDeliveryTime(product)}.</p></> },
+    { id: 'delivery', label: 'DELIVERY & PRE-ORDER', content: <><h3>Clear delivery timeline.</h3><p>{product.preOrder ? 'Secure the order with the selected payment option. KICKZ.LK confirms sourcing, shares progress through WhatsApp, and collects any remaining balance on delivery.' : 'This pair is currently available for local fulfilment. KICKZ.LK confirms the order and shares dispatch progress through WhatsApp.'} Estimated delivery is {productDeliveryTime(product)}.</p></> },
     { id: 'care', label: 'CARE', content: <><h3>Keep the pair fresh.</h3><p>Use a soft dry brush after wear, spot-clean with a sneaker-safe solution, air-dry away from direct heat and store with shoe trees or paper inserts.</p></> },
   ];
 

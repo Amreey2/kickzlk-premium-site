@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { createAuthController } from '../controllers/authController.js';
-import { requireCustomer } from '../middleware/auth.js';
+import { optionalCustomer, requireCustomer } from '../middleware/auth.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 export default function createAuthRoutes(service) {
@@ -13,6 +13,7 @@ export default function createAuthRoutes(service) {
   router.post('/forgot-password', limiter, asyncHandler(controller.forgotPassword));
   router.post('/reset-password', limiter, asyncHandler(controller.resetPassword));
   router.post('/logout', requireCustomer, asyncHandler(controller.logout));
+  router.get('/session', optionalCustomer, asyncHandler(controller.session));
   router.get('/profile', requireCustomer, asyncHandler(controller.profile));
   router.put('/profile', requireCustomer, asyncHandler(controller.updateProfile));
   router.get('/addresses', requireCustomer, asyncHandler(controller.addresses));

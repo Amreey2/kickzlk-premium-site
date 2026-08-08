@@ -11,6 +11,7 @@ import ProductModel from '../models/ProductModel.js';
 import SiteSettingService from '../services/SiteSettingService.js';
 import { serializeCsv } from '../utils/csv.js';
 import { ensureProductColorVariantsColumn } from '../scripts/migrations/ensure-product-color-variants.js';
+import { formatOrderNumber } from '../utils/orderNumber.js';
 
 describe('authentication services', () => {
   test('registration hashes passwords and returns a customer JWT', async () => {
@@ -104,12 +105,13 @@ describe('order services', () => {
     });
     assert.equal(saved.userId, null);
     assert.equal(saved.totalAmount, 129800);
-    assert.equal(saved.advanceAmount, 38940);
-    assert.equal(saved.pendingAmount, 90860);
+    assert.equal(saved.advanceAmount, 64900);
+    assert.equal(saved.pendingAmount, 64900);
     assert.equal(saved.paidAmount, 0);
-    assert.equal(saved.paymentStatus, 'Payment Pending');
-    assert.match(saved.trackingNumber, /^KZTRK-/);
-    assert.match(saved.orderNumber, /^KZ-/);
+    assert.equal(saved.paymentOption, 'advance');
+    assert.equal(saved.advancePercentage, 50);
+    assert.equal(saved.paymentStatus, 'Payment Pending — 50% Advance');
+    assert.equal(saved.orderStatus, 'Payment Pending — 50% Advance');
   });
 
   test('logged-in orders retain the authenticated customer id', async () => {
@@ -127,14 +129,18 @@ describe('order services', () => {
   test('validates coupons and calculates advance amounts from server prices', async () => {
     const service = new OrderService({
       productModel: { findById: async () => ({ id: 6, name: 'Dunk Low', price: 50000, originalPrice: 60000, size: ['40'], colorVariations: ['Black'] }) },
-      orderModel: {}, siteSettingService: { paymentSettings: async () => ({ advancePercentage: 25, methodName: 'Bank Transfer' }) },
+      orderModel: {}, siteSettingService: { paymentSettings: async () => ({ advancePercentage: 50, methodName: 'Bank Transfer' }) },
     });
     const quote = await service.quote({ couponCode: 'KICKZ10', items: [{ productId: 6, selectedSize: '40', selectedColor: 'Black', quantity: 2 }] });
     assert.equal(quote.subtotalAmount, 100000);
     assert.equal(quote.discountAmount, 10000);
     assert.equal(quote.totalAmount, 90000);
-    assert.equal(quote.advanceAmount, 22500);
-    assert.equal(quote.balanceAmount, 67500);
+    assert.equal(quote.advanceAmount, 45000);
+    assert.equal(quote.balanceAmount, 45000);
+    const fullQuote = await service.quote({ paymentOption: 'full', items: [{ productId: 6, selectedSize: '40', selectedColor: 'Black', quantity: 2 }] });
+    assert.equal(fullQuote.advanceAmount, 100000);
+    assert.equal(fullQuote.balanceAmount, 0);
+    assert.equal(fullQuote.advancePercentage, 100);
     await assert.rejects(() => service.quote({ couponCode: 'INVALID', items: [{ productId: 6, selectedSize: '40' }] }), (error) => error.code === 'INVALID_COUPON');
   });
 
@@ -149,6 +155,22 @@ describe('order services', () => {
       shippingCity: 'Colombo', idempotencyKey: 'repeat-order-test-0001', items: [{ productId: 5, selectedSize: '9' }],
     });
     assert.equal(result, existing);
+  });
+
+  test('uses auto-increment ids for readable order numbers and enforces the selected payment workflow', async () => {
+    assert.equal(formatOrderNumber(1), 'KZ-00001');
+    assert.equal(formatOrderNumber(42), 'KZ-00042');
+    let savedStatus;
+    const service = new OrderService({
+      productModel: {},
+      orderModel: {
+        findById: async () => ({ id: 42, payment_option: 'full', advance_percentage: 100 }),
+        updateStatus: async (id, status) => { savedStatus = status; return { id, order_status: status }; },
+      },
+    });
+    await assert.rejects(() => service.updateStatus(42, '50% Payment Confirmed'), (error) => error.code === 'INVALID_ORDER_STATUS');
+    await service.updateStatus(42, 'Full Payment Confirmed');
+    assert.equal(savedStatus, 'Full Payment Confirmed');
   });
 });
 

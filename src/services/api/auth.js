@@ -1,6 +1,7 @@
 import { apiRequest } from './client';
 
 export const authApi = {
+  session: () => apiRequest('/auth/session'),
   register: (data) => apiRequest('/auth/register', { method: 'POST', body: data }),
   login: (data) => apiRequest('/auth/login', { method: 'POST', body: data }),
   logout: () => apiRequest('/auth/logout', { method: 'POST' }),

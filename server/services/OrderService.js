@@ -1,14 +1,13 @@
 import AppError from '../utils/AppError.js';
-import { createOrderNumber, createTrackingNumber } from '../utils/orderNumber.js';
-import { calculateOrderAmounts, DEFAULT_ADVANCE_PERCENTAGE } from '../utils/orderPricing.js';
+import { calculateOrderAmounts, DEFAULT_ADVANCE_PERCENTAGE, PAYMENT_OPTIONS } from '../utils/orderPricing.js';
 import { assertEmail, assertPhone, requireFields } from '../utils/validation.js';
 
 export const orderStatuses = [
-  'Pending', 'Order Placed', 'Payment Pending', 'Payment Confirmed', 'Order Confirmed',
-  'Processing', 'Quality Check Completed', 'Shipped', 'Customs Clearance',
-  'Import/Clearing', 'Out for Delivery', 'Delivered',
+  'Payment Pending — 50% Advance', '50% Payment Confirmed',
+  'Payment Pending — Full Amount', 'Full Payment Confirmed',
+  'Order Confirmed', 'Processing', 'Quality Check Completed', 'Shipped',
+  'Customs Clearance', 'Out for Delivery', 'Delivered',
 ];
-const paymentStatuses = new Set(['Payment Pending', 'Payment Confirmed']);
 
 export default class OrderService {
   constructor({ orderModel, productModel, siteSettingService }) {
@@ -41,7 +40,9 @@ export default class OrderService {
     const items = await this.prepareItems(payload.items);
     const settings = this.siteSettingService ? await this.siteSettingService.paymentSettings() : { advancePercentage: DEFAULT_ADVANCE_PERCENTAGE };
     const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
-    return { items, ...calculateOrderAmounts({ subtotal, couponCode: payload.couponCode, advancePercentage: settings.advancePercentage }), paymentMethod: settings.methodName || 'Bank Transfer' };
+    return { items, ...calculateOrderAmounts({ subtotal, couponCode: payload.couponCode,
+      paymentOption: payload.paymentOption, advancePercentage: settings.advancePercentage }),
+    paymentMethod: settings.methodName || 'Bank Transfer' };
   }
 
   async create(payload, userId = null) {
@@ -52,16 +53,18 @@ export default class OrderService {
     const existing = await this.orderModel.findByIdempotencyKey(idempotencyKey);
     if (existing) return existing;
     const quote = await this.quote(payload);
-    const paymentStatus = 'Payment Pending';
+    const paymentStatus = quote.paymentOption === PAYMENT_OPTIONS.FULL
+      ? 'Payment Pending — Full Amount' : `Payment Pending — ${quote.advancePercentage}% Advance`;
     const orderData = {
       userId, customerName: String(payload.customerName).trim(), email: String(payload.email).trim().toLowerCase(),
       phoneNumber: String(payload.phoneNumber).trim(), shippingAddress: String(payload.shippingAddress).trim(),
       shippingCity: String(payload.shippingCity).trim(), orderNotes: payload.orderNotes?.trim() || null,
-      orderNumber: createOrderNumber(), trackingNumber: createTrackingNumber(), idempotencyKey,
+      idempotencyKey,
       subtotalAmount: quote.subtotalAmount, discountAmount: quote.discountAmount, couponCode: quote.couponCode,
-      totalAmount: quote.totalAmount, advanceAmount: quote.advanceAmount, paidAmount: 0,
+      totalAmount: quote.totalAmount, paymentOption: quote.paymentOption, advancePercentage: quote.advancePercentage,
+      advanceAmount: quote.advanceAmount, paidAmount: 0,
       pendingAmount: quote.balanceAmount, paymentMethod: quote.paymentMethod,
-      paymentStatus, orderStatus: 'Order Placed', items: quote.items,
+      paymentStatus, orderStatus: paymentStatus, items: quote.items,
     };
     try {
       return await this.orderModel.create(orderData);
@@ -78,13 +81,14 @@ export default class OrderService {
   listForUser(userId) { return this.orderModel.findByUserId(userId); }
   listAll() { return this.orderModel.findAll(); }
   async updateStatus(id, status, note) {
-    if (!orderStatuses.includes(status)) throw new AppError('Order status is invalid.', 422, 'INVALID_ORDER_STATUS');
-    if (!(await this.orderModel.findById(id))) throw new AppError('Order was not found.', 404, 'ORDER_NOT_FOUND');
+    const order = await this.orderModel.findById(id);
+    if (!order) throw new AppError('Order was not found.', 404, 'ORDER_NOT_FOUND');
+    const percentage = Number(order.advance_percentage || DEFAULT_ADVANCE_PERCENTAGE);
+    const paymentStates = order.payment_option === PAYMENT_OPTIONS.FULL
+      ? ['Payment Pending — Full Amount', 'Full Payment Confirmed']
+      : [`Payment Pending — ${percentage}% Advance`, `${percentage}% Payment Confirmed`];
+    const fulfilmentStates = orderStatuses.filter((value) => !value.startsWith('Payment Pending') && !value.endsWith('Payment Confirmed'));
+    if (![...paymentStates, ...fulfilmentStates].includes(status)) throw new AppError('Order status is invalid for the selected payment option.', 422, 'INVALID_ORDER_STATUS');
     return this.orderModel.updateStatus(id, status, note);
-  }
-  async updatePaymentStatus(id, status) {
-    if (!paymentStatuses.has(status)) throw new AppError('Payment status is invalid.', 422, 'INVALID_PAYMENT_STATUS');
-    if (!(await this.orderModel.findById(id))) throw new AppError('Order was not found.', 404, 'ORDER_NOT_FOUND');
-    return this.orderModel.updatePaymentStatus(id, status);
   }
 }

@@ -12,10 +12,13 @@ const product = { id: 12, brand: 'Nike', name: 'Dunk Low Premium', price: 47500,
 const order = {
   id: 22,
   user_id: null,
-  order_number: 'KZ-20260731-TEST',
+  order_number: 'KZ-00022',
   email: 'guest@example.com',
   phone_number: '+94771234567',
-  order_status: 'Order Placed',
+  order_status: 'Payment Pending — 50% Advance',
+  payment_status: 'Payment Pending — 50% Advance',
+  payment_option: 'advance',
+  advance_percentage: 50,
 };
 
 const services = () => ({
@@ -40,19 +43,18 @@ const services = () => ({
     delete: async () => undefined,
   },
   orderService: {
-    quote: async () => ({ subtotalAmount: 47500, discountAmount: 0, totalAmount: 47500, advanceAmount: 14250, balanceAmount: 33250 }),
+    quote: async (payload) => ({ subtotalAmount: 47500, discountAmount: 0, totalAmount: 47500, paymentOption: payload.paymentOption === 'full' ? 'full' : 'advance', standardAdvancePercentage: 50, advancePercentage: payload.paymentOption === 'full' ? 100 : 50, advanceAmount: payload.paymentOption === 'full' ? 47500 : 23750, balanceAmount: payload.paymentOption === 'full' ? 0 : 23750 }),
     create: async (payload, userId) => ({ ...order, user_id: userId, ...payload }),
-    get: async () => order,
+    get: async (identifier) => String(identifier) === order.order_number || Number(identifier) === order.id ? order : null,
     listForUser: async () => [{ ...order, user_id: customer.id }],
     listAll: async () => [order],
     updateStatus: async (id, status, note) => ({ ...order, id: Number(id), order_status: status, note }),
-    updatePaymentStatus: async (id, status) => ({ ...order, id: Number(id), payment_status: status }),
   },
   imageService: { serializeUploads: (files) => files },
   siteSettingService: {
     sizeGuide: async () => ({ imageUrl: '/uploads/size-guide.webp', altText: 'Size guide' }),
     updateSizeGuide: async (payload) => payload,
-    paymentSettings: async () => ({ methodName: 'Bank Transfer', bankName: 'Test Bank', accountName: 'KICKZ.LK', accountNumber: '123', branch: 'Colombo', advancePercentage: 30 }),
+    paymentSettings: async () => ({ methodName: 'Bank Transfer', bankName: 'Test Bank', accountName: 'KICKZ.LK', accountNumber: '123', branch: 'Colombo', advancePercentage: 50 }),
     updatePaymentSettings: async (payload) => payload,
   },
   catalogService: {
@@ -113,6 +115,8 @@ describe('API contract', () => {
       email: admin.email, password: 'AdminPassword1',
     }).expect(200);
     assert.match(adminLogin.headers['set-cookie'][0], /admin_token=.*HttpOnly/);
+    assert.equal((await request(instance).get('/api/auth/session').expect(200)).body.data.authenticated, false);
+    assert.equal((await request(instance).get('/api/auth/session').set('Authorization', `Bearer ${customerToken}`).expect(200)).body.data.authenticated, true);
   });
 
   test('product reads are public and writes require admin authentication', async () => {
@@ -148,7 +152,11 @@ describe('API contract', () => {
     await request(instance).put('/api/admin/payment-settings').send({ bankName: 'Other' }).expect(401);
     await request(instance).put('/api/admin/payment-settings').set('Authorization', `Bearer ${adminToken}`).send({ bankName: 'Other' }).expect(200);
     const quote = await request(instance).post('/api/orders/quote').send({ items: [{ productId: 12, selectedSize: 'US 9' }] }).expect(200);
-    assert.equal(quote.body.data.advanceAmount, 14250);
+    assert.equal(quote.body.data.advanceAmount, 23750);
+    assert.equal(quote.body.data.balanceAmount, 23750);
+    const fullQuote = await request(instance).post('/api/orders/quote').send({ paymentOption: 'full', items: [{ productId: 12, selectedSize: 'US 9' }] }).expect(200);
+    assert.equal(fullQuote.body.data.advanceAmount, 47500);
+    assert.equal(fullQuote.body.data.balanceAmount, 0);
   });
 
   test('bulk product import APIs require admin authentication', async () => {
@@ -171,9 +179,12 @@ describe('API contract', () => {
       shippingAddress: 'Colombo', items: [{ productId: 12, selectedSize: 'US 9', quantity: 1 }],
     };
     assert.equal((await request(instance).post('/api/orders').send(payload).expect(201)).body.data.user_id, null);
-    await request(instance).get(`/api/orders/${order.id}`).expect(401);
-    const tracked = await request(instance).get(`/api/orders/${order.id}`).query({ email: order.email }).expect(200);
+    await request(instance).get(`/api/orders/${order.order_number}`).expect(401);
+    await request(instance).get(`/api/orders/${order.order_number}`).query({ email: 'wrong@example.com' }).expect(401);
+    await request(instance).get(`/api/orders/${order.order_number}`).query({ phone: order.phone_number }).expect(401);
+    const tracked = await request(instance).get(`/api/orders/${order.order_number}`).query({ email: order.email }).expect(200);
     assert.equal(tracked.body.data.order_number, order.order_number);
+    await request(instance).get('/api/orders/KZ-99999').query({ email: order.email }).expect(404);
   });
 
   test('customer order history and admin status changes are protected', async () => {
@@ -188,10 +199,10 @@ describe('API contract', () => {
       .expect(200);
     assert.equal(updated.body.data.order_status, 'Processing');
     const payment = await request(instance)
-      .put(`/api/admin/orders/${order.id}/payment-status`)
+      .put(`/api/admin/orders/${order.id}/status`)
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ status: 'Payment Confirmed' })
+      .send({ status: '50% Payment Confirmed' })
       .expect(200);
-    assert.equal(payment.body.data.payment_status, 'Payment Confirmed');
+    assert.equal(payment.body.data.order_status, '50% Payment Confirmed');
   });
 });

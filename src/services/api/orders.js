@@ -13,8 +13,4 @@ export const ordersApi = {
     method: 'PUT',
     body: { status, note },
   }),
-  updatePaymentStatus: (id, status) => apiRequest(`/admin/orders/${id}/payment-status`, {
-    method: 'PUT',
-    body: { status },
-  }),
 };

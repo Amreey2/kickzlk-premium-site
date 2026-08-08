@@ -24,7 +24,7 @@ export default class SiteSettingService {
     return (await this.model.get('payment_settings')) || {
       methodName: 'Bank Transfer', bankName: 'Configure in Admin Settings', accountName: 'KICKZ.LK',
       accountNumber: 'Configure in Admin Settings', branch: 'Configure in Admin Settings',
-      instructions: 'Use your order number as the transfer reference.', advancePercentage: 30, updatedAt: null,
+      instructions: 'Use your order number as the transfer reference.', advancePercentage: 50, updatedAt: null,
     };
   }
 

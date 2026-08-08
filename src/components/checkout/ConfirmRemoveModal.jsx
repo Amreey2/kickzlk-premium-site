@@ -1,0 +1,3 @@
+export default function ConfirmRemoveModal({ productName, onCancel, onConfirm }) {
+  return <div className="confirm-modal" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCancel(); }}><section role="dialog" aria-modal="true" aria-labelledby="remove-cart-title"><span className="section-kicker">CART UPDATE</span><h2 id="remove-cart-title">REMOVE THIS ITEM FROM YOUR CART?</h2><p>{productName} will be removed from your current selection.</p><div><button className="btn btn--ghost" type="button" onClick={onCancel}>CANCEL</button><button className="btn btn--acid" type="button" onClick={onConfirm}>REMOVE</button></div></section></div>;
+}

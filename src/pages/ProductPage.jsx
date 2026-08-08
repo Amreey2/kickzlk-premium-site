@@ -9,8 +9,9 @@ import { MobileBuyBar, ProductDetails, ProductGallery, ProductHeading, ProductIn
 import { useProduct, useProducts } from '../hooks/useProducts';
 import useReveal from '../hooks/useReveal';
 import useToast from '../hooks/useToast';
-import { resolveApiAssetUrl, settingsApi } from '../services/api';
+import { authApi, ordersApi, resolveApiAssetUrl, settingsApi } from '../services/api';
 import { addCartItem, cartCount } from '../utils/cart';
+import { PAYMENT_OPTIONS, writePaymentOption } from '../utils/paymentOption';
 
 export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }) {
   useReveal();
@@ -19,7 +20,8 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
   const toast = useToast('Please select a size.');
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
-  const [payment, setPayment] = useState('deposit');
+  const [payment, setPayment] = useState(PAYMENT_OPTIONS.ADVANCE);
+  const [paymentQuote, setPaymentQuote] = useState(null);
   const [bagCount, setBagCount] = useState(0);
   const [cartHref, setCartHref] = useState('/cart');
   const [addedToCart, setAddedToCart] = useState(false);
@@ -30,22 +32,34 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
     settingsApi.sizeGuide().then((guide) => setSizeGuide({ ...guide, imageUrl: resolveApiAssetUrl(guide.imageUrl) })).catch(() => setSizeGuide(null));
   }, []);
 
-  const purchase = (buyImmediately) => {
+  const effectiveSize = selectedSize || (product?.sizes?.length === 1 ? product.sizes[0] : '');
+
+  useEffect(() => {
+    if (!product || !effectiveSize) return undefined;
+    let active = true;
+    ordersApi.quote({ items: [{ productId: product.id, selectedSize: effectiveSize, selectedColor: selectedColor || product.colorVariations?.[0] || '', quantity: 1 }], paymentOption: payment })
+      .then((quote) => { if (active) setPaymentQuote(quote); }).catch(() => { if (active) setPaymentQuote(null); });
+    return () => { active = false; };
+  }, [effectiveSize, payment, product, selectedColor]);
+
+  const purchase = async (buyImmediately) => {
     if (!product) return;
-    if (!selectedSize) {
+    if (!effectiveSize) {
       toast.showToast('Please select your size first.', 2300);
       return;
     }
     const color = selectedColor || product.colorVariations?.[0] || '';
-    const query = new URLSearchParams({ product: product.id, size: selectedSize, quantity: '1', ...(color ? { color } : {}) });
-    if (!buyImmediately) setBagCount(cartCount(addCartItem({ productId: product.id, selectedSize, selectedColor: color, quantity: 1 })));
+    writePaymentOption(payment);
+    const query = new URLSearchParams({ product: product.id, size: effectiveSize, quantity: '1', paymentOption: payment, ...(color ? { color } : {}) });
+    if (!buyImmediately) setBagCount(cartCount(addCartItem({ productId: product.id, selectedSize: effectiveSize, selectedColor: color, quantity: 1 })));
     setCartHref('/cart');
     if (buyImmediately) {
       const checkoutHref = `/checkout?${query}`;
-      window.location.assign(`/checkout/start?next=${encodeURIComponent(checkoutHref)}`);
+      const session = await authApi.session();
+      window.location.assign(session.authenticated ? checkoutHref : `/checkout/start?next=${encodeURIComponent(checkoutHref)}`);
     } else {
       setAddedToCart(true);
-      toast.showToast(`Added to Cart · ${selectedSize}${color ? ` · ${color}` : ''}`, 1800);
+      toast.showToast(`Added to Cart · ${effectiveSize}${color ? ` · ${color}` : ''}`, 1800);
     }
   };
   const addToBag = () => purchase(false);
@@ -84,14 +98,14 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
         <div className="product-layout">
           <ProductHeading product={product} mobile />
           <ProductGallery key={activeColor || 'legacy-gallery'} product={product} selectedColor={activeColor} />
-          <ProductInfo product={product} selectedSize={selectedSize} setSelectedSize={(size) => { setSelectedSize(size); setAddedToCart(false); }} selectedColor={activeColor} setSelectedColor={(color) => { setSelectedColor(color); setAddedToCart(false); }} payment={payment} setPayment={setPayment} addToBag={addToBag} buyNow={buyNow} openSizeGuide={() => setSizeGuideOpen(true)} />
+          <ProductInfo product={product} selectedSize={effectiveSize} setSelectedSize={(size) => { setSelectedSize(size); setAddedToCart(false); }} selectedColor={activeColor} setSelectedColor={(color) => { setSelectedColor(color); setAddedToCart(false); }} payment={payment} setPayment={setPayment} paymentQuote={paymentQuote} addToBag={addToBag} buyNow={buyNow} openSizeGuide={() => setSizeGuideOpen(true)} />
         </div>
       </div></main>
       <ProductDetails product={product} />
       <Recommendations product={product} products={catalog.products} loading={catalog.loading} error={catalog.error} />
       <Footer />
       <FloatingActions aboveMobileBuyBar />
-      <MobileBuyBar product={product} selectedSize={selectedSize} addToBag={addToBag} buyNow={buyNow} addedToCart={addedToCart} />
+      <MobileBuyBar product={product} selectedSize={effectiveSize} addToBag={addToBag} buyNow={buyNow} addedToCart={addedToCart} />
       <SizeGuideModal guide={sizeGuide} open={sizeGuideOpen} onClose={() => setSizeGuideOpen(false)} />
       <Toast message={toast.message} visible={toast.visible} />
     </>

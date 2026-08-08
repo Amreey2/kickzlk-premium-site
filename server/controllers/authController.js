@@ -9,6 +9,10 @@ const cookie = (maxAge) => ({
 });
 
 export const createAuthController = (service) => ({
+  session: async (request, response) => response.json({
+    success: true,
+    data: { authenticated: Boolean(request.user), customerId: request.user?.sub || null },
+  }),
   register: async (request, response) => {
     const result = await service.register(request.body);
     response.cookie('customer_token', result.token, cookie(7 * 24 * 60 * 60 * 1000));
