@@ -12,7 +12,7 @@ const navItems = [
   ['/contact', 'Contact'],
 ];
 
-export default function Header({ bagCount = 0 }) {
+export default function Header({ bagCount = 0, cartHref = '/cart' }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const currentPath = window.location.pathname;
@@ -58,7 +58,7 @@ export default function Header({ bagCount = 0 }) {
           <a className="icon-btn account-btn" href="/account" aria-label="Customer account">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></svg>
           </a>
-          <a className="icon-btn bag-btn" href="/cart" aria-label="Shopping bag and cart">
+          <a className="icon-btn bag-btn" href={cartHref} aria-label={`Shopping cart${bagCount ? `, ${bagCount} item` : ''}`}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z" /><path d="M9 8a3 3 0 0 1 6 0" /></svg>
             <span className="bag-count">{bagCount}</span>
           </a>

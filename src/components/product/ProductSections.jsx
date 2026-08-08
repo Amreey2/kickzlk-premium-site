@@ -149,9 +149,24 @@ export function Recommendations({ product, products, loading, error }) {
   );
 }
 
-export function MobileBuyBar({ product, selectedSize, addToBag }) {
+export function MobileBuyBar({ product, selectedSize, addToBag, buyNow, addedToCart }) {
   const unavailable = product.status === 'Out of Stock' || (!product.preOrder && product.stock <= 0);
-  return <div className="mobile-buybar"><div className="mobile-buybar__price"><span>PRICE</span><strong>{formatProductPrice(product.price)}</strong></div><button className="btn btn--acid" onClick={addToBag} disabled={unavailable}>{unavailable ? 'OUT OF STOCK' : selectedSize ? 'ADD TO CART' : 'SELECT SIZE'}</button></div>;
+  const originalPrice = Number(product.originalPrice || 0);
+  const discounted = originalPrice > product.price;
+  return <div className="mobile-buybar">
+    <div className="mobile-buybar__price" aria-label={discounted ? `Current price ${formatProductPrice(product.price)}, original price ${formatProductPrice(originalPrice)}` : `Price ${formatProductPrice(product.price)}`}>
+      <strong>{formatProductPrice(product.price)}</strong>
+      {discounted && <del>{formatProductPrice(originalPrice)}</del>}
+    </div>
+    <div className="mobile-buybar__actions">
+      <button className={`mobile-buybar__action mobile-buybar__action--cart${addedToCart ? ' is-added' : ''}`} onClick={addToBag} disabled={unavailable} aria-label={addedToCart ? 'Added to cart' : selectedSize ? 'Add selected size to cart' : 'Add to cart; size selection required'} title={addedToCart ? 'Added to Cart' : 'Add to Cart'}>
+        {addedToCart
+          ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.5 12.5 3.2 3.2 7.8-8" /></svg>
+          : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z" /><path d="M9 8a3 3 0 0 1 6 0M12 11v5M9.5 13.5h5" /></svg>}
+      </button>
+      <button className="mobile-buybar__action mobile-buybar__action--buy" onClick={buyNow} disabled={unavailable} aria-label="Buy now" title="Buy Now"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13.5 2-7 11h5l-1 9 7-12h-5l1-8Z" /></svg></button>
+    </div>
+  </div>;
 }
 
 export function SizeGuideModal({ guide, open, onClose }) {
