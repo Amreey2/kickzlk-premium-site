@@ -209,7 +209,7 @@ CREATE TABLE IF NOT EXISTS product_imports (
 CREATE TABLE IF NOT EXISTS product_import_failures (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   import_id BIGINT UNSIGNED NOT NULL,
-  row_number INT UNSIGNED NOT NULL,
+  `row_number` INT UNSIGNED NOT NULL,
   sku VARCHAR(100) NULL,
   error_codes JSON NOT NULL,
   reasons JSON NOT NULL,

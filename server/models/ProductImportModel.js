@@ -42,7 +42,7 @@ export default class ProductImportModel {
     for (const failure of failures) {
       await this.database.query(
         `INSERT INTO product_import_failures
-         (import_id, row_number, sku, error_codes, reasons, row_data) VALUES (?, ?, ?, ?, ?, ?)`,
+         (import_id, \`row_number\`, sku, error_codes, reasons, row_data) VALUES (?, ?, ?, ?, ?, ?)`,
         [importId, failure.rowNumber, failure.sku || null, JSON.stringify(failure.errors.map((error) => error.code)),
           JSON.stringify(failure.errors.map((error) => error.message)), JSON.stringify(failure.source)],
       );
@@ -72,7 +72,7 @@ export default class ProductImportModel {
 
   async failures(id) {
     const rows = await this.database.query(
-      'SELECT row_number, sku, error_codes, reasons, row_data FROM product_import_failures WHERE import_id = ? ORDER BY row_number',
+      'SELECT `row_number`, sku, error_codes, reasons, row_data FROM product_import_failures WHERE import_id = ? ORDER BY `row_number`',
       [id],
     );
     return rows.map((row) => ({

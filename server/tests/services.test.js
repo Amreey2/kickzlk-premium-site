@@ -7,8 +7,10 @@ import ProductService from '../services/ProductService.js';
 import CatalogService from '../services/CatalogService.js';
 import ProductImportService, { CSV_COLUMNS } from '../services/ProductImportService.js';
 import ProductImportModel from '../models/ProductImportModel.js';
+import ProductModel from '../models/ProductModel.js';
 import SiteSettingService from '../services/SiteSettingService.js';
 import { serializeCsv } from '../utils/csv.js';
+import { ensureProductColorVariantsColumn } from '../scripts/migrations/ensure-product-color-variants.js';
 
 describe('authentication services', () => {
   test('registration hashes passwords and returns a customer JWT', async () => {
@@ -174,6 +176,119 @@ describe('catalogue product services', () => {
     });
     await assert.rejects(() => service.create({ ...payload, colorVariants: [{ color: 'Black' }, { color: 'black' }] }), (error) => error.code === 'INVALID_COLOR_VARIANTS');
     await assert.rejects(() => service.create({ ...payload, colorVariants: [{ color: 'Black', cdnImages: ['invalid'] }] }), (error) => error.code === 'INVALID_IMAGE_URL');
+  });
+
+  test('supports legacy, CDN-only, uploaded, and mixed colour galleries', async () => {
+    const saved = [];
+    const service = new ProductService({
+      productModel: { findBySku: async () => null, create: async (data) => { saved.push(data); return data; } },
+      brandModel: { findById: async () => ({ id: 1, name: 'Nike', status: 'Active' }) },
+      categoryModel: { findById: async () => ({ id: 2, name: 'Sneakers', status: 'Active' }) },
+    });
+    await service.create({ ...payload, sku: 'VARIANT-NONE', colorVariations: [], colorVariants: [] });
+    await service.create({ ...payload, sku: 'VARIANT-CDN', colorVariations: ['Black'], colorVariants: [{ color: 'Black', cdnImages: ['https://cdn.example.com/black.jpg'] }] });
+    await service.create({ ...payload, sku: 'VARIANT-UPLOAD', colorVariations: ['White'], colorVariants: [{ color: 'White', images: [{ url: '/uploads/white.jpg' }] }] });
+    await service.create({
+      ...payload,
+      sku: 'VARIANT-MIXED',
+      colorVariations: ['Black', 'White'],
+      colorVariants: [
+        { color: 'Black', images: [{ url: '/uploads/black.jpg' }], cdnImages: ['https://cdn.example.com/black-alt.jpg'] },
+        { color: 'White', images: [{ url: '/uploads/white.jpg' }], cdnImages: ['https://cdn.example.com/white-alt.jpg'] },
+      ],
+    });
+
+    assert.deepEqual(saved[0].colorVariants, []);
+    assert.deepEqual(saved[1].colorVariants[0].cdnImages, ['https://cdn.example.com/black.jpg']);
+    assert.equal(saved[2].colorVariants[0].images[0].url, '/uploads/white.jpg');
+    assert.deepEqual(saved[3].colorVariants.map((variant) => [variant.color, variant.images[0].url, variant.cdnImages[0]]), [
+      ['Black', '/uploads/black.jpg', 'https://cdn.example.com/black-alt.jpg'],
+      ['White', '/uploads/white.jpg', 'https://cdn.example.com/white-alt.jpg'],
+    ]);
+  });
+
+  test('updates colour variants without changing the product SKU', async () => {
+    let updated;
+    const current = { ...payload, id: 'air-jordan-1', preOrder: true, availability: 'Active', deliveryTime: null, variations: [] };
+    const service = new ProductService({
+      productModel: {
+        findById: async () => current,
+        findBySku: async () => current,
+        update: async (id, data) => { updated = { id, ...data }; return updated; },
+      },
+      brandModel: { findById: async () => ({ id: 1, name: 'Nike', status: 'Active' }) },
+      categoryModel: { findById: async () => ({ id: 2, name: 'Sneakers', status: 'Active' }) },
+    });
+    await service.update(current.id, {
+      colorVariants: [
+        { color: 'Black', images: [{ url: '/uploads/black-new.jpg' }] },
+        { color: 'White', cdnImages: ['https://cdn.example.com/white.jpg'] },
+      ],
+      colorVariations: ['Black', 'White'],
+    });
+
+    assert.equal(updated.sku, payload.sku);
+    assert.equal(updated.colorVariants.length, 2);
+    assert.equal(updated.colorVariants[0].images[0].url, '/uploads/black-new.jpg');
+    assert.equal(updated.colorVariants[1].cdnImages[0], 'https://cdn.example.com/white.jpg');
+  });
+});
+
+describe('product colour variant persistence', () => {
+  test('writes colour-to-image mappings to color_variants on create and update', async () => {
+    const writes = [];
+    const database = {
+      query: async (sql, parameters) => {
+        if (/^(INSERT|UPDATE)/.test(sql.trim())) writes.push({ sql, parameters });
+        if (/^INSERT/.test(sql.trim())) return { insertId: 9 };
+        return [];
+      },
+    };
+    const model = new ProductModel(database);
+    const data = {
+      slug: 'variant-pair', sku: 'VARIANT-PAIR', brandId: 1, categoryId: 2, brand: 'Nike', name: 'Variant Pair',
+      description: 'Variant product', category: 'Sneakers', price: 50000, sizes: ['EU 40'], productType: 'Ready Stock',
+      deliveryTime: null, availability: 'Active', stock: 2, metaTitle: null, metaDescription: null, images: [], imageAltText: null,
+      variations: [], productTags: ['New Arrival'], colorVariations: ['Black', 'White'],
+      colorVariants: [
+        { color: 'Black', images: [{ url: '/uploads/black.jpg' }], cdnImages: [] },
+        { color: 'White', images: [], cdnImages: ['https://cdn.example.com/white.jpg'] },
+      ],
+      cdnImages: [],
+    };
+
+    await model.create(data);
+    await model.update('variant-pair', data);
+
+    for (const write of writes) {
+      assert.match(write.sql, /color_variants/);
+      const variantParameter = write.parameters.find((value) => value === JSON.stringify(data.colorVariants));
+      assert.deepEqual(JSON.parse(variantParameter), data.colorVariants);
+      assert.equal(write.parameters.includes(undefined), false);
+    }
+  });
+
+  test('adds the color_variants column once and is safe on repeated initialization', async () => {
+    let exists = false;
+    let alterCount = 0;
+    const statements = [];
+    const connection = {
+      execute: async (sql, parameters) => {
+        statements.push({ sql, parameters });
+        return [exists ? [{ present: 1 }] : []];
+      },
+      query: async (sql) => {
+        assert.equal(sql, 'ALTER TABLE products ADD COLUMN color_variants JSON NULL AFTER color_variations');
+        alterCount += 1;
+        exists = true;
+      },
+    };
+
+    assert.equal(await ensureProductColorVariantsColumn(connection, 'kickz'), true);
+    assert.equal(await ensureProductColorVariantsColumn(connection, 'kickz'), false);
+    assert.equal(alterCount, 1);
+    assert.deepEqual(statements[0].parameters, ['kickz', 'products', 'color_variants']);
+    assert.equal(statements.flatMap((statement) => statement.parameters).includes(undefined), false);
   });
 });
 
