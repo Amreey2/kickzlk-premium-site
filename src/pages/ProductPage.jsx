@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import PageHero from '../components/PageHero';
 import PageShell from '../components/PageShell';
 import Toast from '../components/Toast';
-import { MobileBuyBar, ProductDetails, ProductGallery, ProductInfo, Recommendations, SizeGuideModal } from '../components/product/ProductSections';
+import { MobileBuyBar, ProductDetails, ProductGallery, ProductHeading, ProductInfo, Recommendations, SizeGuideModal } from '../components/product/ProductSections';
 import { useProduct, useProducts } from '../hooks/useProducts';
 import useReveal from '../hooks/useReveal';
 import useToast from '../hooks/useToast';
@@ -75,6 +75,7 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
       <main className="product-main"><div className="container">
         <div className="breadcrumbs"><a href="/index.html">HOME</a><span>/</span><a href="/shop">SHOP</a><span>/</span><span>{product.name.toUpperCase()}</span></div>
         <div className="product-layout">
+          <ProductHeading product={product} mobile />
           <ProductGallery key={activeColor || 'legacy-gallery'} product={product} selectedColor={activeColor} />
           <ProductInfo product={product} selectedSize={selectedSize} setSelectedSize={setSelectedSize} selectedColor={activeColor} setSelectedColor={setSelectedColor} payment={payment} setPayment={setPayment} addToBag={addToBag} buyNow={buyNow} openSizeGuide={() => setSizeGuideOpen(true)} />
         </div>
@@ -83,7 +84,7 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
       <Recommendations product={product} products={catalog.products} loading={catalog.loading} error={catalog.error} />
       <Footer />
       <FloatingActions aboveMobileBuyBar />
-      <MobileBuyBar product={product} selectedSize={selectedSize} addToBag={addToBag} buyNow={buyNow} />
+      <MobileBuyBar product={product} selectedSize={selectedSize} addToBag={addToBag} />
       <SizeGuideModal guide={sizeGuide} open={sizeGuideOpen} onClose={() => setSizeGuideOpen(false)} />
       <Toast message={toast.message} visible={toast.visible} />
     </>

@@ -488,7 +488,7 @@ button { color: inherit; }
    Gives routed ecommerce pages a reusable premium entry section using the approved tokens and hierarchy. */
 .site-main { overflow: clip; }
 .page-hero {
-  min-height: min(36svh, 350px);
+  min-height: min(30svh, 290px);
   display: grid;
   align-items: end;
   border-bottom: 1px solid var(--line);
@@ -499,10 +499,12 @@ button { color: inherit; }
 .page-hero__inner { max-width: 1040px; }
 .page-hero h1 {
   font-family: var(--display);
-  font-size: clamp(48px, 6vw, 84px);
-  line-height: .86;
-  letter-spacing: -.05em;
+  max-width: 100%;
+  font-size: clamp(44px, 5vw, 72px);
+  line-height: .9;
+  letter-spacing: -.045em;
   margin: 11px 0;
+  overflow-wrap: anywhere;
 }
 .page-hero p {
   max-width: 650px;
@@ -513,8 +515,8 @@ button { color: inherit; }
 
 /* SPRINT 5.1.1 ROUTED-PAGE TYPE SCALE
    Keeps homepage display impact while making reused landing sections more compact and consistently aligned. */
-.site-main .section-pad { padding-block: 56px; }
-.site-main .page-hero { align-items: start; padding-block: 48px; }
+.site-main .section-pad { padding-block: 50px; }
+.site-main .page-hero { align-items: start; padding-block: 40px; }
 
 /* SPRINT 5.1.2 TARGETED STOREFRONT PAGE RHYTHM
    Compacts only Shop, New Drops, Brands, About and Contact without changing homepage or account/admin layouts. */
@@ -808,8 +810,9 @@ button { color: inherit; }
 .delay-240 { --delay: 240ms; }
 
 /* Product page */
-.product-main { padding: 46px 0 84px; }
-.breadcrumbs { display: flex; gap: 8px; color: var(--faint); font-size: 10px; letter-spacing: .08em; margin-bottom: 22px; }
+.product-main { padding: 38px 0 68px; }
+.breadcrumbs { min-width: 0; display: flex; gap: 8px; color: var(--faint); font-size: 10px; letter-spacing: .08em; margin-bottom: 18px; }
+.breadcrumbs > span:last-child { min-width: 0; overflow-wrap: anywhere; }
 .breadcrumbs a:hover { color: var(--acid); }
 .product-layout { display: grid; grid-template-columns: 1.08fr .92fr; gap: 68px; align-items: start; }
 .gallery { display: grid; grid-template-columns: 80px 1fr; gap: 16px; position: sticky; top: 116px; }
@@ -824,8 +827,8 @@ button { color: inherit; }
 @keyframes gallery-image-in { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: scale(1); } }
 .gallery-main img.image-hidden { opacity: 0; }
 .gallery-main:hover img { transform: scale(1.035); }
-.zoom-note { position: absolute; right: 17px; top: 17px; z-index: 2; color: var(--muted); font-size: 9px; letter-spacing: .11em; }
 .product-info { padding-top: 10px; }
+.product-heading--mobile { display: none; }
 .product-flags { display: flex; gap: 8px; flex-wrap: wrap; }
 .product-catalog-attributes { margin: 21px 0 0; border-block: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; }
 .product-catalog-attributes > div { min-width: 0; padding: 15px 16px 15px 0; display: grid; gap: 6px; }
@@ -835,7 +838,7 @@ button { color: inherit; }
 .product-catalog-attributes span { color: var(--faint); font-size: 8px; letter-spacing: .13em; }
 .product-catalog-attributes strong { color: var(--muted); font-size: 10px; line-height: 1.5; }
 .product-info .product-brand { display: block; margin-top: 24px; color: var(--acid); font-size: 10px; font-weight: 800; letter-spacing: .17em; }
-.product-title { margin: 9px 0 11px; font: 800 clamp(40px, 3.7vw, 60px)/.92 var(--display); letter-spacing: -.05em; text-transform: uppercase; }
+.product-title { max-width: 100%; margin: 9px 0 11px; font: 800 clamp(38px, 3.4vw, 55px)/.94 var(--display); letter-spacing: -.045em; text-transform: uppercase; overflow-wrap: anywhere; }
 .product-subtitle { color: var(--muted); font-size: 13px; }
 .product-rating { display: flex; align-items: center; gap: 10px; margin: 18px 0 29px; font-size: 11px; color: var(--muted); }
 .product-rating span:first-child { color: var(--acid); letter-spacing: .08em; }
@@ -865,7 +868,7 @@ button { color: inherit; }
 .payment-card span { display: grid; }
 .payment-card strong { font-size: 12px; }
 .payment-card small { color: var(--muted); font-size: 10px; }
-.delivery-box { margin: 22px 0; border: 1px solid var(--line); border-radius: 14px; padding: 17px; display: grid; grid-template-columns: 42px 1fr; gap: 12px; background: rgba(255,255,255,.02); }
+.delivery-box { margin: 18px 0; border: 1px solid var(--line); border-radius: 14px; padding: 15px; display: grid; grid-template-columns: 42px 1fr; gap: 12px; background: rgba(255,255,255,.02); }
 .delivery-box b { width: 42px; height: 42px; border-radius: 50%; background: var(--acid-soft); color: var(--acid); display: grid; place-items: center; }
 .delivery-box strong { display: block; font-size: 12px; }
 .delivery-box span { color: var(--muted); font-size: 10px; }
@@ -876,7 +879,7 @@ button { color: inherit; }
 .auth-box svg { width: 28px; height: 28px; flex: 0 0 auto; fill: none; stroke: var(--acid); stroke-width: 1.7; }
 .auth-box h4 { margin: 0 0 4px; font-size: 12px; }
 .auth-box p { margin: 0; color: var(--muted); font-size: 10px; }
-.product-whatsapp-link { margin-top: 12px; display: flex; justify-content: center; gap: 8px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+.product-whatsapp-link { margin: 8px 0 0; padding: 7px 0; display: flex; justify-content: center; gap: 8px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .1em; }
 .product-whatsapp-link:hover { color: var(--acid); }
 .product-trust-grid { margin-top: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .product-trust-grid > div { min-width: 0; border: 1px solid var(--line); border-radius: 11px; padding: 13px 11px; display: grid; gap: 4px; background: rgba(255,255,255,.018); }
@@ -892,7 +895,7 @@ button { color: inherit; }
 .size-guide-empty { min-height: 280px; border: 1px dashed var(--line); border-radius: 12px; display: grid; place-content: center; gap: 8px; text-align: center; }
 .size-guide-empty strong { font-family: var(--display); }
 .size-guide-empty p { margin: 0; color: var(--muted); font-size: 11px; }
-.product-details { padding: 100px 0; border-top: 1px solid var(--line); }
+.product-details { padding: 72px 0; border-top: 1px solid var(--line); }
 .tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--line); }
 .tab-btn { background: transparent; border: 0; color: var(--muted); padding: 0 0 14px; font-size: 11px; letter-spacing: .1em; font-weight: 800; cursor: pointer; position: relative; }
 .tab-btn.active { color: var(--text); }
@@ -978,7 +981,8 @@ button { color: inherit; }
 
 /* SPRINT 3.2 ACCOUNT AND ORDER TRACKING
    Keeps profile and order history separate while the six approved stages remain readable at every width. */
-.account-layout { display: grid; grid-template-columns: minmax(260px, .32fr) minmax(0, 1fr); gap: clamp(35px, 5vw, 72px); align-items: start; }
+.account-section { padding-top: 40px; }
+.account-layout { display: grid; grid-template-columns: minmax(260px, .32fr) minmax(0, 1fr); gap: clamp(28px, 4vw, 56px); align-items: start; }
 .profile-card { position: sticky; top: 112px; padding: 30px; }
 .profile-avatar { width: 70px; height: 70px; margin-bottom: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--acid); color: #050505; font: 800 20px/1 var(--display); }
 .profile-card h2 { margin: 10px 0 25px; font: 800 32px/1 var(--display); }
@@ -989,12 +993,12 @@ button { color: inherit; }
 .profile-card .btn { width: 100%; }
 .account-logout { width: 100%; margin-top: 14px; border: 0; background: transparent; color: var(--faint); padding: 8px; font: 800 9px/1 var(--body); letter-spacing: .12em; cursor: pointer; }
 .account-logout:hover { color: var(--acid); }
-.account-heading { margin-bottom: 26px; }
+.account-heading { margin-bottom: 20px; }
 .account-heading h2,
-.checkout-heading h2 { margin: 9px 0 0; font: 800 clamp(35px, 4vw, 58px)/.92 var(--display); letter-spacing: -.045em; }
+.checkout-heading h2 { max-width: 100%; margin: 8px 0 0; font: 800 clamp(30px, 3.4vw, 48px)/.96 var(--display); letter-spacing: -.04em; overflow-wrap: anywhere; }
 .order-history { min-width: 0; display: grid; gap: 24px; }
-.account-content { min-width: 0; display: grid; gap: 28px; }
-.account-panel { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius-md); padding: clamp(24px, 3vw, 38px); background: linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.01)); }
+.account-content { min-width: 0; display: grid; gap: 20px; }
+.account-panel { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius-md); padding: clamp(22px, 2.5vw, 32px); background: linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.01)); }
 .account-panel__head { display: flex; justify-content: space-between; align-items: start; gap: 20px; }
 .account-panel__head .btn { flex: 0 0 auto; min-height: 42px; padding: 0 18px; }
 .account-form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1045,7 +1049,8 @@ button { color: inherit; }
 
 /* SPRINT 3.2 CHECKOUT PREPARATION
    Separates the product decision from customer details without adding payment processing or backend behavior. */
-.checkout-layout { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr); gap: clamp(36px, 6vw, 84px); align-items: start; }
+.checkout-section { padding-top: 40px; }
+.checkout-layout { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr); gap: clamp(28px, 4vw, 58px); align-items: start; }
 .checkout-summary { position: sticky; top: 112px; padding: clamp(24px, 3vw, 36px); }
 .checkout-summary__heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .checkout-summary__heading > span:last-child { color: var(--faint); font-size: 8px; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
@@ -1066,7 +1071,7 @@ button { color: inherit; }
 .checkout-totals .checkout-totals__total { margin-top: 3px; padding-top: 15px; border-top: 1px solid var(--line); color: var(--text); font-weight: 800; }
 .checkout-totals .checkout-totals__total strong { font: 800 20px/1 var(--display); }
 .checkout-summary .price-notice { margin-top: 24px; }
-.checkout-form { padding: clamp(28px, 4vw, 50px); }
+.checkout-form { padding: clamp(26px, 3vw, 40px); }
 .checkout-heading { margin-bottom: 10px; }
 .checkout-heading > p { max-width: 640px; margin: 15px 0 4px; color: var(--muted); font-size: 11px; }
 .bank-transfer { padding: 20px; border: 1px dashed var(--line-strong); border-radius: 12px; display: grid; gap: 4px; background: rgba(255,255,255,.018); }
@@ -1534,10 +1539,13 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
   .product-layout { grid-template-columns: 1fr; }
 
   /* TABLET + MOBILE PRODUCT PAGE FIX
-     Keep the buy bar fixed at the viewport bottom and preserve page spacing. */
-  .product-cta { padding-bottom: 110px; }
-  .mobile-buybar { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; max-width: 100vw; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(7,7,7,.94); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
-  .mobile-buybar .btn { min-width: 0; min-height: 48px; padding-inline: 10px; gap: 8px; font-size: 10px; }
+     Keep one compact commerce action fixed at the safe viewport edge. */
+  #root:has(.mobile-buybar) { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .mobile-buybar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 1fr); gap: 12px; align-items: center; position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; max-width: 100vw; padding: 9px max(14px, calc((100vw - var(--container)) / 2)) calc(9px + env(safe-area-inset-bottom)); background: rgba(7,7,7,.96); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
+  .mobile-buybar__price { min-width: 0; display: grid; gap: 3px; }
+  .mobile-buybar__price span { color: var(--faint); font-size: 7px; font-weight: 800; letter-spacing: .13em; }
+  .mobile-buybar__price strong { min-width: 0; font: 800 clamp(17px, 4.5vw, 22px)/1 var(--display); overflow-wrap: anywhere; }
+  .mobile-buybar .btn { min-width: 0; min-height: 46px; padding-inline: 12px; gap: 8px; font-size: 10px; white-space: normal; }
   .scroll-top-btn { right: 18px; bottom: calc(80px + env(safe-area-inset-bottom)); width: 48px; height: 48px; }
   .gallery { position: static; }
 }
@@ -1553,9 +1561,9 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
      Constrains every page layer to the simulated device width without altering internal scroll rows. */
   :root { --container: calc(100% - 28px); --radius-lg: 22px; --radius-md: 16px; --header-height: 68px; --top-chrome-height: 68px; }
   html, body, #root { max-width: 100%; overflow-x: clip; }
-  .section-pad { padding: 48px 0; }
-  .site-main .section-pad { padding-block: 44px; }
-  .site-main .page-hero { padding-block: 36px; }
+  .section-pad { padding: 42px 0; }
+  .site-main .section-pad { padding-block: 38px; }
+  .site-main .page-hero { padding-block: 30px; }
 
   /* SPRINT 6.1A PERSISTENT MOBILE NAVIGATION
      Fixes the complete header to the safe viewport edge and offsets page content so the menu remains reachable without covering it. */
@@ -1611,8 +1619,8 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
   .section-head > p { font-size: 13px; }
   /* SPRINT 3A MOBILE PAGE HERO
      Keeps routed page titles inside the smallest supported ecommerce viewport. */
-  .page-hero { min-height: 25svh; }
-  .page-hero h1 { font-size: clamp(34px, 9.8vw, 46px); margin-block: 9px; }
+  .page-hero { min-height: 0; }
+  .page-hero h1 { max-width: 100%; font-size: clamp(31px, 9vw, 40px); line-height: .92; margin-block: 8px; overflow-wrap: anywhere; }
   .page-hero p { font-size: 13px; }
 
   /* SPRINT 5.1.2 MOBILE STOREFRONT DENSITY
@@ -1718,13 +1726,19 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
   .auth-assurance { margin-top: 30px; }
   .auth-panel { padding: 28px 20px; }
   .form-row { grid-template-columns: 1fr; }
+  .account-heading { margin-bottom: 16px; }
   .account-heading h2,
-  .checkout-heading h2 { font-size: clamp(31px, 9.8vw, 42px); }
+  .checkout-heading h2 { font-size: clamp(25px, 7.8vw, 34px); line-height: .98; }
   .profile-card,
   .order-card,
   .checkout-form,
   .checkout-summary { padding: 22px 18px; }
-  .account-panel { padding: 22px 18px; }
+  .account-section,
+  .checkout-section { padding-top: 28px !important; }
+  .account-layout,
+  .checkout-layout { gap: 24px; }
+  .account-content { gap: 16px; }
+  .account-panel { padding: 20px 18px; }
   .account-panel__head { display: grid; }
   .address-grid { grid-template-columns: 1fr; }
   .account-form-actions { grid-template-columns: 1fr; }
@@ -1761,25 +1775,45 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
   .cart-summary__rows > div { gap: 14px; }
   .cart-empty { min-height: 370px; padding: 42px 24px; }
   .cart-empty h1 { font-size: clamp(36px, 11vw, 48px); }
+  .checkout-form.customer-form { gap: 14px; }
+  .checkout-heading > p { margin-top: 11px; }
+  .checkout-product { margin-block: 18px 20px; }
+  .checkout-totals { margin-top: 19px; }
   .checkout-actions { grid-template-columns: 1fr; }
   .checkout-actions .btn { min-height: 50px; }
 
   /* MOBILE FOOTER FIX
      Maintains the two-column link layout while allowing every column to shrink safely. */
-  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .footer { padding-top: 54px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 34px 22px; }
   .footer-brand { grid-column: 1 / -1; }
   .footer-col:last-child { grid-column: auto; }
   .footer-bottom { display: grid; gap: 12px; }
 
   /* MOBILE PRODUCT PAGE FIX
      Wraps dense product metadata and keeps gallery, options, tabs and purchase controls within the device width. */
-  .gallery { grid-template-columns: 1fr; }
+  .product-layout { gap: 24px; }
+  .product-heading--desktop { display: none; }
+  .product-heading--mobile { min-width: 0; display: block; }
+  .product-heading--mobile .product-brand { display: block; margin-top: 16px; color: var(--acid); font-size: 9px; font-weight: 800; letter-spacing: .15em; }
+  .product-heading--mobile .product-title { margin-block: 8px; }
+  .gallery { min-width: 0; grid-template-columns: 1fr; }
   .gallery-thumbs { max-height: none; overflow-y: visible; grid-template-columns: repeat(4, 1fr); grid-row: 2; }
   .gallery-main { min-height: clamp(340px, 108vw, 420px); }
-  .product-main { padding-top: 30px; }
+  .product-main { padding: 24px 0 48px; }
+  .breadcrumbs { margin-bottom: 14px; font-size: 8px; line-height: 1.5; flex-wrap: wrap; }
   .breadcrumbs, .product-rating, .product-price { flex-wrap: wrap; }
-  .product-title { font-size: clamp(34px, 10.5vw, 45px); }
+  .product-title { font-size: clamp(27px, 8.4vw, 36px); line-height: .96; letter-spacing: -.035em; }
+  .product-info { min-width: 0; padding-top: 0; }
+  .product-rating { margin: 4px 0 20px; }
   .product-price { align-items: flex-start; gap: 8px 20px; }
+  .product-price strong { font-size: 27px; }
+  .product-catalog-attributes { margin-top: 18px; }
+  .option-section { padding-block: 20px; }
+  .delivery-box { margin-block: 15px; }
+  .product-whatsapp-link { margin-top: 5px; padding-block: 7px; }
+  .auth-box { margin-top: 13px; }
+  .product-details { padding-block: 52px; }
   .sizes { grid-template-columns: repeat(4,1fr); }
   .payment-options { grid-template-columns: 1fr; }
   .tabs { overflow-x: auto; }
@@ -1797,6 +1831,13 @@ div.admin-feedback { display: flex; align-items: center; justify-content: space-
   .eyebrow, .section-kicker { font-size: 9px; letter-spacing: .15em; }
   .editorial-card__copy { padding-inline: 20px; }
   .btn { padding-inline: 18px; gap: 12px; }
+  .mobile-buybar { grid-template-columns: minmax(0, .9fr) minmax(138px, 1.1fr); gap: 8px; }
+  .mobile-buybar__price strong { font-size: 16px; }
+  .product-title { font-size: clamp(25px, 8.1vw, 31px); }
+  .product-catalog-attributes { grid-template-columns: 1fr; }
+  .product-catalog-attributes > div,
+  .product-catalog-attributes > div + div { border-left: 0; padding: 12px 0; }
+  .product-catalog-attributes > div:nth-child(n+2) { border-top: 1px solid var(--line); }
   .product-card__body { display: grid; }
   .price-row { justify-items: start; }
   .social-wall { width: calc(100% - 8px); transform: rotate(1deg); }

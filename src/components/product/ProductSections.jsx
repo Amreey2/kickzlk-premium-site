@@ -43,10 +43,24 @@ export function ProductGallery({ product, selectedColor }) {
         ))}
       </div>
       <div className="gallery-main">
-        <span className="zoom-note">HOVER TO FOCUS</span>
         <img className="gallery-active-image" key={`${selectedColor}-${selectedImage}`} src={selectedImage} alt={productImageAlt(product)} onError={replaceFailedProductImage} />
       </div>
     </section>
+  );
+}
+
+export function ProductHeading({ product, mobile = false }) {
+  const tags = productTags(product);
+  const gender = categoryGenderLabel(product);
+  return (
+    <header className={mobile ? 'product-heading product-heading--mobile' : 'product-heading product-heading--desktop'}>
+      <div className="product-flags">
+        {tags.map((tag, index) => <span className={`badge badge--static${index === 0 ? ' badge--acid' : ''}`} key={tag.toLowerCase()}>{tag.toUpperCase()}</span>)}
+      </div>
+      <span className="product-brand">{product.brand.toUpperCase()}{gender ? ` · ${gender}` : ''}</span>
+      <h1 className="product-title">{product.name}</h1>
+      <p className="product-subtitle">{product.category.toUpperCase()} · {product.preOrder ? 'PRE-ORDER AVAILABLE' : `${product.stock} IN STOCK`}</p>
+    </header>
   );
 }
 
@@ -58,17 +72,10 @@ export function ProductInfo({ product, selectedSize, setSelectedSize, selectedCo
   const actionText = unavailable ? 'OUT OF STOCK' : selectedSize ? `${action} · ${amount}` : action;
   const whatsappUrl = createWhatsAppUrl(product);
   const deliveryTime = productDeliveryTime(product);
-  const tags = productTags(product);
-  const gender = categoryGenderLabel(product);
 
   return (
     <section className="product-info reveal delay-100">
-      <div className="product-flags">
-        {tags.map((tag, index) => <span className={`badge badge--static${index === 0 ? ' badge--acid' : ''}`} key={tag.toLowerCase()}>{tag.toUpperCase()}</span>)}
-      </div>
-      <span className="product-brand">{product.brand.toUpperCase()}{gender ? ` · ${gender}` : ''}</span>
-      <h1 className="product-title">{product.name}</h1>
-      <p className="product-subtitle">{product.category.toUpperCase()} · {product.preOrder ? 'PRE-ORDER AVAILABLE' : `${product.stock} IN STOCK`}</p>
+      <ProductHeading product={product} />
       <div className="product-rating"><span>★★★★★</span><strong>4.9</strong><span>Verified KICKZ.LK sourcing</span></div>
       <div className="product-price"><strong>{formatProductPrice(product.price)}</strong><span>Taxes and import handling included</span></div>
       <div className="product-catalog-attributes"><div><span>BRAND</span><strong>{product.brand}</strong></div><div><span>CATEGORY</span><strong>{product.category}</strong></div><div><span>DELIVERY TIMELINE</span><strong>{deliveryTime}</strong></div><div><span>STOCK STATUS</span><strong>{product.preOrder ? 'PRE-ORDER AVAILABLE' : product.stock > 0 ? `${product.stock} AVAILABLE` : 'OUT OF STOCK'}</strong></div></div>
@@ -142,10 +149,9 @@ export function Recommendations({ product, products, loading, error }) {
   );
 }
 
-export function MobileBuyBar({ product, selectedSize, addToBag, buyNow }) {
+export function MobileBuyBar({ product, selectedSize, addToBag }) {
   const unavailable = product.status === 'Out of Stock' || (!product.preOrder && product.stock <= 0);
-  const action = 'ADD TO CART';
-  return <div className="mobile-buybar"><button className="btn btn--ghost" onClick={addToBag} disabled={unavailable}>{unavailable ? 'OUT OF STOCK' : selectedSize ? action : 'SELECT SIZE'}</button><button className="btn btn--acid" onClick={buyNow} disabled={unavailable}>BUY NOW</button></div>;
+  return <div className="mobile-buybar"><div className="mobile-buybar__price"><span>PRICE</span><strong>{formatProductPrice(product.price)}</strong></div><button className="btn btn--acid" onClick={addToBag} disabled={unavailable}>{unavailable ? 'OUT OF STOCK' : selectedSize ? 'ADD TO CART' : 'SELECT SIZE'}</button></div>;
 }
 
 export function SizeGuideModal({ guide, open, onClose }) {
