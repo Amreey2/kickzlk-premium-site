@@ -59,7 +59,8 @@ export default class ProductImportService {
   async import(csv, { fileName = 'products.csv', adminId }) {
     const validation = await this.validate(csv);
     const safeFileName = String(fileName || 'products.csv').slice(0, 255);
-    const importId = await this.importModel.create({ fileName: safeFileName, importedBy: Number(adminId), totalRows: validation.rows.length });
+    const importedBy = adminId === null || adminId === undefined || adminId === '' ? null : Number(adminId);
+    const importId = await this.importModel.create({ fileName: safeFileName, importedBy, totalRows: validation.rows.length });
     const failures = validation.rows.filter((row) => row.errors.length).map((row) => this.failure(row));
     let createdRows = 0; let updatedRows = 0;
     const importedProducts = new Map();

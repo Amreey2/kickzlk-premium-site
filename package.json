@@ -14,8 +14,12 @@
     "server:dev": "node --watch server/server.js",
     "server:test": "node --test server/tests/*.test.js",
     "db:init": "node server/scripts/init-database.js",
+    "db:view": "node server/scripts/view-database.js",
     "db:seed-admin": "node server/scripts/seed-admin.js",
-    "db:seed-products": "node server/scripts/seed-products.js"
+    "db:seed-products": "node server/scripts/seed-products.js",
+    "csv:template": "node server/scripts/product-csv-template.js",
+    "csv:preview": "node server/scripts/import-products-csv.js",
+    "csv:import": "node server/scripts/import-products-csv.js --import"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

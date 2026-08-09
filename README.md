@@ -40,9 +40,39 @@ Useful commands:
 npm run server:dev
 npm run server:test
 npm run db:init
+npm run db:view
+npm run db:seed-products
+npm run db:seed-admin
+npm run csv:template
+npm run csv:preview -- products.csv
+npm run csv:import -- products.csv
+```
+
+## Local MySQL and CSV Product Workflow
+
+Use MySQL as the source of truth and use CSV files as the Excel-friendly product editing path. Copy `server/.env.example` to `server/.env`, set your local MySQL credentials, then run:
+
+```bash
+npm run db:init
 npm run db:seed-products
 npm run db:seed-admin
 ```
+
+You can inspect table counts and sample rows from the terminal with:
+
+```bash
+npm run db:view
+```
+
+For product bulk edits, generate a template, edit it in Excel, preview validation, then import:
+
+```bash
+npm run csv:template > products.csv
+npm run csv:preview -- products.csv
+npm run csv:import -- products.csv
+```
+
+Keep product `sku` values stable. CSV imports update existing products by SKU, while MySQL Workbench remains the easiest place to inspect or manually adjust relational records such as brands, categories, orders, customers, and settings.
 
 Main API routes:
 
