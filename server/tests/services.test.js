@@ -502,4 +502,18 @@ describe('global size guide settings', () => {
     assert.equal(guide.imageUrl, '/uploads/guide.webp');
     await assert.rejects(() => service.updateSizeGuide({ imageUrl: 'javascript:alert(1)' }), (error) => error.code === 'INVALID_SIZE_GUIDE_IMAGE');
   });
+
+  test('validates, sorts, and hides inactive homepage media', async () => {
+    let saved;
+    const service = new SiteSettingService({ get: async () => saved, set: async (key, value) => { assert.equal(key, 'homepage_media'); saved = value; return value; } });
+    await service.updateHomepageMedia({ items: [
+      { id: 'second', type: 'video', url: 'https://cdn.example.com/unboxing.mp4', title: 'Unboxing', status: 'Active', sortOrder: 2 },
+      { id: 'hidden', type: 'image', url: '/uploads/behind-scenes.webp', title: 'Behind the scenes', status: 'Inactive', sortOrder: 1 },
+      { id: 'first', type: 'image', url: 'https://cdn.example.com/drop.webp', title: 'Latest drop', status: 'Active', sortOrder: 0 },
+    ] });
+    const publicMedia = await service.homepageMedia();
+    assert.deepEqual(publicMedia.items.map((item) => item.id), ['first', 'second']);
+    assert.equal((await service.adminHomepageMedia()).items.length, 3);
+    await assert.rejects(() => service.updateHomepageMedia({ items: [{ url: 'javascript:alert(1)' }] }), (error) => error.code === 'INVALID_MEDIA_URL');
+  });
 });

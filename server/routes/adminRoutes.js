@@ -37,6 +37,8 @@ export default function createAdminRoutes({ authService, orderService, catalogSe
   router.post('/products/import', requireAdmin, uploadProductCsv, asyncHandler(productImports.process));
   router.put('/size-guide', requireAdmin, asyncHandler(settings.updateSizeGuide));
   router.put('/payment-settings', requireAdmin, asyncHandler(settings.updatePaymentSettings));
+  router.get('/homepage-media', requireAdmin, asyncHandler(settings.adminHomepageMedia));
+  router.put('/homepage-media', requireAdmin, asyncHandler(settings.updateHomepageMedia));
   router.get('/products', requireAdmin, asyncHandler(products.adminList));
   router.get('/products/:id', requireAdmin, asyncHandler(products.adminGet));
   router.get('/orders', requireAdmin, asyncHandler(orders.adminList));

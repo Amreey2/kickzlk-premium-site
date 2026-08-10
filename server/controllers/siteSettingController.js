@@ -3,4 +3,7 @@ export const createSiteSettingController = (service) => ({
   updateSizeGuide: async (request, response) => response.json({ success: true, data: await service.updateSizeGuide(request.body) }),
   paymentSettings: async (request, response) => { void request; response.json({ success: true, data: await service.paymentSettings() }); },
   updatePaymentSettings: async (request, response) => response.json({ success: true, data: await service.updatePaymentSettings(request.body) }),
+  homepageMedia: async (request, response) => { void request; response.json({ success: true, data: await service.homepageMedia() }); },
+  adminHomepageMedia: async (request, response) => { void request; response.json({ success: true, data: await service.adminHomepageMedia() }); },
+  updateHomepageMedia: async (request, response) => response.json({ success: true, data: await service.updateHomepageMedia(request.body) }),
 });

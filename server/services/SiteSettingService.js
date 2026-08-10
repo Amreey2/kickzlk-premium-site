@@ -40,4 +40,27 @@ export default class SiteSettingService {
     if (!Number.isFinite(clean.advancePercentage) || clean.advancePercentage < 0 || clean.advancePercentage > 100) throw new AppError('Advance percentage must be between 0 and 100.', 422, 'INVALID_ADVANCE_PERCENTAGE');
     return this.model.set('payment_settings', clean);
   }
+
+  async homepageMedia() {
+    const value = (await this.model.get('homepage_media')) || { items: [], updatedAt: null };
+    return { ...value, items: (value.items || []).filter((item) => item.status === 'Active').sort((a, b) => a.sortOrder - b.sortOrder) };
+  }
+
+  async adminHomepageMedia() {
+    return (await this.model.get('homepage_media')) || { items: [], updatedAt: null };
+  }
+
+  async updateHomepageMedia(payload) {
+    if (!Array.isArray(payload.items) || payload.items.length > 12) throw new AppError('Homepage media must contain no more than 12 items.', 422, 'INVALID_HOMEPAGE_MEDIA');
+    const items = payload.items.map((item, index) => {
+      const type = item.type === 'video' ? 'video' : 'image';
+      const url = String(item.url || '').trim();
+      const title = String(item.title || '').trim();
+      const status = item.status === 'Inactive' ? 'Inactive' : 'Active';
+      if (!url || !validImage(url)) throw new AppError(`Media item ${index + 1} requires a valid upload or HTTPS URL.`, 422, 'INVALID_MEDIA_URL');
+      if (url.length > 500 || title.length > 120) throw new AppError('Homepage media details exceed the allowed length.', 422, 'INVALID_HOMEPAGE_MEDIA');
+      return { id: String(item.id || `media-${Date.now()}-${index}`), type, url, title, status, sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : index };
+    });
+    return this.model.set('homepage_media', { items });
+  }
 }

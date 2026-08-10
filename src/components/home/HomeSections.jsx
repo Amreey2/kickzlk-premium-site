@@ -7,7 +7,7 @@ import {
   productNewBalance,
 } from '../../assets';
 import { useProducts } from '../../hooks/useProducts';
-import { catalogApi } from '../../services/api';
+import { catalogApi, resolveApiAssetUrl, settingsApi } from '../../services/api';
 import BrandTile from '../BrandTile';
 import ProductCard from '../ProductCard';
 import ProductCollectionState from '../ProductCollectionState';
@@ -39,17 +39,16 @@ export function HeroSection() {
           <p>Imported heat. Verified quality. A premium pre-order experience for Sri Lanka’s sneaker and streetwear community.</p>
           <div className="hero-actions">
             <a href="/shop" className="btn btn--acid">SHOP SNEAKERS <span>↗</span></a>
-            <a href="/track-order" className="btn btn--ghost">ORDER TRACKING</a>
-          </div>
-          <div className="hero-badges" aria-label="Trust badges">
-            <div><strong>100%</strong><span>Authentic</span></div>
-            <div><strong>2–4 WKS</strong><span>Typical import</span></div>
-            <div><strong>4.9/5</strong><span>Community rating</span></div>
           </div>
         </div>
         <div className="hero-visual reveal delay-120" ref={visualRef} onMouseMove={handleMove} onMouseLeave={handleLeave}>
           <div className="hero-orbit hero-orbit--one" /><div className="hero-orbit hero-orbit--two" /><div className="hero-glow" />
           <img className="hero-shoe" ref={shoeRef} src={heroJordanCinematic} alt="Premium red and black high-top sneaker in cinematic studio lighting" />
+        </div>
+        <div className="hero-badges reveal delay-220" aria-label="Trust badges">
+          <div><strong>100%</strong><span>Authentic</span></div>
+          <div><strong>2–4 WKS</strong><span>Typical import</span></div>
+          <div><strong>4.9/5</strong><span>Community rating</span></div>
         </div>
       </div>
       <div className="container hero-footer reveal delay-220">
@@ -57,7 +56,6 @@ export function HeroSection() {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.9 7.5 10.5 4.3-1.6 7.5-5.9 7.5-10.5V6L12 3Z" /><path d="m8.8 12 2.1 2.1 4.4-4.5" /></svg>
           <span><strong>Authenticity first.</strong> Every order is sourced through trusted channels.</span>
         </div>
-        <div className="scroll-cue"><span>SCROLL TO EXPLORE</span><i /></div>
       </div>
     </section>
   );
@@ -83,23 +81,19 @@ export function CultureTicker() {
 export function FeaturedDrops({ showToast }) {
   const [filter, setFilter] = useState('all');
   const { products, loading, error } = useProducts();
-  const filters = [['all', 'ALL DROPS'], ['jordan', 'JORDAN'], ['nike', 'NIKE'], ['adidas', 'ADIDAS'], ['luxury', 'LUXURY']];
-  const featuredProducts = products.slice(0, 6);
-  const matchesFilter = (product) => {
-    if (filter === 'all') return true;
-    if (filter === 'luxury') return product.category.toLowerCase().includes('luxury');
-    return product.brand.toLowerCase() === filter;
-  };
+  const tags = [...new Map(products.flatMap((product) => product.productTags || []).map((tag) => [tag.toLowerCase(), tag])).entries()];
+  const filters = [['all', 'ALL DROPS'], ...tags.slice(0, 6)];
+  const featuredProducts = products.filter((product) => filter === 'all' || product.productTags?.some((tag) => tag.toLowerCase() === filter)).slice(0, 6);
   return (
     <section className="drops section-pad snap-section" id="drops">
       <div className="container">
-        <div className="section-head reveal"><div><span className="section-kicker">CURATED RELEASES</span><h2>FEATURED DROPS</h2></div><p>High-demand silhouettes and luxury pairs selected for the Sri Lankan market.</p></div>
+        <div className="section-head reveal"><div><span className="section-kicker">CURATED RELEASES</span><h2>FEATURED DROPS</h2></div><div className="section-head__aside"><p>High-demand silhouettes and luxury pairs selected for the Sri Lankan market.</p><a href="/shop">SHOP ALL <span>→</span></a></div></div>
         <div className="filter-row reveal delay-80" role="group" aria-label="Filter products">
           {filters.map(([value, label]) => <button className={`filter-btn${filter === value ? ' active' : ''}`} data-filter={value} key={value} onClick={() => setFilter(value)}>{label}</button>)}
         </div>
         <ProductCollectionState loading={loading} error={error} empty={!loading && !error && featuredProducts.length === 0} />
         <div className="product-grid">
-          {featuredProducts.map((product) => <ProductCard product={product} key={product.id} hidden={!matchesFilter(product)} onSaved={(saved) => showToast(saved ? 'Added to your saved list.' : 'Removed from your saved list.')} />)}
+          {featuredProducts.map((product) => <ProductCard product={product} key={product.id} onSaved={(saved) => showToast(saved ? 'Added to your saved list.' : 'Removed from your saved list.')} />)}
         </div>
         <div className="center-action reveal"><a href="/shop" className="btn btn--ghost">VIEW ALL SNEAKERS <span>↗</span></a></div>
       </div>
@@ -120,17 +114,17 @@ export function BrandsSection() {
   const [brands, setBrands] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const trackRef = useRef(null);
   useEffect(() => {
     let active = true;
-    catalogApi.brands().then((items) => { if (active) setBrands(items.slice(0, 6)); }, (requestError) => { if (active) setError(requestError); }).finally(() => { if (active) setLoading(false); });
+    catalogApi.brands().then((items) => { if (active) setBrands(items); }, (requestError) => { if (active) setError(requestError); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
   return (
     <section className="brands section-pad snap-section" id="brands"><div className="container">
-      <div className="section-head reveal"><div><span className="section-kicker">GLOBAL LABELS</span><h2>SHOP BY BRAND</h2></div><p>From iconic sportswear to statement luxury, sourced to match your rotation.</p></div>
+      <div className="section-head reveal"><div><span className="section-kicker">GLOBAL LABELS</span><h2>SHOP BY BRAND</h2></div><div className="carousel-controls"><button type="button" aria-label="Previous brands" onClick={() => trackRef.current?.scrollBy({ left: -trackRef.current.clientWidth * .75, behavior: 'smooth' })}>←</button><button type="button" aria-label="Next brands" onClick={() => trackRef.current?.scrollBy({ left: trackRef.current.clientWidth * .75, behavior: 'smooth' })}>→</button></div></div>
       <ProductCollectionState loading={loading} error={error} empty={!loading && !error && brands.length === 0} />
-      <div className="brand-grid">{brands.map((brand, index) => <BrandTile brand={brand} index={index} href={`/brands?brand=${encodeURIComponent(brand.name)}`} key={brand.id} />)}</div>
-      <div className="center-action reveal"><a href="/brands" className="btn btn--ghost">VIEW ALL BRANDS <span>↗</span></a></div>
+      <div className="brand-carousel" ref={trackRef}>{brands.map((brand, index) => <BrandTile brand={brand} index={index} href={`/brands?brand=${encodeURIComponent(brand.name)}`} key={brand.id} />)}</div>
     </div></section>
   );
 }
@@ -184,20 +178,27 @@ export function SocialSection() {
   );
 }
 
-export function NewsletterSection({ showToast }) {
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const input = form.elements.email;
-    if (input.value.trim()) {
-      showToast('You are now on the private drop list.');
-      form.reset();
-    }
-  };
-  return (
-    <section className="newsletter section-pad snap-section"><div className="container newsletter-card reveal">
-      <div><span className="section-kicker">PRIVATE DROP LIST</span><h2>GET THE DROP<br />BEFORE IT DROPS.</h2></div>
-      <form className="newsletter-form" onSubmit={handleSubmit}><label htmlFor="email">Email address</label><div><input type="email" id="email" name="email" placeholder="you@email.com" required /><button type="submit" aria-label="Join newsletter">→</button></div><small>No spam. Only new arrivals, price updates and limited releases.</small></form>
-    </div></section>
-  );
+export function MediaSection() {
+  const trackRef = useRef(null);
+  const fallback = [
+    { id: 'fallback-1', type: 'image', url: productJordan, title: 'Air Jordan unboxing' },
+    { id: 'fallback-2', type: 'image', url: productDunk, title: 'Fresh arrival details' },
+    { id: 'fallback-3', type: 'image', url: productLuxury, title: 'Luxury rotation' },
+    { id: 'fallback-4', type: 'image', url: productNewBalance, title: 'Community selection' },
+  ];
+  const [items, setItems] = useState(fallback);
+  useEffect(() => { let active = true; settingsApi.homepageMedia().then((value) => { if (active && value.items?.length) setItems(value.items); }).catch(() => undefined); return () => { active = false; }; }, []);
+  return <section className="home-media section-pad snap-section"><div className="container"><div className="section-head reveal"><div><span className="section-kicker">KICKZ.LK MEDIA</span><h2>GET THE DROP.<br />BEFORE IT DROPS.</h2></div><div className="carousel-controls"><button type="button" aria-label="Previous media" onClick={() => trackRef.current?.scrollBy({ left: -trackRef.current.clientWidth * .8, behavior: 'smooth' })}>←</button><button type="button" aria-label="Next media" onClick={() => trackRef.current?.scrollBy({ left: trackRef.current.clientWidth * .8, behavior: 'smooth' })}>→</button></div></div><div className="media-carousel reveal" ref={trackRef}>{items.map((item) => <article className="media-card" key={item.id}><div>{item.type === 'video' ? <video src={resolveApiAssetUrl(item.url)} controls playsInline preload="metadata" /> : <img src={resolveApiAssetUrl(item.url)} alt={item.title || 'KICKZ.LK media'} loading="lazy" />}{item.type === 'video' && <span className="media-card__play" aria-hidden="true">▶</span>}<small>{item.type === 'video' ? 'WATCH' : 'VIEW'} ↗</small></div><h3>{item.title || 'Inside the KICKZ.LK rotation'}</h3></article>)}</div></div></section>;
+}
+
+export function TrustpilotSection() {
+  const widgetRef = useRef(null);
+  useEffect(() => {
+    const loadWidget = () => window.Trustpilot?.loadFromElement(widgetRef.current, true);
+    const existing = document.querySelector('script[data-kickz-trustpilot]');
+    if (existing) { if (window.Trustpilot) loadWidget(); else existing.addEventListener('load', loadWidget, { once: true }); return undefined; }
+    const script = document.createElement('script'); script.type = 'text/javascript'; script.src = '//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'; script.async = true; script.dataset.kickzTrustpilot = 'true'; script.addEventListener('load', loadWidget, { once: true }); document.head.appendChild(script);
+    return undefined;
+  }, []);
+  return <section className="trustpilot-section"><div className="container"><div ref={widgetRef} className="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6a736c6391612fc362076337" data-style-height="52px" data-style-width="100%" data-token="83f3a49b-1130-474b-8973-d4fd01eee126"><a href="https://www.trustpilot.com/review/kickz.lk" target="_blank" rel="noopener">Trustpilot</a></div></div></section>;
 }

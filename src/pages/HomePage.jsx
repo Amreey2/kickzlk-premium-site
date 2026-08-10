@@ -7,7 +7,8 @@ import {
   CultureTicker,
   FeaturedDrops,
   HeroSection,
-  NewsletterSection,
+  MediaSection,
+  TrustpilotSection,
 } from '../components/home/HomeSections';
 import useReveal from '../hooks/useReveal';
 import useToast from '../hooks/useToast';
@@ -25,7 +26,8 @@ export default function HomePage() {
         <CultureTicker />
         <FeaturedDrops showToast={toast.showToast} />
         <BrandsSection />
-        <NewsletterSection showToast={toast.showToast} />
+        <MediaSection />
+        <TrustpilotSection />
       </main>
       <FloatingActions />
       <Footer />

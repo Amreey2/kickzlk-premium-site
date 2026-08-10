@@ -10,8 +10,9 @@ export default function OrderTrackingPage() {
   useReveal();
   const query = new URLSearchParams(window.location.search);
   const initialOrder = query.get('order') || query.get('reference') || '';
+  const storedGuest = (() => { try { return JSON.parse(sessionStorage.getItem('kickz_guest_tracking') || 'null'); } catch { return null; } })();
   const [reference, setReference] = useState(initialOrder);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => storedGuest?.orderNumber === initialOrder ? storedGuest.email : '');
   const [order, setOrder] = useState(null);
   const [settings, setSettings] = useState(null);
   const [bankOpen, setBankOpen] = useState(false);
@@ -27,10 +28,12 @@ export default function OrderTrackingPage() {
       setAuthenticated(session.authenticated);
       if (session.authenticated && initialOrder) {
         try { setOrder(await ordersApi.get(initialOrder)); } catch (requestError) { setError(requestError.message); }
+      } else if (!session.authenticated && initialOrder && storedGuest?.orderNumber === initialOrder && storedGuest.email) {
+        try { setOrder(await ordersApi.get(initialOrder, { email: storedGuest.email })); } catch (requestError) { setError(requestError.message); }
       }
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [initialOrder]);
+  }, [initialOrder, storedGuest?.email, storedGuest?.orderNumber]);
 
   const submit = async (event) => {
     event.preventDefault(); setError(''); setLoading(true);

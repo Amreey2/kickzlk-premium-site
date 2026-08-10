@@ -1,20 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { logoWordmarkWhite } from '../assets';
 import { CART_EVENT, cartCount, readCart } from '../utils/cart';
+import SearchOverlay from './SearchOverlay';
 
 const navItems = [
   ['/', 'Home'],
-  ['/shop', 'Shop'],
+  ['/shop', 'Shop All'],
   ['/new-drops', 'New Drops'],
   ['/brands', 'Brands'],
   ['/categories', 'Categories'],
-  ['/pre-order', 'Pre-Order'],
   ['/about', 'About'],
   ['/contact', 'Contact'],
 ];
 
 export default function Header({ bagCount = 0, cartHref = '/cart' }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [storedCartCount, setStoredCartCount] = useState(() => typeof window === 'undefined' ? 0 : cartCount(readCart()));
   const currentPath = window.location.pathname;
@@ -47,6 +48,7 @@ export default function Header({ bagCount = 0, cartHref = '/cart' }) {
   }, [menuOpen]);
 
   const closeMenu = () => setMenuOpen(false);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   return (
     <header className={`site-header${hasScrolled ? ' site-header--scrolled' : ''}`} id="top">
@@ -60,7 +62,7 @@ export default function Header({ bagCount = 0, cartHref = '/cart' }) {
           ))}
         </nav>
         <div className="header-actions">
-          <button className="icon-btn" aria-label="Search">
+          <button className="icon-btn" aria-label="Search" onClick={() => setSearchOpen(true)}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
           </button>
           <a className="icon-btn account-btn" href="/account" aria-label="Customer account">
@@ -88,9 +90,13 @@ export default function Header({ bagCount = 0, cartHref = '/cart' }) {
             </a>
           ))}
         </nav>
+        <button className="mobile-search-link" type="button" onClick={() => { closeMenu(); setSearchOpen(true); }}>
+          SEARCH CATALOGUE <span aria-hidden="true">⌕</span>
+        </button>
         <a className="mobile-account-link" href="/account" onClick={closeMenu}>MY ACCOUNT <span>→</span></a>
         <div className="mobile-drawer__meta"><span>Colombo, Sri Lanka</span><span>Online · Islandwide</span></div>
       </div>
+      <SearchOverlay open={searchOpen} onClose={closeSearch} />
     </header>
   );
 }

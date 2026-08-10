@@ -7,5 +7,6 @@ export default function createSiteSettingRoutes(service) {
   const controller = createSiteSettingController(service);
   router.get('/size-guide', asyncHandler(controller.sizeGuide));
   router.get('/payment-settings', asyncHandler(controller.paymentSettings));
+  router.get('/homepage-media', asyncHandler(controller.homepageMedia));
   return router;
 }

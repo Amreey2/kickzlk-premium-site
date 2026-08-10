@@ -56,6 +56,9 @@ const services = () => ({
     updateSizeGuide: async (payload) => payload,
     paymentSettings: async () => ({ methodName: 'Bank Transfer', bankName: 'Test Bank', accountName: 'KICKZ.LK', accountNumber: '123', branch: 'Colombo', advancePercentage: 50 }),
     updatePaymentSettings: async (payload) => payload,
+    homepageMedia: async () => ({ items: [{ id: 'media-1', type: 'image', url: 'https://cdn.example.com/drop.jpg', title: 'Fresh drop', status: 'Active', sortOrder: 0 }] }),
+    adminHomepageMedia: async () => ({ items: [{ id: 'media-1', type: 'image', url: 'https://cdn.example.com/drop.jpg', title: 'Fresh drop', status: 'Active', sortOrder: 0 }] }),
+    updateHomepageMedia: async (payload) => payload,
   },
   catalogService: {
     listBrands: async () => [{ id: 1, name: 'Nike', status: 'Active' }],
@@ -144,6 +147,15 @@ describe('API contract', () => {
     assert.equal((await request(instance).get('/api/size-guide').expect(200)).body.data.imageUrl, '/uploads/size-guide.webp');
     await request(instance).put('/api/admin/size-guide').send({ imageUrl: '/uploads/new.webp' }).expect(401);
     await request(instance).put('/api/admin/size-guide').set('Authorization', `Bearer ${adminToken}`).send({ imageUrl: '/uploads/new.webp' }).expect(200);
+  });
+
+  test('active homepage media is public while media management remains administrator-only', async () => {
+    const instance = app();
+    assert.equal((await request(instance).get('/api/homepage-media').expect(200)).body.data.items[0].title, 'Fresh drop');
+    await request(instance).get('/api/admin/homepage-media').expect(401);
+    await request(instance).put('/api/admin/homepage-media').send({ items: [] }).expect(401);
+    assert.equal((await request(instance).get('/api/admin/homepage-media').set('Authorization', `Bearer ${adminToken}`).expect(200)).body.data.items.length, 1);
+    await request(instance).put('/api/admin/homepage-media').set('Authorization', `Bearer ${adminToken}`).send({ items: [] }).expect(200);
   });
 
   test('payment settings are public, editable only by admins, and checkout quotes are server-calculated', async () => {
