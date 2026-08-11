@@ -16,12 +16,14 @@ export default function ProductCard({
   showHeart = true,
   hidden = false,
   showCommerceDetails = false,
+  showOriginalPrice = false,
 }) {
   const [saved, setSaved] = useState(false);
   const productUrl = product.slug || product.id ? `/product/${product.slug || product.id}` : '/product.html';
   const price = product.priceLabel || formatProductPrice(product.price);
   const sizes = product.sizesLabel || productSizesLabel(product);
   const tags = productTags(product);
+  const originalPrice = Number(product.originalPrice) > Number(product.price) ? formatProductPrice(product.originalPrice) : '';
   const code = product.code || `KZ / ${(product.slug || product.id).slice(0, 12).toUpperCase()}`;
 
   const toggleSaved = (event) => {
@@ -41,7 +43,7 @@ export default function ProductCard({
       </a>
       <div className="product-card__body">
         <div><span className="brand-label">{product.brand}</span><h3><a href={productUrl}>{product.name}</a></h3></div>
-        <div className="price-row"><strong>{price}</strong><span>{sizes}</span></div>
+        <div className="price-row"><div className="product-card__prices"><strong>{price}</strong>{showOriginalPrice && originalPrice && <del>{originalPrice}</del>}</div><span>{sizes}</span></div>
       </div>
       {showCommerceDetails && (
         <div className="product-card__commerce">
