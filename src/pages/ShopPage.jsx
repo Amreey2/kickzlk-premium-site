@@ -19,7 +19,7 @@ export default function ShopPage({ initialView = 'all' }) {
       <PageHero
         kicker="CURATED FOR SRI LANKA"
         title="SHOP"
-        copy="Explore authentic new drops, pre-order pairs and global labels selected for the KICKZ.LK rotation."
+        copy="Explore authentic new drops and global pairs selected for the KICKZ.LK rotation."
       />
       <ShopCatalog initialView={initialView} onSaved={handleSaved} />
       <Toast message={toast.message} visible={toast.visible} />

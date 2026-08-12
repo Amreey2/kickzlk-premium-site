@@ -3,7 +3,6 @@ import FloatingActions from '../components/FloatingActions';
 import Header from '../components/Header';
 import Toast from '../components/Toast';
 import {
-  BrandsSection,
   CultureTicker,
   FeaturedDrops,
   HeroSection,
@@ -25,7 +24,6 @@ export default function HomePage() {
         <HeroSection />
         <CultureTicker />
         <FeaturedDrops showToast={toast.showToast} />
-        <BrandsSection />
         <MediaSection />
         <TrustpilotSection />
       </main>

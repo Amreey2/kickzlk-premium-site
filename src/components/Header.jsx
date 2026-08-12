@@ -7,7 +7,6 @@ const navItems = [
   ['/', 'Home'],
   ['/shop', 'Shop All'],
   ['/new-drops', 'New Drops'],
-  ['/brands', 'Brands'],
   ['/categories', 'Categories'],
   ['/about', 'About'],
   ['/contact', 'Contact'],

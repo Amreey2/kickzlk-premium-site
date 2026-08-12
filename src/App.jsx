@@ -10,7 +10,6 @@ import CheckoutChoicePage from './pages/CheckoutChoicePage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import LoginPage from './pages/LoginPage';
 import NewDropsPage from './pages/NewDropsPage';
-import PreOrderPage from './pages/PreOrderPage';
 import ProductPage from './pages/ProductPage';
 import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -35,7 +34,6 @@ const routes = {
   '/new-drops': NewDropsPage,
   '/brands': BrandsPage,
   '/categories': CategoriesPage,
-  '/pre-order': PreOrderPage,
   '/about': AboutPage,
   '/about-us': AboutPage,
   '/community': AboutPage,
@@ -64,6 +62,10 @@ const routes = {
 
 export default function App() {
   const { pathname } = window.location;
+  if (pathname === '/pre-order') {
+    window.location.replace('/shop');
+    return null;
+  }
   const adminProductDuplicate = pathname.match(/^\/admin\/products\/([^/]+)\/duplicate$/);
   if (adminProductDuplicate) return <AdminProductFormPage duplicateFrom={decodeURIComponent(adminProductDuplicate[1])} />;
   const adminProductEdit = pathname.match(/^\/admin\/products\/([^/]+)\/edit$/);

@@ -7,8 +7,7 @@ import {
   productNewBalance,
 } from '../../assets';
 import { useProducts } from '../../hooks/useProducts';
-import { catalogApi, resolveApiAssetUrl, settingsApi } from '../../services/api';
-import BrandTile from '../BrandTile';
+import { resolveApiAssetUrl, settingsApi } from '../../services/api';
 import ProductCard from '../ProductCard';
 import ProductCollectionState from '../ProductCollectionState';
 
@@ -36,7 +35,7 @@ export function HeroSection() {
           <div className="eyebrow"><span className="pulse" /> CURATED DROPS · SRI LANKA</div>
           <h1 className="hero-title hero-title--desktop">AUTHENTIC<br />SNEAKERS.<br /><span>BUILT FOR THE CULTURE.</span></h1>
           <h1 className="hero-title hero-title--mobile">AUTHENTIC<br />SNEAKERS.<br /><span>BUILT FOR THE CULTURE.</span></h1>
-          <p>Imported heat. Verified quality. A premium pre-order experience for Sri Lanka’s sneaker and streetwear community.</p>
+          <p>Imported heat. Verified quality. A premium sourcing experience for Sri Lanka’s sneaker and streetwear community.</p>
           <div className="hero-actions">
             <a href="/shop" className="btn btn--acid">SHOP SNEAKERS <span>↗</span></a>
           </div>
@@ -64,7 +63,7 @@ export function HeroSection() {
 /* PREMIUM CULTURE TICKER
    Two identical groups create a seamless loop while the duplicate stays hidden from assistive technology. */
 export function CultureTicker() {
-  const messages = ['AUTHENTIC SNEAKERS', 'GLOBAL DROPS', 'PRE ORDER AVAILABLE', 'KICKZ.LK'];
+  const messages = ['AUTHENTIC SNEAKERS', 'GLOBAL DROPS', 'ISLANDWIDE DELIVERY', 'KICKZ.LK'];
   const renderGroup = (hidden = false) => (
     <div className="culture-ticker__group" aria-hidden={hidden || undefined}>
       {messages.map((message) => <span key={message}>{message}<i aria-hidden="true">★</i></span>)}
@@ -72,7 +71,7 @@ export function CultureTicker() {
   );
 
   return (
-    <section className="culture-ticker" aria-label="Authentic sneakers, global drops, pre order available, KICKZ.LK">
+    <section className="culture-ticker" aria-label="Authentic sneakers, global drops, islandwide delivery, KICKZ.LK">
       <div className="culture-ticker__track">{renderGroup()}{renderGroup(true)}</div>
     </section>
   );
@@ -101,56 +100,17 @@ export function FeaturedDrops({ showToast }) {
   );
 }
 
-export function EditorialSection() {
-  return (
-    <section className="editorial section-pad snap-section"><div className="container editorial-card reveal">
-      <div className="editorial-card__copy"><span className="section-kicker">THE PRE-ORDER EDIT</span><h2>YOUR SIZE.<br />YOUR PAIR.<br /><em>NO COMPROMISE.</em></h2><p>Access rare colorways, exclusive releases and hard-to-find sizing without settling for what is locally available.</p><a href="/pre-order" className="btn btn--light">HOW PRE-ORDERS WORK <span>→</span></a></div>
-      <div className="editorial-card__visual"><span className="editorial-number">02</span><img src={productDunk} alt="Premium sneaker floating in editorial layout" loading="lazy" /><div className="editorial-note">CURATED FOR<br />SRI LANKA</div></div>
-    </div></section>
-  );
-}
-
-export function BrandsSection() {
-  const [brands, setBrands] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const trackRef = useRef(null);
-  useEffect(() => {
-    let active = true;
-    catalogApi.brands().then((items) => { if (active) setBrands(items); }, (requestError) => { if (active) setError(requestError); }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, []);
-  return (
-    <section className="brands section-pad snap-section" id="brands"><div className="container">
-      <div className="section-head reveal"><div><span className="section-kicker">GLOBAL LABELS</span><h2>SHOP BY BRAND</h2></div><div className="carousel-controls"><button type="button" aria-label="Previous brands" onClick={() => trackRef.current?.scrollBy({ left: -trackRef.current.clientWidth * .75, behavior: 'smooth' })}>←</button><button type="button" aria-label="Next brands" onClick={() => trackRef.current?.scrollBy({ left: trackRef.current.clientWidth * .75, behavior: 'smooth' })}>→</button></div></div>
-      <ProductCollectionState loading={loading} error={error} empty={!loading && !error && brands.length === 0} />
-      <div className="brand-carousel" ref={trackRef}>{brands.map((brand, index) => <BrandTile brand={brand} index={index} href={`/brands?brand=${encodeURIComponent(brand.name)}`} key={brand.id} />)}</div>
-    </div></section>
-  );
-}
-
 export function WhySection() {
   const benefits = [
     ['01', '100% Authentic', 'Every pair is sourced from verified retailers and trusted global partners.', 0],
     ['02', 'Islandwide Delivery', 'Secure tracked delivery to your doorstep anywhere in Sri Lanka.', 80],
-    ['03', 'Easy Pre-Orders', 'Reserve with the 50% advance and pay the balance on delivery.', 160],
+    ['03', 'Flexible Sourcing', 'Secure imported pairs with clear payment and delivery milestones.', 160],
     ['04', 'Human Support', 'Real guidance through WhatsApp—from sizing to order updates.', 240],
   ];
   return (
     <section className="why section-pad snap-section" id="why"><div className="container why-grid">
       <div className="why-intro reveal"><span className="section-kicker">THE KICKZ STANDARD</span><h2>HYPE WITHOUT<br />THE UNCERTAINTY.</h2><p>Designed around trust, clarity and access—because buying your next grail should feel exciting, not risky.</p><div className="micro-stat"><strong>1,000+</strong><span>Pairs sourced for the community</span></div></div>
       <div className="benefit-grid">{benefits.map(([number, title, copy, delay]) => <article className={`benefit-card reveal${delay ? ` delay-${delay}` : ''}`} key={number}><div className="benefit-card__icon">{number}</div><h3>{title}</h3><p>{copy}</p></article>)}</div>
-    </div></section>
-  );
-}
-
-export function PreorderSection() {
-  const steps = [['01', 'Select Your Pair', 'Choose the style, colorway and size you want.'], ['02', 'Choose Payment', 'Pay the displayed 50% advance or the full amount.'], ['03', 'We Import It', 'We source, verify and arrange international shipping.'], ['04', 'Delivered to You', 'Pay any remaining balance on delivery and receive it islandwide.']];
-  return (
-    <section className="preorder section-pad snap-section" id="preorder"><div className="container">
-      <div className="section-head section-head--center reveal"><div><span className="section-kicker">SIMPLE. CLEAR. SECURE.</span><h2>HOW PRE-ORDER WORKS</h2></div><p>Four simple steps between you and your next pair.</p></div>
-      <div className="process-line reveal delay-100">{steps.map(([number, title, copy]) => <article className="process-step" key={number}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}</div>
-      <div className="preorder-note reveal"><span>AVERAGE TIMELINE</span><strong>14–28 DAYS</strong><p>Exact delivery estimates are shown on each product page.</p></div>
     </div></section>
   );
 }

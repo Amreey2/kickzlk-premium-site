@@ -1,18 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useProducts } from '../../hooks/useProducts';
-import { catalogApi } from '../../services/api';
 import ProductCard from '../ProductCard';
 import ProductCollectionState from '../ProductCollectionState';
 import ShopFilters from './ShopFilters';
 import ShopPagination from './ShopPagination';
 
-const legacyViews = [
-  ['all', 'ALL PRODUCTS'],
-  ['new', 'NEW DROPS'],
-  ['preorder', 'PRE ORDER'],
-  ['brands', 'BRANDS'],
-  ['categories', 'CATEGORIES'],
-];
 const emptyFilters = { onSale: false, brands: [], minPrice: '', maxPrice: '', sizes: [], genders: [], activities: [], colors: [] };
 const listParam = (params, key) => (params.get(key) || '').split(',').map((value) => value.trim()).filter(Boolean);
 const initialFilters = () => {
@@ -52,7 +44,7 @@ function useShopPageSize() {
   return pageSize;
 }
 
-function AdvancedShopCatalog({ onSaved }) {
+function AdvancedShopCatalog({ onSaved, categoryMode = false }) {
   const { products, loading, error } = useProducts();
   const [filters, setFilters] = useState(initialFilters);
   const [page, setPage] = useState(() => Math.max(1, Number(new URLSearchParams(window.location.search).get('page')) || 1));
@@ -139,7 +131,7 @@ function AdvancedShopCatalog({ onSaved }) {
   };
   const filterProps = { filters, options: availableOptions, activeCount, priceError, onToggleValue: toggleValue, onChange: changeFilter, onClear: clearFilters };
 
-  return <section className="shop-catalog shop-catalog--advanced section-pad">
+  return <section className={`shop-catalog shop-catalog--advanced${categoryMode ? ' category-catalog' : ''} section-pad`}>
     <div className="container">
       <div className="shop-mobile-toolbar">
         <button type="button" onClick={() => setDrawerOpen(true)}>FILTER{activeCount > 0 && <b>{activeCount}</b>} <span>＋</span></button>
@@ -149,7 +141,7 @@ function AdvancedShopCatalog({ onSaved }) {
         <aside className="shop-filter-sidebar" aria-label="Product filters"><ShopFilters {...filterProps} /></aside>
         <div className="shop-results">
           <header className="shop-results-header">
-            <div><span className="section-kicker">SHOP ALL</span><h2>THE ROTATION</h2></div>
+            <div><span className="section-kicker">{categoryMode ? 'BROWSE BY CATEGORY' : 'SHOP ALL'}</span><h2>{categoryMode ? 'CATEGORIES' : 'THE ROTATION'}</h2></div>
             <p>{loading ? 'Loading sneakers…' : `Showing ${resultStart}–${resultEnd} of ${filteredProducts.length}`}</p>
           </header>
           <ProductCollectionState loading={loading} error={error} />
@@ -168,36 +160,21 @@ function AdvancedShopCatalog({ onSaved }) {
   </section>;
 }
 
-function LegacyShopCatalog({ initialView, onSaved }) {
-  const queryCategory = new URLSearchParams(window.location.search).get('category') || 'all';
-  const [view, setView] = useState(queryCategory !== 'all' ? 'categories' : initialView);
-  const [brand, setBrand] = useState('all');
-  const [category, setCategory] = useState(queryCategory);
-  const [categories, setCategories] = useState([]);
+function NewDropsCatalog({ onSaved }) {
   const { products, loading, error } = useProducts();
-  const brands = useMemo(() => [...new Set(products.map((product) => product.brand))], [products]);
-  useEffect(() => {
-    let active = true;
-    catalogApi.categories().then((items) => { if (active) setCategories(items); }, () => { if (active) setCategories([]); });
-    return () => { active = false; };
-  }, []);
-  const visibleProducts = products.filter((product, index) => {
-    if (view === 'new') return index < 4;
-    if (view === 'preorder') return product.preOrder;
-    if (view === 'brands' && brand !== 'all') return product.brand === brand;
-    if (view === 'categories' && category !== 'all') return product.category === category;
-    return true;
-  });
-  const selectView = (nextView) => { setView(nextView); if (nextView !== 'brands') setBrand('all'); if (nextView !== 'categories') setCategory('all'); };
-  return <section className="shop-catalog section-pad"><div className="container">
-    <div className="shop-toolbar reveal"><div className="filter-row" role="group" aria-label="Shop product view">{legacyViews.map(([value, label]) => <button className={`filter-btn${view === value ? ' active' : ''}`} key={value} onClick={() => selectView(value)}>{label}</button>)}</div><span>{visibleProducts.length} PAIRS</span></div>
-    {view === 'brands' && <div className="filter-row shop-brand-filter reveal" role="group" aria-label="Filter by brand"><button className={`filter-btn${brand === 'all' ? ' active' : ''}`} onClick={() => setBrand('all')}>ALL BRANDS</button>{brands.map((brandName) => <button className={`filter-btn${brand === brandName ? ' active' : ''}`} key={brandName} onClick={() => setBrand(brandName)}>{brandName.toUpperCase()}</button>)}</div>}
-    {view === 'categories' && <div className="filter-row shop-brand-filter reveal" role="group" aria-label="Filter by category"><button className={`filter-btn${category === 'all' ? ' active' : ''}`} onClick={() => setCategory('all')}>ALL CATEGORIES</button>{categories.map((item) => <button className={`filter-btn${category === item.name ? ' active' : ''}`} key={item.id} onClick={() => setCategory(item.name)}>{item.name.toUpperCase()}</button>)}</div>}
-    <ProductCollectionState loading={loading} error={error} empty={!loading && !error && visibleProducts.length === 0} />
-    <div className="product-grid">{visibleProducts.map((product) => <ProductCard product={product} key={product.id} showCommerceDetails onSaved={(saved) => onSaved?.(product, saved)} />)}</div>
+  const newestProducts = useMemo(() => [...products].sort((first, second) => {
+    const firstTime = Date.parse(first.createdAt);
+    const secondTime = Date.parse(second.createdAt);
+    return (Number.isFinite(secondTime) ? secondTime : 0) - (Number.isFinite(firstTime) ? firstTime : 0);
+  }), [products]);
+  return <section className="shop-catalog new-drops-catalog section-pad"><div className="container">
+    <header className="new-drops-header reveal"><div><span className="section-kicker">LATEST ADDITIONS</span><h2>NEWEST FIRST.</h2></div><p>{loading ? 'Loading newest pairs…' : `${newestProducts.length} latest pair${newestProducts.length === 1 ? '' : 's'}`}</p></header>
+    <ProductCollectionState loading={loading} error={error} empty={!loading && !error && newestProducts.length === 0} />
+    <div className="product-grid">{newestProducts.map((product) => <ProductCard product={product} key={product.id} showCommerceDetails showOriginalPrice onSaved={(saved) => onSaved?.(product, saved)} />)}</div>
   </div></section>;
 }
 
 export default function ShopCatalog({ initialView = 'all', onSaved }) {
-  return initialView === 'all' ? <AdvancedShopCatalog onSaved={onSaved} /> : <LegacyShopCatalog initialView={initialView} onSaved={onSaved} />;
+  if (initialView === 'new') return <NewDropsCatalog onSaved={onSaved} />;
+  return <AdvancedShopCatalog onSaved={onSaved} categoryMode={initialView === 'categories'} />;
 }

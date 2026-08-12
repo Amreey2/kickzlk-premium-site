@@ -11,11 +11,10 @@ export default function NewDropsPage() {
 
   return (
     <PageShell>
-      {/* Sprint 3A Page Structure: dedicated ecommerce landing page for the approved drops grid. */}
       <PageHero
-        kicker="CURATED RELEASES"
+        kicker="LATEST ADDITIONS"
         title="NEW DROPS"
-        copy="High-demand silhouettes and luxury pairs selected for the Sri Lankan market."
+        copy="The newest products added to KICKZ.LK, automatically ordered from latest to earliest."
       />
       <ShopCatalog initialView="new" onSaved={(product, saved) => toast.showToast(saved ? `${product.name} saved.` : `${product.name} removed.`)} />
       <Toast message={toast.message} visible={toast.visible} />

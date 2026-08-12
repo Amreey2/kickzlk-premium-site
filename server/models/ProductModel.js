@@ -64,7 +64,7 @@ export default class ProductModel {
       values.push(term, term, term);
     }
     const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : '';
-    const rows = await this.database.query(`SELECT p.*, c.gender AS category_gender FROM products p LEFT JOIN categories c ON c.id = p.category_id${where} ORDER BY p.created_at DESC`, values);
+    const rows = await this.database.query(`SELECT p.*, c.gender AS category_gender FROM products p LEFT JOIN categories c ON c.id = p.category_id${where} ORDER BY p.created_at DESC, p.id DESC`, values);
     return rows.map(mapProduct);
   }
 

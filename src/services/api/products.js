@@ -77,6 +77,8 @@ const normalizeProduct = (product) => {
     metaTitle: String(product.metaTitle || ''),
     metaDescription: String(product.metaDescription || ''),
     imageAltText: String(product.imageAltText || ''),
+    createdAt: String(product.createdAt || product.created_at || ''),
+    updatedAt: String(product.updatedAt || product.updated_at || ''),
   };
 };
 

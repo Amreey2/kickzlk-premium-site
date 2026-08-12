@@ -6,7 +6,7 @@ export default function AnnouncementBar() {
         <span className="announcement__dot" />
         <span>ISLANDWIDE DELIVERY</span>
         <span className="announcement__dot" />
-        <span>PRE-ORDERS OPEN</span>
+        <span>GLOBAL DROPS AVAILABLE</span>
       </div>
     </div>
   );
