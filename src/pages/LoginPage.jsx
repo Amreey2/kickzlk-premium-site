@@ -26,7 +26,8 @@ export default function LoginPage() {
   };
 
   const trackGuestOrder = async (event) => {
-    event.preventDefault(); setGuestError('');
+    event.preventDefault();
+    setGuestError('');
     const orderNumber = guestForm.orderNumber.trim().toUpperCase();
     const email = guestForm.email.trim().toLowerCase();
     if (!/^KZ-\d{5,}$/.test(orderNumber)) return setGuestError('Enter a valid KZ order number.');
@@ -36,8 +37,11 @@ export default function LoginPage() {
       await ordersApi.get(orderNumber, { email });
       sessionStorage.setItem('kickz_guest_tracking', JSON.stringify({ orderNumber, email }));
       window.location.assign(`/track-order?order=${encodeURIComponent(orderNumber)}`);
-    } catch (error) { setGuestError(error.message); }
-    finally { setGuestSubmitting(false); }
+    } catch (error) {
+      setGuestError(error.message);
+    } finally {
+      setGuestSubmitting(false);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -58,8 +62,16 @@ export default function LoginPage() {
     }
   };
 
+  const goBack = () => {
+    if (window.history.length > 1) window.history.back();
+    else window.location.assign('/');
+  };
+
   return (
-    <PageShell>
+    <PageShell mainClassName="site-main login-page">
+      <div className="container auth-back-wrap">
+        <button className="auth-back" type="button" onClick={goBack} aria-label="Go back">← <span>BACK</span></button>
+      </div>
       <AuthLayout
         kicker="CUSTOMER ACCESS"
         title="WELCOME BACK."
@@ -74,7 +86,20 @@ export default function LoginPage() {
           {next.startsWith('/checkout') && <a className="btn btn--ghost" href={`${next}${next.includes('?') ? '&' : '?'}guest=1`}>CONTINUE AS GUEST</a>}
           {message && <p className="form-message form-message--error" role="alert">{message}</p>}
         </form>
-        <section className="guest-track-login"><div><span className="section-kicker">ORDERED AS A GUEST?</span><p>Track securely with the order number and matching checkout email.</p></div><form onSubmit={trackGuestOrder} noValidate><FormField label="ORDER NUMBER" name="orderNumber" value={guestForm.orderNumber} onChange={(event) => setGuestForm((value) => ({ ...value, orderNumber: event.target.value }))} placeholder="KZ-00001" /><FormField label="EMAIL" name="guestEmail" type="email" value={guestForm.email} onChange={(event) => setGuestForm((value) => ({ ...value, email: event.target.value }))} placeholder="you@email.com" /><button className="btn btn--ghost" disabled={guestSubmitting}>{guestSubmitting ? 'CHECKING…' : 'TRACK YOUR ORDER'} <span>→</span></button>{guestError && <p className="form-message form-message--error" role="alert">{guestError}</p>}</form></section>
+
+        <section className="guest-track-login">
+          <div className="guest-track-login__intro">
+            <span className="section-kicker">GUEST ORDER TRACKING</span>
+            <h2>FIND YOUR KICKZ</h2>
+            <p>Track securely with the order number and matching checkout email.</p>
+          </div>
+          <form onSubmit={trackGuestOrder} noValidate>
+            <FormField label="ORDER NUMBER" name="orderNumber" value={guestForm.orderNumber} onChange={(event) => setGuestForm((value) => ({ ...value, orderNumber: event.target.value }))} placeholder="KZ-00001" />
+            <FormField label="EMAIL" name="guestEmail" type="email" value={guestForm.email} onChange={(event) => setGuestForm((value) => ({ ...value, email: event.target.value }))} placeholder="you@email.com" />
+            <button className="btn btn--ghost" disabled={guestSubmitting}>{guestSubmitting ? 'CHECKING…' : 'TRACK YOUR ORDER'} <span>→</span></button>
+            {guestError && <p className="form-message form-message--error" role="alert">{guestError}</p>}
+          </form>
+        </section>
       </AuthLayout>
     </PageShell>
   );

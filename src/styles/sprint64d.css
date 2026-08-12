@@ -1,0 +1,286 @@
+/* Sprint 6.4D — scoped About, Contact and customer-login refinements. */
+.social-icon-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.social-icon-links a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  transition: border-color .2s ease, color .2s ease, background-color .2s ease, transform .2s ease;
+}
+
+.social-icon-links a:hover,
+.social-icon-links a:focus-visible {
+  border-color: var(--acid);
+  background: rgba(169, 255, 35, .08);
+  color: var(--acid);
+  transform: translateY(-2px);
+}
+
+.social-icon-links svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.footer-socials a {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+}
+
+.footer-socials a span { display: none; }
+
+.about-main .home-media,
+.about-main .trustpilot-section,
+.about-main .social {
+  padding-top: clamp(52px, 6vw, 88px);
+  padding-bottom: clamp(52px, 6vw, 88px);
+}
+
+.about-main .home-media + .trustpilot-section,
+.about-main .trustpilot-section + .social {
+  border-top: 1px solid var(--line);
+}
+
+.about-main .social-grid { align-items: center; }
+.about-main .social-copy p { max-width: 600px; }
+.about-main .social-actions { margin-top: 24px; }
+
+.contact-page {
+  min-height: calc(100vh - 84px);
+  background:
+    radial-gradient(circle at 82% 10%, rgba(109, 180, 35, .15), transparent 36%),
+    var(--black);
+}
+
+.contact-intro {
+  padding: clamp(68px, 8vw, 112px) 0 clamp(36px, 4vw, 58px);
+  border-bottom: 1px solid var(--line);
+}
+
+.contact-intro__inner { max-width: 1180px; }
+
+.contact-intro h1 {
+  max-width: 900px;
+  margin: 15px 0 14px;
+  font-family: var(--display);
+  font-size: clamp(48px, 7vw, 98px);
+  line-height: .9;
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere;
+}
+
+.contact-intro p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(16px, 1.35vw, 20px);
+  line-height: 1.55;
+}
+
+.contact-page .contact-section { padding: clamp(42px, 5vw, 76px) 0 clamp(64px, 8vw, 112px); }
+
+.contact-page .contact-card {
+  min-height: 0;
+  align-items: start;
+  gap: clamp(30px, 5vw, 82px);
+  padding: clamp(28px, 4vw, 58px);
+}
+
+.contact-page .contact-card h2 {
+  margin: 16px 0 0;
+  font-size: clamp(34px, 4.2vw, 64px);
+  line-height: .94;
+}
+
+.contact-card__details > p {
+  max-width: 620px;
+  margin-top: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.contact-email {
+  display: flex;
+  min-height: 52px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--white);
+  overflow-wrap: anywhere;
+}
+
+.contact-email span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+
+.contact-email strong { font-size: 14px; }
+.contact-email:hover,
+.contact-email:focus-visible { border-color: var(--acid); color: var(--acid); }
+
+.login-page .auth-back-wrap { padding-top: clamp(20px, 3vw, 38px); }
+
+.auth-back {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .025);
+  color: var(--white);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+
+.auth-back:hover,
+.auth-back:focus-visible { border-color: var(--acid); color: var(--acid); }
+
+.login-page .auth-section {
+  min-height: 0;
+  padding-top: clamp(22px, 3vw, 40px);
+  padding-bottom: clamp(64px, 8vw, 110px);
+}
+
+.login-page .auth-layout { align-items: start; }
+
+.login-page .auth-intro h1 {
+  max-width: 720px;
+  margin: 15px 0 18px;
+  font-size: clamp(48px, 5.6vw, 82px);
+  line-height: .9;
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere;
+}
+
+.login-page .auth-intro > p {
+  max-width: 590px;
+  color: #b7b7b1;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.login-page .auth-panel { padding: clamp(24px, 3vw, 42px); }
+
+.login-page .form-field > span {
+  color: #d6d6d1;
+  font-size: 10px;
+}
+
+.login-page .form-field input {
+  border-color: rgba(255, 255, 255, .2);
+  background: rgba(255, 255, 255, .035);
+  color: var(--white);
+  font-size: 16px;
+}
+
+.login-page .form-field input::placeholder { color: #85857f; opacity: 1; }
+.login-page .form-link,
+.login-page .auth-switch { font-size: 11px; }
+
+.login-page .guest-track-login {
+  margin-top: 34px;
+  padding-top: 28px;
+}
+
+.guest-track-login__intro h2 {
+  margin: 10px 0 8px;
+  font-family: var(--display);
+  font-size: clamp(25px, 2.5vw, 36px);
+  line-height: .98;
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
+}
+
+.login-page .guest-track-login p {
+  max-width: 540px;
+  color: #aaa9a3;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.login-page .guest-track-login form { align-items: end; }
+.login-page .guest-track-login .btn { min-height: 52px; }
+
+@media (max-width: 960px) {
+  .contact-page .contact-card { grid-template-columns: 1fr; }
+  .login-page .auth-layout { gap: 28px; }
+  .login-page .auth-intro h1 { max-width: 560px; }
+}
+
+@media (max-width: 650px) {
+  .about-main .home-media,
+  .about-main .trustpilot-section,
+  .about-main .social { padding: 46px 0; }
+
+  .social-icon-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .social-icon-links a { width: 100%; padding: 0 12px; }
+  .footer-socials { display: flex; }
+  .footer-socials a { width: 40px; }
+
+  .contact-intro { padding: 52px 0 30px; }
+  .contact-intro h1 { font-size: clamp(38px, 12vw, 52px); }
+  .contact-intro p { font-size: 15px; }
+  .contact-page .contact-section { padding: 32px 0 64px; }
+  .contact-page .contact-card { gap: 24px; padding: 24px 20px; }
+  .contact-page .contact-card h2 { font-size: clamp(31px, 10vw, 42px); }
+  .contact-card__details > p { font-size: 15px; }
+  .contact-actions { flex-direction: column; }
+  .contact-actions .btn,
+  .contact-email { width: 100%; }
+
+  .login-page .auth-back-wrap { padding-top: 16px; }
+  .login-page .auth-section { padding-top: 18px; padding-bottom: 64px; }
+  .login-page .auth-layout { gap: 20px; }
+  .login-page .auth-intro h1 { font-size: clamp(35px, 11.5vw, 46px); margin: 11px 0 12px; }
+  .login-page .auth-intro > p { font-size: 15px; line-height: 1.52; }
+  .login-page .auth-panel { padding: 22px 18px; }
+  .login-page .guest-track-login { margin-top: 28px; padding-top: 24px; }
+  .guest-track-login__intro h2 { font-size: clamp(25px, 8vw, 32px); }
+  .login-page .guest-track-login form { grid-template-columns: minmax(0, 1fr); }
+  .login-page .guest-track-login .btn { width: 100%; }
+}
+
+@media (max-width: 340px) {
+  .social-icon-links { grid-template-columns: 1fr; }
+  .footer-socials { display: flex; }
+  .contact-page .contact-card { padding-inline: 16px; }
+  .login-page .auth-panel { padding-inline: 15px; }
+}

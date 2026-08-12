@@ -10,6 +10,7 @@ import { useProducts } from '../../hooks/useProducts';
 import { resolveApiAssetUrl, settingsApi } from '../../services/api';
 import ProductCard from '../ProductCard';
 import ProductCollectionState from '../ProductCollectionState';
+import SocialIconLinks from '../SocialIconLinks';
 
 export function HeroSection() {
   const visualRef = useRef(null);
@@ -132,7 +133,7 @@ export function ReviewsSection() {
 export function SocialSection() {
   return (
     <section className="social section-pad snap-section" id="social"><div className="container social-grid">
-      <div className="social-copy reveal"><span className="section-kicker">@KICKZ.LK</span><h2>FOLLOW THE<br /><em>CULTURE.</em></h2><p>Drop alerts, unboxings, styling inspiration and community fits—daily on Instagram and TikTok.</p><div className="social-actions"><a href="#" className="btn btn--acid">INSTAGRAM <span>↗</span></a><a href="#" className="btn btn--ghost">TIKTOK <span>↗</span></a></div></div>
+      <div className="social-copy reveal"><span className="section-kicker">@KICKZ.LK</span><h2>FOLLOW THE<br /><em>CULTURE.</em></h2><p>Drop alerts, unboxings, styling inspiration and community fits across the official KICKZ.LK channels.</p><SocialIconLinks className="social-actions" /></div>
       <div className="social-wall reveal delay-120"><div className="social-tile social-tile--one"><img src={productJordan} alt="Sneaker community post" loading="lazy" /><span>12.4K</span></div><div className="social-tile social-tile--two"><span className="social-quote">“WEAR<br />THE HYPE.”</span><small>KICKZ.LK</small></div><div className="social-tile social-tile--three"><img src={productLuxury} alt="Luxury sneaker social post" loading="lazy" /><span>8.7K</span></div><div className="social-tile social-tile--four"><img src={productNewBalance} alt="New Balance sneaker social post" loading="lazy" /><span>9.1K</span></div></div>
     </div></section>
   );
