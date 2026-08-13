@@ -3,7 +3,14 @@ import { formatOrderNumber } from '../utils/orderNumber.js';
 
 const loadOrderRelations = async (connection, order) => {
   if (!order) return null;
-  const [items] = await connection.execute('SELECT * FROM order_items WHERE order_id = ? ORDER BY id', [order.id]);
+  const [items] = await connection.execute(
+    `SELECT oi.*, p.sku, p.images AS product_images, p.cdn_images AS product_cdn_images
+     FROM order_items oi
+     LEFT JOIN products p ON p.id = oi.product_id
+     WHERE oi.order_id = ?
+     ORDER BY oi.id`,
+    [order.id],
+  );
   const [history] = await connection.execute('SELECT * FROM order_status_history WHERE order_id = ? ORDER BY created_at, id', [order.id]);
   return { ...order, items, status_history: history };
 };

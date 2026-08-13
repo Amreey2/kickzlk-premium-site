@@ -1,0 +1,102 @@
+/* Sprint 6.4G — focused admin management upgrades. */
+.admin-modal { position: fixed; inset: 0; z-index: 220; padding: clamp(12px, 3vw, 36px); display: grid; place-items: center; background: rgba(2,2,3,.82); backdrop-filter: blur(16px); }
+.admin-modal__surface { width: min(1180px, 100%); max-height: calc(100dvh - clamp(24px, 6vw, 72px)); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--line-strong); border-radius: 20px; padding: clamp(20px, 3vw, 34px); background: radial-gradient(circle at 90% 3%, rgba(184,255,53,.09), transparent 25%), #0b0b0d; box-shadow: 0 36px 100px rgba(0,0,0,.7); }
+.admin-modal__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.admin-modal__header span, .admin-order-modal__section-head span, .admin-order-modal__summary span, .admin-order-status-editor span, .admin-modal--confirm > section > span { color: var(--acid); font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.admin-modal__header h2 { margin: 7px 0 4px; font: 800 clamp(30px, 4vw, 48px)/.94 var(--display); }
+.admin-modal__header p { margin: 0; color: var(--muted); font-size: 12px; }
+.admin-modal__header button { width: 42px; height: 42px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--text); font-size: 25px; cursor: pointer; }
+
+.admin-order-status-editor { margin: 20px 0; border: 1px solid rgba(184,255,53,.24); border-radius: 14px; padding: 16px; display: grid; grid-template-columns: minmax(180px, 1fr) minmax(240px, 1.2fr) auto; gap: 16px; align-items: end; background: rgba(184,255,53,.035); }
+.admin-order-status-editor > div, .admin-order-status-editor label { min-width: 0; display: grid; gap: 8px; }
+.admin-order-status-editor strong { overflow-wrap: anywhere; font-size: 14px; }
+.admin-order-status-editor select { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 9px; padding-inline: 12px; background: #101012; color: var(--text); font-size: 13px; }
+.admin-order-status-editor .btn { min-height: 48px; }
+
+.admin-order-modal__summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.admin-order-modal__summary section { min-width: 0; border: 1px solid var(--line); border-radius: 13px; padding: 17px; }
+.admin-order-modal__summary h3 { margin: 9px 0 7px; font-size: 17px; overflow-wrap: anywhere; }
+.admin-order-modal__summary p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.admin-order-modal__section { margin-top: 25px; padding-top: 22px; border-top: 1px solid var(--line); }
+.admin-order-modal__section-head { margin-bottom: 14px; display: flex; justify-content: space-between; gap: 15px; }
+.admin-order-modal__section-head strong { color: var(--muted); font-size: 10px; }
+.admin-order-product-list { display: grid; gap: 9px; }
+.admin-order-product-list article { min-width: 0; display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 15px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.admin-order-product-list img, .admin-order-product-placeholder { width: 76px; height: 66px; object-fit: contain; border-radius: 8px; background: #151518; }
+.admin-order-product-placeholder { display: grid; place-items: center; color: var(--acid); font-weight: 800; }
+.admin-order-product-list article > div:nth-child(2), .admin-order-product-price { min-width: 0; display: grid; gap: 5px; }
+.admin-order-product-list article > div:nth-child(2) strong { font-size: 14px; }
+.admin-order-product-list article span { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.admin-order-product-price { justify-items: end; text-align: right; }
+.admin-order-product-price del { color: var(--faint); font-size: 10px; }
+.admin-order-financial-grid { margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.admin-order-financial-grid div { min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 13px; display: grid; gap: 6px; }
+.admin-order-financial-grid dt { color: var(--muted); font-size: 10px; }
+.admin-order-financial-grid dd { margin: 0; font-size: 13px; font-weight: 800; overflow-wrap: anywhere; }
+.admin-order-history { margin: 0; padding: 0; list-style: none; display: grid; }
+.admin-order-history li { display: grid; grid-template-columns: 12px 1fr; gap: 11px; padding: 0 0 18px; }
+.admin-order-history i { width: 9px; height: 9px; margin-top: 4px; border: 2px solid var(--acid); border-radius: 50%; box-shadow: 0 0 0 4px rgba(184,255,53,.08); }
+.admin-order-history div { display: grid; gap: 4px; }
+.admin-order-history strong { font-size: 12px; }
+.admin-order-history span, .admin-order-history p { margin: 0; color: var(--muted); font-size: 10px; }
+
+.admin-modal--confirm { z-index: 230; }
+.admin-modal--confirm .admin-modal__surface { width: min(520px, 100%); }
+.admin-modal--confirm h2 { margin: 10px 0; font: 800 clamp(25px, 4vw, 35px)/1 var(--display); }
+.admin-modal--confirm p { color: var(--muted); font-size: 13px; }
+.admin-modal--confirm dl { margin: 20px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.admin-modal--confirm dl div { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 6px; }
+.admin-modal--confirm dt { color: var(--muted); font-size: 9px; }
+.admin-modal--confirm dd { margin: 0; font-size: 12px; font-weight: 800; overflow-wrap: anywhere; }
+.admin-modal--confirm section > div:last-child { display: flex; justify-content: flex-end; gap: 10px; }
+
+.admin-management-search { width: min(620px, 100%); display: grid; gap: 8px; }
+.admin-management-search span, .admin-product-filters label > span { color: var(--faint); font-size: 10px; font-weight: 800; letter-spacing: .11em; }
+.admin-management-search input, .admin-product-filters select { width: 100%; min-height: 49px; border: 1px solid var(--line); border-radius: 9px; padding-inline: 13px; background: rgba(0,0,0,.25); color: var(--text); font-size: 13px; }
+.admin-product-tools { display: grid; gap: 18px; margin-bottom: 24px; }
+.admin-product-filters { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: 10px; }
+.admin-product-filters label { min-width: 0; display: grid; gap: 7px; }
+.admin-product-results { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 11px; }
+.admin-product-results strong { color: var(--text); font-size: 12px; }
+.admin-product-results button { margin-left: auto; border: 0; border-bottom: 1px solid currentColor; background: none; color: var(--acid); font-size: 9px; font-weight: 800; cursor: pointer; }
+.admin-product-table { min-width: 1120px; }
+.admin-price-stack { display: grid; gap: 4px; }
+.admin-price-stack del { color: var(--faint); font-size: 10px; }
+.admin-price-stack strong { color: var(--text); }
+.admin-quick-fields { display: flex; gap: 7px; flex-wrap: wrap; }
+.admin-quick-fields label { width: 105px; display: grid; gap: 4px; }
+.admin-quick-fields span { color: var(--faint); font-size: 8px; font-weight: 800; }
+.admin-quick-fields input { width: 100%; min-height: 38px; border: 1px solid var(--line); border-radius: 7px; padding: 0 8px; background: #101012; color: var(--text); font-size: 12px; }
+.admin-pagination { margin-top: 24px; display: flex; justify-content: center; gap: 7px; flex-wrap: wrap; }
+.admin-pagination button { min-width: 39px; min-height: 39px; border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; background: transparent; color: var(--text); font-size: 9px; font-weight: 800; cursor: pointer; }
+.admin-pagination button.is-active { border-color: var(--acid); background: var(--acid); color: #050505; }
+.admin-pagination button:disabled { opacity: .35; cursor: default; }
+.admin-category-search { margin-bottom: 22px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+.admin-category-search > strong { color: var(--muted); font-size: 11px; white-space: nowrap; }
+
+@media (max-width: 1100px) {
+  .admin-product-filters { grid-template-columns: repeat(3, 1fr); }
+  .admin-order-financial-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+  .admin-modal { padding: 8px; align-items: stretch; }
+  .admin-modal__surface { max-height: calc(100dvh - 16px); border-radius: 15px; padding: 18px 14px; }
+  .admin-order-status-editor { grid-template-columns: 1fr; }
+  .admin-order-modal__summary { grid-template-columns: 1fr; }
+  .admin-order-product-list article { grid-template-columns: 58px minmax(0, 1fr); }
+  .admin-order-product-list img, .admin-order-product-placeholder { width: 58px; height: 54px; }
+  .admin-order-product-price { grid-column: 2; justify-items: start; text-align: left; }
+  .admin-order-financial-grid { grid-template-columns: 1fr 1fr; }
+  .admin-product-filters { grid-template-columns: 1fr 1fr; }
+  .admin-category-search { align-items: stretch; flex-direction: column; }
+  .admin-category-search > strong { white-space: normal; }
+  .admin-product-table { min-width: 0; }
+  .admin-product-table td[data-label="Pricing"], .admin-product-table td[data-label="Stock"], .admin-product-table td[data-label="Actions"] { align-items: flex-start; }
+  .admin-quick-fields { justify-content: flex-end; }
+}
+@media (max-width: 380px) {
+  .admin-product-filters, .admin-order-financial-grid, .admin-modal--confirm dl { grid-template-columns: 1fr; }
+  .admin-modal--confirm section > div:last-child { display: grid; }
+  .admin-modal--confirm .btn { width: 100%; }
+  .admin-order-modal__section-head { display: grid; }
+}

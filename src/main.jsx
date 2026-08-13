@@ -7,6 +7,7 @@ import './styles/sprint64d-account-admin.css';
 import './styles/sprint64e.css';
 import './styles/sprint64f.css';
 import './styles/sprint64h.css';
+import './styles/sprint64g.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
