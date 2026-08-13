@@ -44,13 +44,13 @@ function useShopPageSize() {
   return pageSize;
 }
 
-function AdvancedShopCatalog({ onSaved, categoryMode = false }) {
-  const { products, loading, error } = useProducts();
+function AdvancedShopCatalog({ onSaved, categoryMode = false, searchTerm }) {
+  const search = (searchTerm ?? new URLSearchParams(window.location.search).get('search') ?? '').trim().toLowerCase();
+  const { products, loading, error } = useProducts(search ? { search } : {});
   const [filters, setFilters] = useState(initialFilters);
   const [page, setPage] = useState(() => Math.max(1, Number(new URLSearchParams(window.location.search).get('page')) || 1));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pageSize = useShopPageSize();
-  const search = new URLSearchParams(window.location.search).get('search')?.trim().toLowerCase() || '';
   const minPrice = filters.minPrice === '' ? null : Number(filters.minPrice);
   const maxPrice = filters.maxPrice === '' ? null : Number(filters.maxPrice);
   const priceError = (minPrice !== null && Number.isFinite(minPrice) && minPrice < 0) || (maxPrice !== null && Number.isFinite(maxPrice) && maxPrice < 0)
@@ -77,7 +77,7 @@ function AdvancedShopCatalog({ onSaved, categoryMode = false }) {
 
   const filteredProducts = useMemo(() => products.filter((product) => {
     const has = (selected, values) => selected.length === 0 || selected.some((selection) => values.some((value) => value.toLowerCase() === selection.toLowerCase()));
-    if (search && ![product.name, product.brand, product.category, product.sku].some((value) => value.toLowerCase().includes(search))) return false;
+    if (search && ![product.name, product.brand, product.category, product.sku].some((value) => String(value || '').toLowerCase().includes(search))) return false;
     if (filters.onSale && !(product.originalPrice > product.price)) return false;
     if (!has(filters.brands, [product.brand])) return false;
     if (!has(filters.sizes, product.sizes.map(europeanSize).filter(Boolean))) return false;
@@ -96,6 +96,12 @@ function AdvancedShopCatalog({ onSaved, categoryMode = false }) {
   const pageProducts = filteredProducts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const resultStart = filteredProducts.length ? (currentPage - 1) * pageSize + 1 : 0;
   const resultEnd = Math.min(currentPage * pageSize, filteredProducts.length);
+
+  useEffect(() => {
+    const resetPage = () => setPage(1);
+    window.addEventListener('kickz:shop-search', resetPage);
+    return () => window.removeEventListener('kickz:shop-search', resetPage);
+  }, []);
 
   useEffect(() => {
     document.body.classList.toggle('shop-filter-open', drawerOpen);
@@ -174,7 +180,7 @@ function NewDropsCatalog({ onSaved }) {
   </div></section>;
 }
 
-export default function ShopCatalog({ initialView = 'all', onSaved }) {
+export default function ShopCatalog({ initialView = 'all', onSaved, searchTerm }) {
   if (initialView === 'new') return <NewDropsCatalog onSaved={onSaved} />;
-  return <AdvancedShopCatalog onSaved={onSaved} categoryMode={initialView === 'categories'} />;
+  return <AdvancedShopCatalog onSaved={onSaved} categoryMode={initialView === 'categories'} searchTerm={searchTerm} />;
 }

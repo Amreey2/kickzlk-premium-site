@@ -8,6 +8,7 @@ import './styles/sprint64e.css';
 import './styles/sprint64f.css';
 import './styles/sprint64h.css';
 import './styles/sprint64g.css';
+import './styles/shop-search.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
