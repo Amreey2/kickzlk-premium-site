@@ -1,0 +1,287 @@
+/* Sprint 6.4E — targeted readability corrections from the supplied red-box references. */
+
+/* Customer login */
+.login-page .auth-layout {
+  grid-template-columns: minmax(0, .92fr) minmax(420px, 1fr);
+  gap: clamp(38px, 5vw, 76px);
+}
+
+.login-page .auth-intro {
+  min-width: 0;
+  align-self: start;
+  padding-top: clamp(18px, 2vw, 30px);
+}
+
+.login-page .auth-intro h1 {
+  width: 100%;
+  max-width: 100%;
+  margin: 14px 0 18px;
+  font-family: var(--body);
+  font-size: clamp(40px, 3.8vw, 58px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.05em;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.login-page .auth-intro > p {
+  color: #cacac5;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.login-page .auth-assurance {
+  margin-top: 34px;
+  padding-top: 22px;
+}
+
+.login-page .auth-assurance strong { font-size: 11px; }
+.login-page .auth-assurance span { color: #bcbcb6; font-size: 13px; line-height: 1.55; }
+.login-page .auth-back { color: #d8d8d3; font-size: 11px; }
+.login-page .auth-panel { border-color: rgba(255, 255, 255, .2); }
+.login-page .form-field > span { color: #e2e2de; font-size: 11px; }
+
+.login-page .form-field input {
+  min-height: 54px;
+  border-color: rgba(255, 255, 255, .24);
+  background: rgba(255, 255, 255, .055);
+  color: #f8f8f5;
+  font-size: 16px;
+}
+
+.login-page .form-field input::placeholder { color: #9b9b95; }
+.login-page .form-link { color: #c5c5bf; font-size: 10px; }
+.login-page .form-link:hover,
+.login-page .form-link:focus-visible { color: var(--acid); }
+
+.login-page .customer-form > .btn {
+  min-height: 52px;
+  font-size: 11px;
+}
+
+.login-page .auth-switch { color: #aaa9a3; font-size: 11px; line-height: 1.55; }
+.login-page .auth-switch a { color: #f1f1ed; }
+
+.login-page .guest-track-login {
+  gap: 20px;
+  margin-top: 30px;
+  padding-top: 28px;
+}
+
+.login-page .guest-track-login__intro h2 {
+  margin: 10px 0 8px;
+  font-size: clamp(25px, 2.15vw, 32px);
+  line-height: 1;
+}
+
+.login-page .guest-track-login__intro p {
+  color: #bdbdb7;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* My Account */
+.account-page .page-hero {
+  padding-top: clamp(42px, 4vw, 62px);
+  padding-bottom: clamp(28px, 3vw, 42px);
+}
+
+.account-page .page-hero h1 {
+  margin: 10px 0 9px;
+  font-size: clamp(42px, 4.8vw, 70px);
+  line-height: .94;
+}
+
+.account-page .page-hero p { color: #c3c3bd; }
+
+.account-page .account-section {
+  padding-top: clamp(24px, 2.5vw, 36px);
+  padding-bottom: clamp(50px, 5vw, 76px);
+}
+
+.account-page .account-layout { gap: clamp(20px, 2.5vw, 34px); }
+.account-page .account-content { gap: 14px; }
+
+.account-page .profile-card,
+.account-page .account-panel { border-color: rgba(255, 255, 255, .19); }
+
+.account-page .account-panel { padding: clamp(20px, 2vw, 26px); }
+.account-page .account-heading { margin-bottom: 15px; }
+
+.account-page .account-heading h2 {
+  margin-top: 7px;
+  font-size: clamp(27px, 2.45vw, 36px);
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+
+.account-page .section-kicker { font-size: 10px; }
+.account-page .profile-card dd { color: #e3e3df; }
+.account-page .profile-card dt { color: #aeaea8; }
+
+.account-page .address-card {
+  border-color: rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, .025);
+}
+
+.account-page .address-card > div span { font-size: 10px; }
+.account-page .address-card > div strong { font-size: 9px; }
+.account-page .address-card h3 { color: #f5f5f2; font-size: 19px; }
+.account-page .address-card p { color: #d0d0ca; font-size: 14px; line-height: 1.55; }
+
+.account-page .address-card footer button {
+  min-height: 30px;
+  color: #e6e6e1;
+  font-size: 10px;
+}
+
+.account-page .account-orders { gap: 12px; }
+
+.account-page .account-order-card {
+  grid-template-columns: minmax(170px, .85fr) minmax(190px, 1fr) minmax(225px, 1.15fr) auto;
+  gap: 18px;
+  padding: 18px 20px;
+  border-color: rgba(255, 255, 255, .2);
+  background: rgba(255, 255, 255, .022);
+}
+
+.account-page .account-order-card__head > div { gap: 5px; }
+.account-page .account-order-card__head > div > span { color: #b5b5af; font-size: 10px; }
+.account-page .account-order-card__head > div > strong { color: #f5f5f2; font-size: 14px; }
+.account-page .account-order-card__head small { color: #bdbdb7; font-size: 11px; }
+
+.account-page .account-order-card__head em {
+  padding: 7px 10px;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.account-page .account-order-product strong { color: #f5f5f2; font-size: 14px; }
+.account-page .account-order-product span { color: #c2c2bc; font-size: 12px; }
+.account-page .account-order-card > dl dt { color: #aaa9a3; font-size: 10px; }
+.account-page .account-order-card > dl dd { color: #f2f2ee; font-size: 13px; }
+.account-page .account-order-card > footer span { color: #c5c5bf; font-size: 11px; }
+.account-page .account-order-card > footer strong { font-size: 10px; }
+
+/* Admin login */
+.admin-login-card { border-color: rgba(255, 255, 255, .22); }
+.admin-login-brand span,
+.admin-login-card .admin-kicker { font-size: 11px; }
+
+.admin-login-card h1 {
+  margin: 14px 0 18px;
+  font-size: clamp(48px, 5vw, 66px);
+  line-height: .92;
+  letter-spacing: -.045em;
+}
+
+.admin-login-card > p { color: #d0d0ca; font-size: 16px; line-height: 1.6; }
+.admin-login-card .form-field > span { color: #e4e4df; font-size: 11px; }
+
+.admin-login-card .form-field input {
+  min-height: 54px;
+  border-color: rgba(255, 255, 255, .25);
+  background: rgba(255, 255, 255, .05);
+  color: #f8f8f5;
+  font-size: 16px;
+}
+
+.admin-login-card .form-field input::placeholder { color: #9c9c96; }
+.admin-login-card .admin-checkbox { color: #d0d0ca; font-size: 13px; }
+.admin-login-card .btn { font-size: 12px; }
+.admin-login-note { color: #aaa9a3; font-size: 11px; }
+
+/* The attached admin screenshots highlight these two low-density readability surfaces. */
+.admin-activity { max-width: 820px; }
+.admin-activity .admin-panel__head h2 { font-size: 27px; }
+.admin-activity .admin-panel__head > a { color: #c4c4be; font-size: 10px; }
+
+.admin-activity article {
+  grid-template-columns: 105px minmax(0, 1fr);
+  gap: 22px;
+  padding: 19px 0;
+}
+
+.admin-activity article > span { color: #aaa9a3; font-size: 11px; }
+.admin-activity article strong { color: #f0f0ec; font-size: 13px; }
+.admin-activity article p { color: #bebeb8; font-size: 11px; line-height: 1.5; }
+
+.admin-order-search > span { color: #c1c1bb; font-size: 11px; }
+
+.admin-order-search input {
+  min-height: 50px;
+  border-color: rgba(255, 255, 255, .22);
+  color: #f3f3ef;
+  font-size: 15px;
+}
+
+.admin-order-search input::placeholder { color: #93938d; }
+.admin-orders-table th { color: #b0b0aa; font-size: 11px; }
+.admin-orders-table td { color: #d1d1cb; font-size: 13px; line-height: 1.5; }
+.admin-orders-table td > strong { font-size: 13px; }
+.admin-orders-table td > small { color: #9e9e98; font-size: 9px; }
+.admin-orders-table .admin-status { font-size: 10px; }
+
+.admin-orders-table select {
+  min-height: 44px;
+  border-color: rgba(255, 255, 255, .22);
+  font-size: 12px;
+}
+
+.admin-orders-table .admin-text-button { color: #f0f0ec; font-size: 10px; }
+
+@media (max-width: 1279px) and (min-width: 961px) {
+  .login-page .auth-layout {
+    grid-template-columns: minmax(0, .86fr) minmax(390px, 1fr);
+    gap: 34px;
+  }
+
+  .login-page .auth-intro h1 { font-size: clamp(38px, 4vw, 50px); }
+  .account-page .account-order-card { grid-template-columns: 1fr 1fr; }
+  .account-page .account-order-card > footer { justify-items: end; }
+}
+
+@media (max-width: 960px) {
+  .login-page .auth-layout { grid-template-columns: minmax(0, 1fr); }
+  .login-page .auth-intro { padding-top: 0; }
+  .account-page .account-order-card { grid-template-columns: 1fr 1fr; }
+  .admin-activity { max-width: none; }
+}
+
+@media (max-width: 650px) {
+  .login-page .auth-intro h1 {
+    margin: 10px 0 13px;
+    font-size: clamp(28px, 8.7vw, 36px);
+    line-height: 1;
+  }
+
+  .login-page .auth-intro > p { font-size: 15px; line-height: 1.55; }
+  .login-page .auth-assurance { margin-top: 22px; padding-top: 18px; }
+  .login-page .auth-panel { padding: 22px 18px; }
+  .login-page .guest-track-login { margin-top: 26px; padding-top: 23px; }
+  .login-page .guest-track-login__intro h2 { font-size: clamp(24px, 7.8vw, 30px); }
+  .login-page .guest-track-login form { width: 100%; grid-template-columns: minmax(0, 1fr); }
+  .login-page .guest-track-login .form-field,
+  .login-page .guest-track-login .btn { width: 100%; min-width: 0; }
+
+  .account-page .page-hero { padding-top: 34px; padding-bottom: 24px; }
+  .account-page .page-hero h1 { font-size: clamp(36px, 11vw, 46px); }
+  .account-page .account-section { padding-top: 20px; padding-bottom: 54px; }
+  .account-page .account-heading h2 { font-size: clamp(25px, 8vw, 32px); }
+  .account-page .account-order-card { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .account-page .account-order-card > footer { justify-items: start; text-align: left; }
+  .account-page .account-order-card > dl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  .admin-login-card h1 { font-size: clamp(42px, 13vw, 52px); }
+  .admin-login-card > p { font-size: 15px; }
+  .admin-login-card .form-field input { font-size: 16px; }
+
+  .admin-activity article { grid-template-columns: 82px minmax(0, 1fr); gap: 14px; }
+  .admin-orders-table td { font-size: 13px; }
+}
+
+@media (max-width: 340px) {
+  .login-page .auth-intro h1 { font-size: 27px; }
+  .account-page .account-order-card > dl { grid-template-columns: 1fr; }
+}

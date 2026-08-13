@@ -10,7 +10,7 @@ export default function ContactPage() {
       <section className="contact-intro">
         <div className="container contact-intro__inner reveal">
           <span className="section-kicker">SIZING · SOURCING · ORDERS</span>
-          <h1>CONTACT KICKZ.LK</h1>
+          <h1>CONTACT US</h1>
           <p>Talk to KICKZ.LK for sizing guidance, current pricing, sourcing availability and order updates.</p>
         </div>
       </section>

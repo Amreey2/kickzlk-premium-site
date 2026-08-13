@@ -84,7 +84,7 @@ export default function AccountPage() {
   const logout = async () => { await authApi.logout(); window.location.assign('/'); };
 
   return (
-    <PageShell>
+    <PageShell mainClassName="site-main account-page">
       <PageHero kicker="CUSTOMER PROFILE" title="MY ACCOUNT" copy="Manage your profile, saved delivery details and KICKZ.LK order journey." />
       <section className="account-section section-pad"><div className="container account-layout">
         <aside className="profile-card reveal">
