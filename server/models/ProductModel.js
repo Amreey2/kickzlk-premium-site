@@ -13,6 +13,7 @@ const mapProduct = (row) => {
   if (!row) return null;
   const product = {
     id: row.slug || String(row.id),
+    databaseId: Number(row.id),
     sku: row.sku,
     name: row.name,
     brand: row.brand,
@@ -42,8 +43,6 @@ const mapProduct = (row) => {
     updatedAt: row.updated_at,
   };
 
-  // Orders need the numeric foreign key, but API JSON must expose only the public slug id.
-  Object.defineProperty(product, 'databaseId', { value: row.id, enumerable: false });
   return product;
 };
 

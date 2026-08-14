@@ -73,7 +73,11 @@ try {
   if (!(await columnExists('orders', 'shipping_city'))) await connection.query('ALTER TABLE orders ADD COLUMN shipping_city VARCHAR(120) NULL AFTER shipping_address');
   if (!(await columnExists('orders', 'subtotal_amount'))) await connection.query('ALTER TABLE orders ADD COLUMN subtotal_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER idempotency_key');
   if (!(await columnExists('orders', 'discount_amount'))) await connection.query('ALTER TABLE orders ADD COLUMN discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER subtotal_amount');
-  if (!(await columnExists('orders', 'coupon_code'))) await connection.query('ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(50) NULL AFTER discount_amount');
+  if (!(await columnExists('orders', 'eligible_subtotal_amount'))) await connection.query('ALTER TABLE orders ADD COLUMN eligible_subtotal_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER discount_amount');
+  if (!(await columnExists('orders', 'coupon_id'))) await connection.query('ALTER TABLE orders ADD COLUMN coupon_id BIGINT UNSIGNED NULL AFTER eligible_subtotal_amount');
+  if (!(await columnExists('orders', 'coupon_code'))) await connection.query('ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(50) NULL AFTER coupon_id');
+  if (!(await columnExists('orders', 'coupon_discount_type'))) await connection.query('ALTER TABLE orders ADD COLUMN coupon_discount_type VARCHAR(20) NULL AFTER coupon_code');
+  if (!(await columnExists('orders', 'coupon_discount_value'))) await connection.query('ALTER TABLE orders ADD COLUMN coupon_discount_value DECIMAL(12,2) NULL AFTER coupon_discount_type');
   if (!(await columnExists('orders', 'payment_option'))) await connection.query("ALTER TABLE orders ADD COLUMN payment_option VARCHAR(20) NOT NULL DEFAULT 'advance' AFTER total_amount");
   if (!(await columnExists('orders', 'advance_percentage'))) await connection.query('ALTER TABLE orders ADD COLUMN advance_percentage DECIMAL(5,2) NOT NULL DEFAULT 50 AFTER payment_option');
   if (!(await columnExists('orders', 'advance_amount'))) await connection.query('ALTER TABLE orders ADD COLUMN advance_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER total_amount');
@@ -119,6 +123,7 @@ try {
   await connection.query("UPDATE orders SET tracking_number = CONCAT('KZTRK-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 8, '0')) WHERE tracking_number IS NULL OR tracking_number = ''");
   await connection.query("UPDATE orders SET order_number = CONCAT('KZ-', LPAD(CAST(id AS CHAR), GREATEST(5, CHAR_LENGTH(CAST(id AS CHAR))), '0'))");
   await connection.query('UPDATE orders SET subtotal_amount = total_amount + discount_amount WHERE subtotal_amount = 0');
+  await connection.query('UPDATE orders SET eligible_subtotal_amount = subtotal_amount WHERE eligible_subtotal_amount = 0 AND coupon_code IS NOT NULL');
   await connection.query("UPDATE orders SET payment_option = CASE WHEN pending_amount = 0 AND total_amount > 0 THEN 'full' ELSE 'advance' END");
   await connection.query("UPDATE orders SET advance_percentage = CASE WHEN payment_option = 'full' THEN 100 ELSE 50 END, advance_amount = CASE WHEN payment_option = 'full' THEN total_amount ELSE ROUND(total_amount * 0.5) END, pending_amount = CASE WHEN payment_option = 'full' THEN 0 ELSE total_amount - ROUND(total_amount * 0.5) END");
   await connection.query("UPDATE orders SET payment_status = CASE WHEN payment_status IN ('Payment Confirmed', 'Deposit Paid', 'Paid') THEN CASE WHEN payment_option = 'full' THEN 'Full Payment Confirmed' ELSE '50% Payment Confirmed' END ELSE CASE WHEN payment_option = 'full' THEN 'Payment Pending — Full Amount' ELSE 'Payment Pending — 50% Advance' END END");
@@ -126,8 +131,10 @@ try {
   await connection.query("UPDATE orders SET paid_amount = CASE WHEN payment_status = 'Full Payment Confirmed' THEN total_amount WHEN payment_status = '50% Payment Confirmed' THEN advance_amount ELSE 0 END");
   await connection.query("UPDATE site_settings SET setting_value = JSON_SET(setting_value, '$.advancePercentage', 50) WHERE setting_key = 'payment_settings' AND CAST(JSON_UNQUOTE(JSON_EXTRACT(setting_value, '$.advancePercentage')) AS DECIMAL(5,2)) = 30");
   await connection.query('ALTER TABLE orders MODIFY tracking_number VARCHAR(50) NOT NULL');
+  if (!(await indexExists('orders', 'idx_orders_coupon'))) await connection.query('ALTER TABLE orders ADD KEY idx_orders_coupon (coupon_id)');
   if (!(await indexExists('orders', 'uq_orders_tracking'))) await connection.query('ALTER TABLE orders ADD UNIQUE KEY uq_orders_tracking (tracking_number)');
   if (!(await indexExists('orders', 'uq_orders_idempotency'))) await connection.query('ALTER TABLE orders ADD UNIQUE KEY uq_orders_idempotency (idempotency_key)');
+
 
   const defaultBrands = ['Nike', 'Jordan', 'Adidas', 'New Balance', 'Puma', 'Balmain', 'Christian Louboutin'];
   for (const brand of defaultBrands) {

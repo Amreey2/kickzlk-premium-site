@@ -31,7 +31,7 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false); const [message, setMessage] = useState('');
 
   useEffect(() => { settingsApi.paymentSettings().then(setSettings).catch((error) => setMessage(error.message)); }, []);
-  useEffect(() => { if (!requestItems.length) return undefined; let active = true; ordersApi.quote({ items: requestItems, couponCode, paymentOption }).then((value) => { if (active) setQuote(value); }).catch((error) => { if (active) setMessage(error.message); }); return () => { active = false; }; }, [couponCode, paymentOption, JSON.stringify(requestItems)]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!requestItems.length) return undefined; let active = true; ordersApi.quote({ items: requestItems, couponCode, paymentOption, email: customer.email }).then((value) => { if (active) setQuote(value); }).catch((error) => { if (active) setMessage(error.message); }); return () => { active = false; }; },  [couponCode, paymentOption, customer.email, JSON.stringify(requestItems)]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     let active = true;
     authApi.session().then(async (session) => {

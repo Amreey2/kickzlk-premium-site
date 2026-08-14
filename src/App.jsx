@@ -17,6 +17,7 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
 import ShopPage from './pages/ShopPage';
 import AdminCustomersPage from './pages/admin/AdminCustomersPage';
+import AdminCouponsPage from './pages/admin/AdminCouponsPage';
 import AdminBrandsPage from './pages/admin/AdminBrandsPage';
 import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -57,6 +58,7 @@ const routes = {
   '/admin/products/new': AdminProductFormPage,
   '/admin/orders': AdminOrdersPage,
   '/admin/customers': AdminCustomersPage,
+  '/admin/coupons': AdminCouponsPage,
   '/admin/settings': AdminSettingsPage,
 };
 

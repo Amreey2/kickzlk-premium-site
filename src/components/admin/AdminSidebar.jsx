@@ -7,8 +7,9 @@ const items = [
   ['/admin/brands', 'Brands', '04'],
   ['/admin/categories', 'Categories', '05'],
   ['/admin/orders', 'Orders', '06'],
-  ['/admin/customers', 'Customers', '07'],
-  ['/admin/settings', 'Settings', '08'],
+  ['/admin/coupons', 'Coupons', '07'],
+  ['/admin/customers', 'Customers', '08'],
+  ['/admin/settings', 'Settings', '09'],
 ];
 
 export default function AdminSidebar({ open, onClose }) {

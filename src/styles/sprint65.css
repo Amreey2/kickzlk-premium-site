@@ -1,0 +1,35 @@
+/* Sprint 6.5 — coupon management and compact customer promotion summaries. */
+.coupon-admin-form > section + section { margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--line); }
+.coupon-target-search { margin-top: 18px; display: grid; gap: 8px; }
+.coupon-target-search span { color: var(--faint); font-size: 10px; font-weight: 800; letter-spacing: .11em; }
+.coupon-target-search input { min-height: 49px; border: 1px solid var(--line); border-radius: 9px; padding-inline: 13px; background: #101012; color: var(--text); }
+.coupon-target-grid { margin-top: 18px; max-height: 320px; overflow: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.coupon-target-grid label { min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.coupon-target-grid input { accent-color: var(--acid); flex: 0 0 auto; }
+.coupon-target-grid span { min-width: 0; display: grid; gap: 4px; }
+.coupon-target-grid strong { font-size: 12px; overflow-wrap: anywhere; }
+.coupon-target-grid small { color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.coupon-admin-tools { margin-bottom: 22px; display: grid; grid-template-columns: minmax(240px, 1fr) 220px auto; gap: 14px; align-items: end; }
+.coupon-admin-tools > label:not(.admin-management-search) { display: grid; gap: 8px; }
+.coupon-admin-tools label > span { color: var(--faint); font-size: 10px; font-weight: 800; letter-spacing: .11em; }
+.coupon-admin-tools select { min-height: 49px; border: 1px solid var(--line); border-radius: 9px; padding-inline: 13px; background: #101012; color: var(--text); }
+.coupon-admin-tools > strong { padding-bottom: 17px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.coupon-admin-table { min-width: 1080px; }
+.coupon-admin-table td:first-child { display: grid; gap: 4px; }
+.coupon-admin-table td:first-child small { color: var(--muted); }
+.coupon-applied { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.coupon-applied strong { color: var(--acid); font-size: 11px; }
+.coupon-applied button { border: 0; border-bottom: 1px solid currentColor; padding: 0; background: none; color: var(--muted); font-size: 9px; font-weight: 800; cursor: pointer; }
+.order-coupon-summary { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.order-coupon-summary div, .account-order-coupon { display: flex; justify-content: space-between; gap: 12px; }
+.order-coupon-summary strong, .account-order-coupon strong { color: var(--acid); }
+@media (max-width: 800px) {
+  .coupon-target-grid { grid-template-columns: 1fr 1fr; }
+  .coupon-admin-tools { grid-template-columns: 1fr 1fr; }
+  .coupon-admin-tools .admin-management-search { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+  .coupon-target-grid, .coupon-admin-tools { grid-template-columns: 1fr; }
+  .coupon-admin-tools .admin-management-search { grid-column: auto; }
+  .coupon-admin-tools > strong { padding-bottom: 0; white-space: normal; }
+}

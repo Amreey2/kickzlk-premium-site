@@ -51,6 +51,7 @@ const normalizeProduct = (product) => {
   const cdnImages = Array.isArray(product.cdnImages) ? product.cdnImages.map(String) : [];
   return {
     id,
+    databaseId: Number(product.databaseId || 0),
     slug: String(product.slug || id),
     sku: String(product.sku || ''),
     name: String(product.name || ''),

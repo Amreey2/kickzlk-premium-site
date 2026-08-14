@@ -8,6 +8,7 @@ import CatalogService from '../services/CatalogService.js';
 import ProductImportService, { CSV_COLUMNS } from '../services/ProductImportService.js';
 import ProductImportModel from '../models/ProductImportModel.js';
 import ProductModel from '../models/ProductModel.js';
+import CouponService from '../services/CouponService.js';
 import SiteSettingService from '../services/SiteSettingService.js';
 import { serializeCsv } from '../utils/csv.js';
 import { ensureProductColorVariantsColumn } from '../scripts/migrations/ensure-product-color-variants.js';
@@ -130,6 +131,7 @@ describe('order services', () => {
     const service = new OrderService({
       productModel: { findById: async () => ({ id: 6, name: 'Dunk Low', price: 50000, originalPrice: 60000, size: ['40'], colorVariations: ['Black'] }) },
       orderModel: {}, siteSettingService: { paymentSettings: async () => ({ advancePercentage: 50, methodName: 'Bank Transfer' }) },
+      couponService: new CouponService({ couponModel: { findByCode: async (code) => code === 'KICKZ10' ? { id: 1, code, status: 'Active', discountType: 'Percentage', discountValue: 10, appliesTo: 'store', minimumOrderAmount: 0, totalUsageLimit: null, perCustomerLimit: null, productIds: [], categoryIds: [] } : null, usage: async () => ({ total: 0, customer: 0 }) }, productModel: {}, categoryModel: {} }),
     });
     const quote = await service.quote({ couponCode: 'KICKZ10', items: [{ productId: 6, selectedSize: '40', selectedColor: 'Black', quantity: 2 }] });
     assert.equal(quote.subtotalAmount, 100000);
@@ -515,5 +517,51 @@ describe('global size guide settings', () => {
     assert.deepEqual(publicMedia.items.map((item) => item.id), ['first', 'second']);
     assert.equal((await service.adminHomepageMedia()).items.length, 3);
     await assert.rejects(() => service.updateHomepageMedia({ items: [{ url: 'javascript:alert(1)' }] }), (error) => error.code === 'INVALID_MEDIA_URL');
+  });
+});
+
+
+describe('coupon promotion services', () => {
+  const item = { productId: 11, categoryId: 5, productName: 'Dunk', price: 50000, quantity: 2 };
+  const base = { id: 1, code: 'SAVE10', status: 'Active', discountType: 'Percentage', discountValue: 10,
+    appliesTo: 'store', minimumOrderAmount: 0, totalUsageLimit: null, perCustomerLimit: null,
+    productIds: [], categoryIds: [], startsAt: null, expiresAt: null };
+  const serviceFor = (coupon = base, usage = { total: 0, customer: 0 }) => new CouponService({
+    couponModel: { findByCode: async (code) => code === coupon?.code ? coupon : null, usage: async () => usage },
+    productModel: {}, categoryModel: {},
+  });
+
+  test('normalizes case and calculates percentage and fixed discounts against eligible items', async () => {
+    const percentage = await serviceFor().validate({ code: ' save10 ', items: [item], subtotal: 100000, email: 'Guest@Example.com' });
+    assert.equal(percentage.couponCode, 'SAVE10');
+    assert.equal(percentage.discountAmount, 10000);
+    assert.equal(percentage.customerKey, 'email:guest@example.com');
+
+    const fixedCoupon = { ...base, code: 'FIXED', discountType: 'Fixed', discountValue: 120000 };
+    const fixed = await serviceFor(fixedCoupon).validate({ code: 'fixed', items: [item], subtotal: 100000 });
+    assert.equal(fixed.discountAmount, 100000);
+  });
+
+  test('limits product and category coupons to the eligible subtotal', async () => {
+    const other = { ...item, productId: 12, categoryId: 6, price: 40000, quantity: 1 };
+    const productCoupon = { ...base, appliesTo: 'products', productIds: [11] };
+    const productResult = await serviceFor(productCoupon).validate({ code: 'SAVE10', items: [item, other], subtotal: 140000 });
+    assert.equal(productResult.eligibleSubtotalAmount, 100000);
+    assert.equal(productResult.discountAmount, 10000);
+
+    const categoryCoupon = { ...base, appliesTo: 'categories', categoryIds: [6] };
+    const categoryResult = await serviceFor(categoryCoupon).validate({ code: 'SAVE10', items: [item, other], subtotal: 140000 });
+    assert.equal(categoryResult.eligibleSubtotalAmount, 40000);
+    assert.equal(categoryResult.discountAmount, 4000);
+  });
+
+  test('returns customer-friendly errors for invalid, inactive, expired, minimum, targeting, and usage rules', async () => {
+    await assert.rejects(() => serviceFor().validate({ code: 'NOPE', items: [item], subtotal: 100000 }), (error) => error.code === 'INVALID_COUPON');
+    await assert.rejects(() => serviceFor({ ...base, status: 'Inactive' }).validate({ code: 'SAVE10', items: [item], subtotal: 100000 }), (error) => error.code === 'COUPON_INACTIVE');
+    await assert.rejects(() => serviceFor({ ...base, expiresAt: new Date(Date.now() - 1000) }).validate({ code: 'SAVE10', items: [item], subtotal: 100000 }), (error) => error.code === 'COUPON_EXPIRED');
+    await assert.rejects(() => serviceFor({ ...base, minimumOrderAmount: 110000 }).validate({ code: 'SAVE10', items: [item], subtotal: 100000 }), (error) => error.code === 'COUPON_MINIMUM_NOT_REACHED');
+    await assert.rejects(() => serviceFor({ ...base, appliesTo: 'products', productIds: [99] }).validate({ code: 'SAVE10', items: [item], subtotal: 100000 }), (error) => error.code === 'COUPON_NOT_APPLICABLE');
+    await assert.rejects(() => serviceFor({ ...base, totalUsageLimit: 2 }, { total: 2, customer: 0 }).validate({ code: 'SAVE10', items: [item], subtotal: 100000 }), (error) => error.code === 'COUPON_LIMIT_REACHED');
+    await assert.rejects(() => serviceFor({ ...base, perCustomerLimit: 1 }, { total: 1, customer: 1 }).validate({ code: 'SAVE10', items: [item], subtotal: 100000, email: 'guest@example.com' }), (error) => error.code === 'COUPON_ALREADY_USED');
   });
 });

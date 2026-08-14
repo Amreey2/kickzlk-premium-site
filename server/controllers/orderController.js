@@ -1,7 +1,7 @@
 import AppError from '../utils/AppError.js';
 
 export const createOrderController = (service) => ({
-  quote: async (request, response) => response.json({ success: true, data: await service.quote(request.body) }),
+  quote: async (request, response) => response.json({ success: true, data: await service.quote(request.body, request.user?.sub || null) }),
   create: async (request, response) => response.status(201).json({
     success: true,
     data: await service.create(request.body, request.user?.sub || null),

@@ -68,6 +68,7 @@ const services = () => ({
     createCategory: async (payload) => ({ id: 2, ...payload }), updateCategory: async (id, payload) => ({ id: Number(id), ...payload }), deleteCategory: async () => undefined,
     createOption: async (payload) => ({ id: 2, ...payload }),
   },
+  couponService: { list: async () => [{ id: 1, code: 'SAVE10' }], create: async (payload) => ({ id: 2, ...payload }), update: async (id, payload) => ({ id: Number(id), ...payload }), archive: async () => undefined },
   productImportService: {
     template: () => 'sku,brand,category,product_name,price,status\n',
     preview: async () => ({ mode: 'preview', totalRows: 1, validRows: 1, failedRows: 0, canImport: true, rows: [] }),
@@ -169,6 +170,15 @@ describe('API contract', () => {
     const fullQuote = await request(instance).post('/api/orders/quote').send({ paymentOption: 'full', items: [{ productId: 12, selectedSize: 'US 9' }] }).expect(200);
     assert.equal(fullQuote.body.data.advanceAmount, 47500);
     assert.equal(fullQuote.body.data.balanceAmount, 0);
+  });
+
+  test('coupon management APIs require administrator authentication', async () => {
+    const instance = app();
+    await request(instance).get('/api/admin/coupons').expect(401);
+    const listed = await request(instance).get('/api/admin/coupons').set('Authorization', 'Bearer ' + adminToken).expect(200);
+    assert.equal(listed.body.data[0].code, 'SAVE10');
+    await request(instance).post('/api/admin/coupons').send({ code: 'NEW10' }).expect(401);
+    await request(instance).post('/api/admin/coupons').set('Authorization', 'Bearer ' + adminToken).send({ code: 'NEW10' }).expect(201);
   });
 
   test('bulk product import APIs require admin authentication', async () => {

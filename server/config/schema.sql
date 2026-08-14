@@ -140,6 +140,48 @@ CREATE TABLE IF NOT EXISTS site_settings (
   PRIMARY KEY (setting_key)
 );
 
+CREATE TABLE IF NOT EXISTS coupons (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  code VARCHAR(50) NOT NULL,
+  name VARCHAR(150) NOT NULL,
+  description VARCHAR(500) NULL,
+  discount_type ENUM('Percentage', 'Fixed') NOT NULL,
+  discount_value DECIMAL(12,2) NOT NULL,
+  status ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active',
+  applies_to ENUM('store', 'products', 'categories') NOT NULL DEFAULT 'store',
+  minimum_order_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+  total_usage_limit INT UNSIGNED NULL,
+  per_customer_limit INT UNSIGNED NULL,
+  starts_at DATETIME NULL,
+  expires_at DATETIME NULL,
+  archived_at DATETIME NULL,
+  created_by BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_coupons_code (code),
+  KEY idx_coupons_status_expiry (status, expires_at),
+  CONSTRAINT fk_coupons_admin FOREIGN KEY (created_by) REFERENCES administrators(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS coupon_products (
+  coupon_id BIGINT UNSIGNED NOT NULL,
+  product_id BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (coupon_id, product_id),
+  KEY idx_coupon_products_product (product_id),
+  CONSTRAINT fk_coupon_products_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE CASCADE,
+  CONSTRAINT fk_coupon_products_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS coupon_categories (
+  coupon_id BIGINT UNSIGNED NOT NULL,
+  category_id BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (coupon_id, category_id),
+  KEY idx_coupon_categories_category (category_id),
+  CONSTRAINT fk_coupon_categories_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE CASCADE,
+  CONSTRAINT fk_coupon_categories_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS orders (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id BIGINT UNSIGNED NULL,
@@ -154,7 +196,11 @@ CREATE TABLE IF NOT EXISTS orders (
   idempotency_key VARCHAR(100) NULL,
   subtotal_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
   discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+  eligible_subtotal_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+  coupon_id BIGINT UNSIGNED NULL,
   coupon_code VARCHAR(50) NULL,
+  coupon_discount_type VARCHAR(20) NULL,
+  coupon_discount_value DECIMAL(12,2) NULL,
   total_amount DECIMAL(12,2) NOT NULL,
   payment_option VARCHAR(20) NOT NULL DEFAULT 'advance',
   advance_percentage DECIMAL(5,2) NOT NULL DEFAULT 50,
@@ -173,7 +219,9 @@ CREATE TABLE IF NOT EXISTS orders (
   KEY idx_orders_user (user_id),
   KEY idx_orders_email (email),
   KEY idx_orders_status (order_status),
-  CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE SET NULL
+  KEY idx_orders_coupon (coupon_id),
+  CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE SET NULL,
+  CONSTRAINT fk_orders_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
@@ -202,6 +250,23 @@ CREATE TABLE IF NOT EXISTS order_status_history (
   PRIMARY KEY (id),
   KEY idx_status_history_order (order_id),
   CONSTRAINT fk_status_history_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS coupon_redemptions (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  coupon_id BIGINT UNSIGNED NOT NULL,
+  order_id BIGINT UNSIGNED NOT NULL,
+  customer_key VARCHAR(320) NOT NULL,
+  customer_id BIGINT UNSIGNED NULL,
+  customer_email VARCHAR(255) NOT NULL,
+  discount_amount DECIMAL(12,2) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_coupon_redemptions_order (order_id),
+  KEY idx_coupon_redemptions_usage (coupon_id, customer_key),
+  CONSTRAINT fk_coupon_redemptions_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_coupon_redemptions_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_coupon_redemptions_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS product_imports (

@@ -1,6 +1,7 @@
 export { ApiError, apiRequest, resolveApiAssetUrl } from './client';
 export { authApi } from './auth';
 export { catalogApi } from './catalog';
+export { couponsApi } from './coupons';
 export { ordersApi } from './orders';
 export { productsApi } from './products';
 export { settingsApi } from './settings';

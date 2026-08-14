@@ -1,5 +1,6 @@
 import AppError from '../utils/AppError.js';
-import { calculateOrderAmounts, DEFAULT_ADVANCE_PERCENTAGE, PAYMENT_OPTIONS } from '../utils/orderPricing.js';
+import { DEFAULT_ADVANCE_PERCENTAGE, PAYMENT_OPTIONS } from '../utils/orderPricing.js';
+import { calculatePaymentAmounts } from './PromotionPricingService.js';
 import { assertEmail, assertPhone, requireFields } from '../utils/validation.js';
 
 export const orderStatuses = [
@@ -10,8 +11,8 @@ export const orderStatuses = [
 ];
 
 export default class OrderService {
-  constructor({ orderModel, productModel, siteSettingService }) {
-    this.orderModel = orderModel; this.productModel = productModel; this.siteSettingService = siteSettingService;
+  constructor({ orderModel, productModel, siteSettingService, couponService }) {
+    this.orderModel = orderModel; this.productModel = productModel; this.siteSettingService = siteSettingService; this.couponService = couponService;
   }
 
   async prepareItems(requestedItems) {
@@ -27,23 +28,32 @@ export default class OrderService {
       const selectedColor = String(requested.selectedColor || '').trim();
       const colors = (product.colorVariations || []).map((color) => String(color).toLowerCase());
       if (selectedColor && colors.length && !colors.includes(selectedColor.toLowerCase())) throw new AppError(`Selected colour is unavailable for ${product.name}.`, 422, 'INVALID_COLOR');
-      const price = Number(product.price);
-      const originalPrice = Number(product.originalPrice || 0) > price ? Number(product.originalPrice) : null;
-      items.push({ productId: product.databaseId || product.id, publicProductId: product.id, productName: product.name,
-        selectedColor: selectedColor || null, selectedSize: String(requested.selectedSize), quantity, price, originalPrice,
-        discountAmount: originalPrice ? (originalPrice - price) * quantity : 0 });
+      const price = Number(product.price); const originalPrice = Number(product.originalPrice || 0) > price ? Number(product.originalPrice) : null;
+      items.push({ productId: product.databaseId || product.id, publicProductId: product.id, categoryId: product.categoryId,
+        productName: product.name, selectedColor: selectedColor || null, selectedSize: String(requested.selectedSize), quantity,
+        price, originalPrice, discountAmount: originalPrice ? (originalPrice - price) * quantity : 0 });
     }
     return items;
   }
 
-  async quote(payload) {
+  async buildQuote(payload, userId = null, connection = null, lockCoupon = false) {
     const items = await this.prepareItems(payload.items);
     const settings = this.siteSettingService ? await this.siteSettingService.paymentSettings() : { advancePercentage: DEFAULT_ADVANCE_PERCENTAGE };
     const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
-    return { items, ...calculateOrderAmounts({ subtotal, couponCode: payload.couponCode,
-      paymentOption: payload.paymentOption, advancePercentage: settings.advancePercentage }),
-    paymentMethod: settings.methodName || 'Bank Transfer' };
+    const promotion = this.couponService
+      ? await this.couponService.validate({ code: payload.couponCode, items, subtotal, customerId: userId, email: payload.email, connection, lock: lockCoupon })
+      : { coupon: null, couponCode: null, couponLabel: null, eligibleSubtotalAmount: 0, discountAmount: 0 };
+    return {
+      items, ...calculatePaymentAmounts({ subtotal, discountAmount: promotion.discountAmount,
+        paymentOption: payload.paymentOption, advancePercentage: settings.advancePercentage }),
+      couponId: promotion.coupon?.id || null, couponCode: promotion.couponCode, couponLabel: promotion.couponLabel,
+      couponDiscountType: promotion.coupon?.discountType || null, couponDiscountValue: promotion.coupon?.discountValue || null,
+      eligibleSubtotalAmount: promotion.eligibleSubtotalAmount, customerKey: promotion.customerKey || null,
+      paymentMethod: settings.methodName || 'Bank Transfer',
+    };
   }
+
+  quote(payload, userId = null) { return this.buildQuote(payload, userId); }
 
   async create(payload, userId = null) {
     requireFields(payload, ['customerName', 'email', 'phoneNumber', 'shippingAddress', 'shippingCity', 'idempotencyKey']);
@@ -52,29 +62,32 @@ export default class OrderService {
     if (!/^[a-zA-Z0-9_-]{16,100}$/.test(idempotencyKey)) throw new AppError('Order submission reference is invalid.', 422, 'INVALID_IDEMPOTENCY_KEY');
     const existing = await this.orderModel.findByIdempotencyKey(idempotencyKey);
     if (existing) return existing;
-    const quote = await this.quote(payload);
-    const paymentStatus = quote.paymentOption === PAYMENT_OPTIONS.FULL
-      ? 'Payment Pending — Full Amount' : `Payment Pending — ${quote.advancePercentage}% Advance`;
-    const orderData = {
-      userId, customerName: String(payload.customerName).trim(), email: String(payload.email).trim().toLowerCase(),
-      phoneNumber: String(payload.phoneNumber).trim(), shippingAddress: String(payload.shippingAddress).trim(),
-      shippingCity: String(payload.shippingCity).trim(), orderNotes: payload.orderNotes?.trim() || null,
-      idempotencyKey,
-      subtotalAmount: quote.subtotalAmount, discountAmount: quote.discountAmount, couponCode: quote.couponCode,
-      totalAmount: quote.totalAmount, paymentOption: quote.paymentOption, advancePercentage: quote.advancePercentage,
-      advanceAmount: quote.advanceAmount, paidAmount: 0,
-      pendingAmount: quote.balanceAmount, paymentMethod: quote.paymentMethod,
-      paymentStatus, orderStatus: paymentStatus, items: quote.items,
-    };
-    try {
-      return await this.orderModel.create(orderData);
-    } catch (error) {
-      if (error.code === 'ER_DUP_ENTRY') {
-        const duplicate = await this.orderModel.findByIdempotencyKey(idempotencyKey);
-        if (duplicate) return duplicate;
-      }
-      throw error;
+    const identity = { userId, email: String(payload.email).trim().toLowerCase() };
+    if (!this.orderModel.createWithPricing) {
+      const quote = await this.buildQuote({ ...payload, email: identity.email }, userId);
+      const paymentStatus = quote.paymentOption === PAYMENT_OPTIONS.FULL ? 'Payment Pending — Full Amount' : 'Payment Pending — ' + quote.advancePercentage + '% Advance';
+      return this.orderModel.create({ userId, customerName: String(payload.customerName).trim(), email: identity.email, phoneNumber: String(payload.phoneNumber).trim(), shippingAddress: String(payload.shippingAddress).trim(), shippingCity: String(payload.shippingCity).trim(), orderNotes: payload.orderNotes?.trim() || null, idempotencyKey, subtotalAmount: quote.subtotalAmount, eligibleSubtotalAmount: quote.eligibleSubtotalAmount, discountAmount: quote.discountAmount, couponId: quote.couponId, couponCode: quote.couponCode, couponDiscountType: quote.couponDiscountType, couponDiscountValue: quote.couponDiscountValue, totalAmount: quote.totalAmount, paymentOption: quote.paymentOption, advancePercentage: quote.advancePercentage, advanceAmount: quote.advanceAmount, paidAmount: 0, pendingAmount: quote.balanceAmount, paymentMethod: quote.paymentMethod, paymentStatus, orderStatus: paymentStatus, items: quote.items });
     }
+    return this.orderModel.createWithPricing({
+      idempotencyKey,
+      build: async (connection) => {
+        const quote = await this.buildQuote({ ...payload, email: identity.email }, userId, connection, true);
+        const paymentStatus = quote.paymentOption === PAYMENT_OPTIONS.FULL
+          ? 'Payment Pending — Full Amount' : `Payment Pending — ${quote.advancePercentage}% Advance`;
+        return {
+          userId, customerName: String(payload.customerName).trim(), email: identity.email,
+          phoneNumber: String(payload.phoneNumber).trim(), shippingAddress: String(payload.shippingAddress).trim(),
+          shippingCity: String(payload.shippingCity).trim(), orderNotes: payload.orderNotes?.trim() || null, idempotencyKey,
+          subtotalAmount: quote.subtotalAmount, eligibleSubtotalAmount: quote.eligibleSubtotalAmount,
+          discountAmount: quote.discountAmount, couponId: quote.couponId, couponCode: quote.couponCode,
+          couponDiscountType: quote.couponDiscountType, couponDiscountValue: quote.couponDiscountValue,
+          totalAmount: quote.totalAmount, paymentOption: quote.paymentOption, advancePercentage: quote.advancePercentage,
+          advanceAmount: quote.advanceAmount, paidAmount: 0, pendingAmount: quote.balanceAmount,
+          paymentMethod: quote.paymentMethod, paymentStatus, orderStatus: paymentStatus, items: quote.items,
+          couponCustomerKey: quote.customerKey || (userId ? `customer:${userId}` : `email:${identity.email}`),
+        };
+      },
+    });
   }
 
   get(id) { return this.orderModel.findById(id); }
