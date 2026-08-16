@@ -43,7 +43,7 @@ export const services = {
   productImportService: new ProductImportService({ productService, productModel, brandModel, categoryModel, importModel }),
   catalogService: new CatalogService({ brandModel, categoryModel, optionModel }),
   couponService,
-  orderService: new OrderService({ orderModel, productModel, siteSettingService, couponService }),
+  orderService: new OrderService({ orderModel, productModel, userModel, siteSettingService, couponService }),
   imageService: new ImageService(),
   siteSettingService,
 };

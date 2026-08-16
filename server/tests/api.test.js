@@ -48,6 +48,9 @@ const services = () => ({
     get: async (identifier) => String(identifier) === order.order_number || Number(identifier) === order.id ? order : null,
     listForUser: async () => [{ ...order, user_id: customer.id }],
     listAll: async () => [order],
+    searchCustomers: async () => [{ id: customer.id, name: customer.name, email: customer.email, phoneNumber: '+94771234567' }],
+    adminQuote: async () => ({ subtotalAmount: 47500, discountAmount: 0, totalAmount: 47500, advanceAmount: 23750, balanceAmount: 23750 }),
+    adminCreate: async (payload) => ({ ...order, ...payload, order_status: 'Order Placed' }),
     updateStatus: async (id, status, note) => ({ ...order, id: Number(id), order_status: status, note }),
   },
   imageService: { serializeUploads: (files) => files },
@@ -226,5 +229,18 @@ describe('API contract', () => {
       .send({ status: '50% Payment Confirmed' })
       .expect(200);
     assert.equal(payment.body.data.order_status, '50% Payment Confirmed');
+  });
+
+  test('admin direct-order customer search, quote and creation remain protected', async () => {
+    const instance = app();
+    await request(instance).get('/api/admin/customers/search').expect(401);
+    await request(instance).post('/api/admin/orders/quote').send({ items: [] }).expect(401);
+    await request(instance).post('/api/admin/orders').send({}).expect(401);
+    const customers = await request(instance).get('/api/admin/customers/search?q=customer').set('Authorization', `Bearer ${adminToken}`).expect(200);
+    assert.equal(customers.body.data[0].email, customer.email);
+    const quote = await request(instance).post('/api/admin/orders/quote').set('Authorization', `Bearer ${adminToken}`).send({ items: [{ productId: product.id }] }).expect(200);
+    assert.equal(quote.body.data.advanceAmount, 23750);
+    const created = await request(instance).post('/api/admin/orders').set('Authorization', `Bearer ${adminToken}`).send({ customerName: 'Guest' }).expect(201);
+    assert.equal(created.body.data.order_status, 'Order Placed');
   });
 });

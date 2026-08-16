@@ -48,6 +48,9 @@ export default function createAdminRoutes({ authService, orderService, catalogSe
   router.get('/products', requireAdmin, asyncHandler(products.adminList));
   router.get('/products/:id', requireAdmin, asyncHandler(products.adminGet));
   router.get('/orders', requireAdmin, asyncHandler(orders.adminList));
+  router.get('/customers/search', requireAdmin, asyncHandler(orders.adminCustomers));
+  router.post('/orders/quote', requireAdmin, asyncHandler(orders.adminQuote));
+  router.post('/orders', requireAdmin, asyncHandler(orders.adminCreate));
   router.put('/orders/:id/status', requireAdmin, asyncHandler(orders.updateStatus));
   return router;
 }

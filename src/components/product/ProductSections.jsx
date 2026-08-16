@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   formatProductPrice,
   categoryGenderLabel,
@@ -60,7 +60,6 @@ export function ProductHeading({ product, mobile = false }) {
       </div>
       <span className="product-brand">{product.brand.toUpperCase()}{gender ? ` · ${gender}` : ''}</span>
       <h1 className="product-title">{product.name}</h1>
-      <p className="product-subtitle">{product.category.toUpperCase()} · {product.preOrder ? 'PRE-ORDER AVAILABLE' : `${product.stock} IN STOCK`}</p>
     </header>
   );
 }
@@ -77,8 +76,8 @@ export function ProductInfo({ product, selectedSize, setSelectedSize, selectedCo
     <section className="product-info reveal delay-100">
       <ProductHeading product={product} />
       <div className="product-rating"><span>★★★★★</span><strong>4.9</strong><span>Verified KICKZ.LK sourcing</span></div>
-      <div className="product-price"><strong>{formatProductPrice(product.price)}</strong><span>Taxes and import handling included</span></div>
-      <div className="product-catalog-attributes"><div><span>BRAND</span><strong>{product.brand}</strong></div><div><span>CATEGORY</span><strong>{product.category}</strong></div><div><span>DELIVERY TIMELINE</span><strong>{deliveryTime}</strong></div><div><span>STOCK STATUS</span><strong>{product.preOrder ? 'PRE-ORDER AVAILABLE' : product.stock > 0 ? `${product.stock} AVAILABLE` : 'OUT OF STOCK'}</strong></div></div>
+      <div className="product-price"><div><strong>{formatProductPrice(product.price)}</strong>{Number(product.originalPrice) > Number(product.price) && <del>{formatProductPrice(product.originalPrice)}</del>}</div><span>Taxes and import handling included</span></div>
+      <div className="product-catalog-attributes"><div><span>BRAND</span><strong>{product.brand}</strong></div><div><span>CATEGORY</span><strong>{product.category}</strong></div><div><span>DELIVERY TIMELINE</span><strong>{deliveryTime}</strong></div></div>
 
       {/* SPRINT 3.1 PRICE NOTICE: required confirmation guidance remains prominent before selection and enquiry. */}
       <p className="price-notice">Due to Sri Lanka&apos;s fluctuating USD exchange rate, customers should confirm today&apos;s final price before placing an order.</p>
@@ -97,10 +96,7 @@ export function ProductInfo({ product, selectedSize, setSelectedSize, selectedCo
           ))}
         </div>
       </div>
-      <div className="option-section"><PaymentOptionSelector value={payment} onChange={setPayment} quote={paymentQuote} compact />
-        {paymentQuote && <div className="product-payment-summary"><span>PAY NOW <strong>{formatProductPrice(paymentQuote.advanceAmount)}</strong></span><span>BALANCE ON DELIVERY <strong>{formatProductPrice(paymentQuote.balanceAmount)}</strong></span></div>}
-      </div>
-      <div className="delivery-box"><b>↗</b><div><strong>Estimated delivery: {deliveryTime}</strong><span>Regular WhatsApp updates from sourcing to islandwide delivery.</span></div></div>
+      <div className="option-section"><PaymentOptionSelector value={payment} onChange={setPayment} quote={paymentQuote} compact /></div>
       <div className="product-cta">
         <button className="btn btn--acid" id="preorder-button" onClick={addToBag} disabled={unavailable}>{actionText} <span>→</span></button>
         <button className="btn btn--ghost" type="button" onClick={buyNow} disabled={unavailable}>BUY NOW <span>↗</span></button>
@@ -129,6 +125,7 @@ export function ProductDetails({ product }) {
 }
 
 export function Recommendations({ product, products, loading, error }) {
+  const trackRef = useRef(null);
   const recommendations = products
     .filter((candidate) => candidate.id !== product.id)
     .sort((a, b) => Number(b.category === product.category) - Number(a.category === product.category) || Number(b.brand === product.brand) - Number(a.brand === product.brand))
@@ -136,9 +133,9 @@ export function Recommendations({ product, products, loading, error }) {
 
   return (
     <section className="drops section-pad"><div className="container">
-      <div className="section-head reveal"><div><span className="section-kicker">KEEP SCROLLING</span><h2>YOU MAY ALSO LIKE</h2></div><a className="btn btn--ghost" href={`/shop?category=${encodeURIComponent(product.category)}`}>VIEW ALL <span>↗</span></a></div>
+      <div className="section-head reveal"><div><span className="section-kicker">KEEP SCROLLING</span><h2>YOU MAY ALSO LIKE</h2></div><div className="recommendation-head-actions"><div className="carousel-controls"><button type="button" aria-label="Previous recommendations" onClick={() => trackRef.current?.scrollBy({ left: -trackRef.current.clientWidth * .78, behavior: 'smooth' })}>←</button><button type="button" aria-label="Next recommendations" onClick={() => trackRef.current?.scrollBy({ left: trackRef.current.clientWidth * .78, behavior: 'smooth' })}>→</button></div><a className="btn btn--ghost" href={`/shop?category=${encodeURIComponent(product.category)}`}>VIEW ALL <span>↗</span></a></div></div>
       <ProductCollectionState loading={loading} error={error} empty={!loading && !error && recommendations.length === 0} />
-      <div className="product-grid">{recommendations.map((product) => <ProductCard product={product} key={product.id} showHeart={false} showCommerceDetails />)}</div>
+      <div className="recommendation-carousel" ref={trackRef}>{recommendations.map((product) => <ProductCard product={product} key={product.id} showHeart={false} showCommerceDetails showOriginalPrice />)}</div>
     </div></section>
   );
 }

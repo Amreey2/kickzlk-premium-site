@@ -13,6 +13,24 @@ export default class UserModel {
     return rows[0] || null;
   }
 
+  async search(query = '') {
+    const term = String(query || '').trim();
+    const like = `%${term}%`;
+    return this.database.query(
+      `SELECT c.id, c.name, c.email, c.phone_number, c.created_at,
+              a.id AS address_id, a.full_name AS address_full_name,
+              a.phone_number AS address_phone_number, a.address_line_1,
+              a.address_line_2, a.city, a.postal_code, a.country
+       FROM customers c
+       LEFT JOIN customer_addresses a
+         ON a.customer_id = c.id AND a.is_default = TRUE
+       WHERE ? = '' OR c.name LIKE ? OR c.email LIKE ? OR c.phone_number LIKE ?
+       ORDER BY c.name ASC, c.id ASC
+       LIMIT 25`,
+      [term, like, like, like],
+    );
+  }
+
   async create({ name, email, passwordHash, phoneNumber }) {
     const result = await this.database.query(
       'INSERT INTO customers (name, email, password_hash, phone_number) VALUES (?, ?, ?, ?)',

@@ -24,6 +24,9 @@ export const createOrderController = (service) => ({
     response.json({ success: true, data: await service.listForUser(request.params.userId) });
   },
   adminList: async (request, response) => response.json({ success: true, data: await service.listAll() }),
+  adminCustomers: async (request, response) => response.json({ success: true, data: await service.searchCustomers(request.query.q) }),
+  adminQuote: async (request, response) => response.json({ success: true, data: await service.adminQuote(request.body) }),
+  adminCreate: async (request, response) => response.status(201).json({ success: true, data: await service.adminCreate(request.body) }),
   updateStatus: async (request, response) => response.json({
     success: true,
     data: await service.updateStatus(request.params.id, request.body.status, request.body.note),

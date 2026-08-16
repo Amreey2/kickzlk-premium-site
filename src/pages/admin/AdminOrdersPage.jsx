@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
 import AdminStatusBadge from '../../components/admin/AdminStatusBadge';
+import AdminCreateOrderModal from '../../components/admin/AdminCreateOrderModal';
 import { ordersApi, resolveApiAssetUrl } from '../../services/api';
 import { handleAdminSessionError } from '../../utils/adminSession';
 import { formatProductPrice } from '../../utils/productPresentation';
 
-const fulfilmentStatuses = ['Order Confirmed', 'Processing', 'Quality Check Completed', 'Shipped', 'Customs Clearance', 'Out for Delivery', 'Delivered'];
+const fulfilmentStatuses = ['Order Placed', 'Order Confirmed', 'Processing', 'Quality Check Completed', 'Shipped', 'Customs Clearance', 'Out for Delivery', 'Delivered'];
 const statusesFor = (order) => {
   const payment = order.payment_option === 'full' ? ['Payment Pending — Full Amount', 'Full Payment Confirmed'] : [`Payment Pending — ${Number(order.advance_percentage || 50)}% Advance`, `${Number(order.advance_percentage || 50)}% Payment Confirmed`];
   return [...payment, ...fulfilmentStatuses];
@@ -48,8 +49,9 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]); const [selectedId, setSelectedId] = useState(null); const [drafts, setDrafts] = useState({});
   const [confirmation, setConfirmation] = useState(null); const [search, setSearch] = useState(''); const [error, setError] = useState('');
   const [message, setMessage] = useState(''); const [publishing, setPublishing] = useState(false);
+  const [creating, setCreating] = useState(false);
   useEffect(() => { ordersApi.adminList().then(setOrders).catch((requestError) => { if (!handleAdminSessionError(requestError)) setError(requestError.message); }); }, []);
-  useEffect(() => { if (!selectedId) return undefined; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, [selectedId]);
+  useEffect(() => { if (!selectedId && !creating) return undefined; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, [creating, selectedId]);
   const selected = orders.find((order) => order.id === selectedId); const draft = selected ? drafts[selected.id] || selected.order_status : '';
   const publish = async () => {
     if (!confirmation || publishing) return; setPublishing(true); setError(''); setMessage('');
@@ -57,7 +59,7 @@ export default function AdminOrdersPage() {
     catch (requestError) { if (!handleAdminSessionError(requestError)) setError(requestError.message); } finally { setPublishing(false); }
   };
   const visible = orders.filter((order) => `${order.order_number} ${order.customer_name} ${order.email}`.toLowerCase().includes(search.toLowerCase()));
-  return <AdminLayout title="Orders"><AdminPageHeader eyebrow="ORDER OPERATIONS" title="ORDERS" copy="Review customer, payment and delivery progress from one clear workflow." />
+  return <AdminLayout title="Orders"><AdminPageHeader eyebrow="ORDER OPERATIONS" title="ORDERS" copy="Review customer, payment and delivery progress from one clear workflow." action={<button className="btn btn--acid" type="button" onClick={() => setCreating(true)}>CREATE ORDER <span>＋</span></button>} />
     {message && <p className="admin-feedback admin-feedback--success" role="status">{message}</p>}{error && <p className="admin-feedback admin-feedback--error" role="alert">{error}</p>}
 
     <section className="admin-panel">
@@ -76,6 +78,7 @@ export default function AdminOrdersPage() {
       </table></div>
     </section>
     <OrderModal order={selected} draft={draft} busy={publishing} setDraft={(status) => setDrafts((current) => ({ ...current, [selected.id]: status }))} requestPublish={() => setConfirmation({ id: selected.id, current: selected.order_status, status: draft })} close={() => setSelectedId(null)} />
+    <AdminCreateOrderModal open={creating} onClose={() => setCreating(false)} onCreated={(order) => { setOrders((current) => [order, ...current]); setCreating(false); setMessage(`${order.order_number} created successfully.`); }} />
     {confirmation && <div className="admin-modal admin-modal--confirm" role="dialog" aria-modal="true"><section className="admin-modal__surface">
       <span>STATUS PUBLICATION</span><h2>Publish this status update?</h2>
       <dl><div><dt>Current</dt><dd>{confirmation.current}</dd></div><div><dt>New</dt><dd>{confirmation.status}</dd></div></dl>

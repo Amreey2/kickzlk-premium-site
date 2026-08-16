@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Footer from '../components/Footer';
 import FloatingActions from '../components/FloatingActions';
 import Header from '../components/Header';
+import { MediaSection, TrustpilotSection } from '../components/home/HomeSections';
 import PageHero from '../components/PageHero';
 import PageShell from '../components/PageShell';
 import Toast from '../components/Toast';
@@ -103,6 +104,8 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
       </div></main>
       <ProductDetails product={product} />
       <Recommendations product={product} products={catalog.products} loading={catalog.loading} error={catalog.error} />
+      <MediaSection />
+      <TrustpilotSection />
       <Footer />
       <FloatingActions aboveMobileBuyBar />
       <MobileBuyBar product={product} selectedSize={effectiveSize} addToBag={addToBag} buyNow={buyNow} addedToCart={addedToCart} />

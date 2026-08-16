@@ -174,6 +174,32 @@ describe('order services', () => {
     await service.updateStatus(42, 'Full Payment Confirmed');
     assert.equal(savedStatus, 'Full Payment Confirmed');
   });
+
+  test('admin-created customer and guest orders reuse server pricing and start at Order Placed', async () => {
+    const saved = [];
+    const service = new OrderService({
+      userModel: {
+        findById: async (id) => Number(id) === 7 ? { id: 7, name: 'Account Customer', email: 'account@example.com', phone_number: '+94770000001' } : null,
+        search: async () => [{ id: 7, name: 'Account Customer', email: 'account@example.com', phone_number: '+94770000001', address_line_1: 'Main Road', city: 'Colombo' }],
+      },
+      productModel: { findById: async () => ({ id: 5, name: 'Dunk Low', price: 100000, size: ['42'], colorVariations: ['Black'] }) },
+      orderModel: { findByIdempotencyKey: async () => null, create: async (payload) => { saved.push(payload); return payload; } },
+    });
+    const base = { shippingAddress: 'Main Road', shippingCity: 'Colombo', items: [{ productId: 5, selectedSize: '42', selectedColor: 'Black' }] };
+    const accountOrder = await service.adminCreate({ ...base, customerId: 7, phoneNumber: '+94770000001', idempotencyKey: 'admin-account-order-0001' });
+    const guestOrder = await service.adminCreate({ ...base, customerName: 'Admin Guest', email: 'guest@example.com', phoneNumber: '+94770000002', paymentOption: 'full', idempotencyKey: 'admin-guest-order-00002' });
+    assert.equal(accountOrder.userId, 7);
+    assert.equal(accountOrder.customerName, 'Account Customer');
+    assert.equal(accountOrder.orderStatus, 'Order Placed');
+    assert.equal(accountOrder.advanceAmount, 50000);
+    assert.equal(accountOrder.paidAmount, 0);
+    assert.equal(guestOrder.userId, null);
+    assert.equal(guestOrder.orderStatus, 'Order Placed');
+    assert.equal(guestOrder.advanceAmount, 100000);
+    assert.equal(guestOrder.pendingAmount, 0);
+    assert.equal(saved.length, 2);
+    assert.equal((await service.searchCustomers('account'))[0].address, 'Main Road');
+  });
 });
 
 describe('catalogue product services', () => {

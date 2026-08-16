@@ -4,6 +4,7 @@ import { calculatePaymentAmounts } from './PromotionPricingService.js';
 import { assertEmail, assertPhone, requireFields } from '../utils/validation.js';
 
 export const orderStatuses = [
+  'Order Placed',
   'Payment Pending — 50% Advance', '50% Payment Confirmed',
   'Payment Pending — Full Amount', 'Full Payment Confirmed',
   'Order Confirmed', 'Processing', 'Quality Check Completed', 'Shipped',
@@ -11,8 +12,9 @@ export const orderStatuses = [
 ];
 
 export default class OrderService {
-  constructor({ orderModel, productModel, siteSettingService, couponService }) {
-    this.orderModel = orderModel; this.productModel = productModel; this.siteSettingService = siteSettingService; this.couponService = couponService;
+  constructor({ orderModel, productModel, userModel, siteSettingService, couponService }) {
+    this.orderModel = orderModel; this.productModel = productModel; this.userModel = userModel;
+    this.siteSettingService = siteSettingService; this.couponService = couponService;
   }
 
   async prepareItems(requestedItems) {
@@ -55,7 +57,7 @@ export default class OrderService {
 
   quote(payload, userId = null) { return this.buildQuote(payload, userId); }
 
-  async create(payload, userId = null) {
+  async create(payload, userId = null, { initialOrderStatus } = {}) {
     requireFields(payload, ['customerName', 'email', 'phoneNumber', 'shippingAddress', 'shippingCity', 'idempotencyKey']);
     assertEmail(payload.email); assertPhone(payload.phoneNumber);
     const idempotencyKey = String(payload.idempotencyKey).trim();
@@ -66,7 +68,7 @@ export default class OrderService {
     if (!this.orderModel.createWithPricing) {
       const quote = await this.buildQuote({ ...payload, email: identity.email }, userId);
       const paymentStatus = quote.paymentOption === PAYMENT_OPTIONS.FULL ? 'Payment Pending — Full Amount' : 'Payment Pending — ' + quote.advancePercentage + '% Advance';
-      return this.orderModel.create({ userId, customerName: String(payload.customerName).trim(), email: identity.email, phoneNumber: String(payload.phoneNumber).trim(), shippingAddress: String(payload.shippingAddress).trim(), shippingCity: String(payload.shippingCity).trim(), orderNotes: payload.orderNotes?.trim() || null, idempotencyKey, subtotalAmount: quote.subtotalAmount, eligibleSubtotalAmount: quote.eligibleSubtotalAmount, discountAmount: quote.discountAmount, couponId: quote.couponId, couponCode: quote.couponCode, couponDiscountType: quote.couponDiscountType, couponDiscountValue: quote.couponDiscountValue, totalAmount: quote.totalAmount, paymentOption: quote.paymentOption, advancePercentage: quote.advancePercentage, advanceAmount: quote.advanceAmount, paidAmount: 0, pendingAmount: quote.balanceAmount, paymentMethod: quote.paymentMethod, paymentStatus, orderStatus: paymentStatus, items: quote.items });
+      return this.orderModel.create({ userId, customerName: String(payload.customerName).trim(), email: identity.email, phoneNumber: String(payload.phoneNumber).trim(), shippingAddress: String(payload.shippingAddress).trim(), shippingCity: String(payload.shippingCity).trim(), orderNotes: payload.orderNotes?.trim() || null, idempotencyKey, subtotalAmount: quote.subtotalAmount, eligibleSubtotalAmount: quote.eligibleSubtotalAmount, discountAmount: quote.discountAmount, couponId: quote.couponId, couponCode: quote.couponCode, couponDiscountType: quote.couponDiscountType, couponDiscountValue: quote.couponDiscountValue, totalAmount: quote.totalAmount, paymentOption: quote.paymentOption, advancePercentage: quote.advancePercentage, advanceAmount: quote.advanceAmount, paidAmount: 0, pendingAmount: quote.balanceAmount, paymentMethod: quote.paymentMethod, paymentStatus, orderStatus: initialOrderStatus || paymentStatus, items: quote.items });
     }
     return this.orderModel.createWithPricing({
       idempotencyKey,
@@ -83,11 +85,44 @@ export default class OrderService {
           couponDiscountType: quote.couponDiscountType, couponDiscountValue: quote.couponDiscountValue,
           totalAmount: quote.totalAmount, paymentOption: quote.paymentOption, advancePercentage: quote.advancePercentage,
           advanceAmount: quote.advanceAmount, paidAmount: 0, pendingAmount: quote.balanceAmount,
-          paymentMethod: quote.paymentMethod, paymentStatus, orderStatus: paymentStatus, items: quote.items,
+          paymentMethod: quote.paymentMethod, paymentStatus, orderStatus: initialOrderStatus || paymentStatus, items: quote.items,
           couponCustomerKey: quote.customerKey || (userId ? `customer:${userId}` : `email:${identity.email}`),
         };
       },
     });
+  }
+
+  async searchCustomers(query) {
+    if (!this.userModel?.search) return [];
+    const rows = await this.userModel.search(query);
+    return rows.map((row) => ({
+      id: Number(row.id), name: row.name, email: row.email, phoneNumber: row.phone_number || '',
+      address: row.address_line_1 ? [row.address_line_1, row.address_line_2].filter(Boolean).join(', ') : '',
+      city: row.city || '', addressLabel: row.address_id ? 'Default address' : '',
+    }));
+  }
+
+  async adminQuote(payload) {
+    const customerId = payload.customerId ? Number(payload.customerId) : null;
+    const customer = customerId ? await this.userModel?.findById(customerId) : null;
+    if (customerId && !customer) throw new AppError('Customer was not found.', 404, 'CUSTOMER_NOT_FOUND');
+    return this.quote({ ...payload, email: customer?.email || payload.email }, customerId);
+  }
+
+  async adminCreate(payload) {
+    const customerId = payload.customerId ? Number(payload.customerId) : null;
+    let customerPayload = payload;
+    if (customerId) {
+      const customer = await this.userModel?.findById(customerId);
+      if (!customer) throw new AppError('Customer was not found.', 404, 'CUSTOMER_NOT_FOUND');
+      customerPayload = {
+        ...payload,
+        customerName: customer.name,
+        email: customer.email,
+        phoneNumber: payload.phoneNumber || customer.phone_number,
+      };
+    }
+    return this.create(customerPayload, customerId, { initialOrderStatus: 'Order Placed' });
   }
 
   get(id) { return this.orderModel.findById(id); }

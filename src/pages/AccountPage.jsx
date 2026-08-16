@@ -104,6 +104,11 @@ export default function AccountPage() {
             </form>
           </section>}
 
+          <section className="account-panel account-panel--orders"><div className="account-heading"><span className="section-kicker">ORDER HISTORY</span><h2>YOUR ROTATION</h2></div>
+            <div className="account-orders">{orders.map((order) => <a className="account-order-card" href={`/track-order?order=${encodeURIComponent(order.order_number)}`} key={order.id}><div className="account-order-card__head"><div><span>ORDER NUMBER</span><strong>{order.order_number}</strong><small>{new Date(order.created_at).toLocaleDateString('en-LK')}</small></div><em>{order.order_status}</em></div><div className="account-order-product"><strong>{order.items?.[0]?.product_name || 'KICKZ.LK order'}</strong><span>{order.items?.length || 0} product line{order.items?.length === 1 ? '' : 's'} · {order.items?.reduce((total, item) => total + Number(item.quantity), 0) || 0} item(s)</span></div><dl><div><dt>Order Total</dt><dd>{money(order.total_amount)}</dd></div><div><dt>Paid</dt><dd>{money(order.paid_amount)}</dd></div><div><dt>Balance</dt><dd>{money(order.pending_amount)}</dd></div></dl>{order.coupon_code && <div className="account-order-coupon"><span>Coupon {order.coupon_code}</span><strong>− {money(order.discount_amount)}</strong></div>}<footer><span>{order.payment_status}</span><strong>VIEW FULL ORDER →</strong></footer></a>)}</div>
+            {!loading && !orders.length && <p className="account-empty">No account orders yet. Guest checkout remains available whenever you need it.</p>}
+          </section>
+
           <section className="account-panel"><div className="account-panel__head"><div className="account-heading"><span className="section-kicker">DELIVERY DETAILS</span><h2>SAVED ADDRESSES</h2></div>{addresses.length < 2 && !addressForm && <button className="btn btn--ghost" type="button" onClick={() => openAddress()}>ADD ADDRESS</button>}</div>
             <div className="address-grid">{addresses.map((address) => <article className="address-card" key={address.id}><div><span>{address.label}</span>{address.isDefault && <strong>DEFAULT</strong>}</div><h3>{address.fullName}</h3><p>{address.addressLine1}{address.addressLine2 ? `, ${address.addressLine2}` : ''}<br />{address.city}{address.postalCode ? ` ${address.postalCode}` : ''}<br />{address.country}<br />{address.phoneNumber}</p><footer><button type="button" onClick={() => openAddress(address)}>EDIT</button><button type="button" onClick={() => removeAddress(address.id)} disabled={saving}>DELETE</button></footer></article>)}</div>
             {!loading && !addresses.length && !addressForm && <p className="account-empty">No saved addresses yet. Add one now for future checkout autofill.</p>}
@@ -118,10 +123,6 @@ export default function AccountPage() {
             </form>}
           </section>
 
-          <section className="account-panel"><div className="account-heading"><span className="section-kicker">ORDER HISTORY</span><h2>YOUR ROTATION</h2></div>
-            <div className="account-orders">{orders.map((order) => <a className="account-order-card" href={`/track-order?order=${encodeURIComponent(order.order_number)}`} key={order.id}><div className="account-order-card__head"><div><span>ORDER NUMBER</span><strong>{order.order_number}</strong><small>{new Date(order.created_at).toLocaleDateString('en-LK')}</small></div><em>{order.order_status}</em></div><div className="account-order-product"><strong>{order.items?.[0]?.product_name || 'KICKZ.LK order'}</strong><span>{order.items?.length || 0} product line{order.items?.length === 1 ? '' : 's'} · {order.items?.reduce((total, item) => total + Number(item.quantity), 0) || 0} item(s)</span></div><dl><div><dt>Order Total</dt><dd>{money(order.total_amount)}</dd></div><div><dt>Paid</dt><dd>{money(order.paid_amount)}</dd></div><div><dt>Balance</dt><dd>{money(order.pending_amount)}</dd></div></dl>{order.coupon_code && <div className="account-order-coupon"><span>Coupon {order.coupon_code}</span><strong>− {money(order.discount_amount)}</strong></div>}<footer><span>{order.payment_status}</span><strong>VIEW FULL ORDER →</strong></footer></a>)}</div>
-            {!loading && !orders.length && <p className="account-empty">No account orders yet. Guest checkout remains available whenever you need it.</p>}
-          </section>
         </div>
       </div></section>
     </PageShell>
