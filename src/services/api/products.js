@@ -42,9 +42,8 @@ const normalizeProduct = (product) => {
   const availability = String(product.availability || 'Active');
   const status = availability.toLowerCase() === 'inactive'
     ? 'Inactive'
-    : availability.toLowerCase() === 'out of stock'
-      ? 'Out of Stock'
-      : 'Active';
+    : 'Active';
+  const stock = Number(product.stock || 0);
   const uploadedImages = Array.isArray(product.images)
     ? product.images.map((image, index) => normalizeImage(image, index, product.name))
     : [];
@@ -68,7 +67,8 @@ const normalizeProduct = (product) => {
     sizes: Array.isArray(product.sizes) ? product.sizes.map(String) : [],
     description: String(product.description || ''),
     preOrder: Boolean(product.preOrder),
-    stock: Number(product.stock || 0),
+    stock,
+    stockStatus: stock <= 0 ? 'OUT OF STOCK' : stock <= 3 ? 'LOW STOCK' : 'IN STOCK',
     status,
     availability,
     deliveryTime: String(product.deliveryTime || ''),

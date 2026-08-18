@@ -11,7 +11,7 @@ import { useProduct, useProducts } from '../hooks/useProducts';
 import useReveal from '../hooks/useReveal';
 import useToast from '../hooks/useToast';
 import { authApi, ordersApi, resolveApiAssetUrl, settingsApi } from '../services/api';
-import { addCartItem, cartCount } from '../utils/cart';
+import { addCartItem, cartCount, readCart } from '../utils/cart';
 import { PAYMENT_OPTIONS, writePaymentOption } from '../utils/paymentOption';
 
 export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }) {
@@ -52,7 +52,21 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
     const color = selectedColor || product.colorVariations?.[0] || '';
     writePaymentOption(payment);
     const query = new URLSearchParams({ product: product.id, size: effectiveSize, quantity: '1', paymentOption: payment, ...(color ? { color } : {}) });
-    if (!buyImmediately) setBagCount(cartCount(addCartItem({ productId: product.id, selectedSize: effectiveSize, selectedColor: color, quantity: 1 })));
+    if (!buyImmediately) {
+      const currentCart = readCart();
+      const currentLine = currentCart.find((item) => item.productId === product.id && item.selectedSize === effectiveSize && item.selectedColor === color);
+      if (currentLine?.quantity >= 10) {
+        toast.showToast('A maximum of 10 units can be ordered per selection.', 2300);
+        return;
+      }
+      const maximum = product.preOrder ? 10 : Number(product.stock);
+      const currentQuantity = currentCart.filter((item) => item.productId === product.id).reduce((total, item) => total + item.quantity, 0);
+      if (currentQuantity >= maximum) {
+        toast.showToast(`Only ${maximum} item${maximum === 1 ? '' : 's'} available for this product.`, 2300);
+        return;
+      }
+      setBagCount(cartCount(addCartItem({ productId: product.id, selectedSize: effectiveSize, selectedColor: color, quantity: 1 })));
+    }
     setCartHref('/cart');
     if (buyImmediately) {
       const checkoutHref = `/checkout?${query}`;

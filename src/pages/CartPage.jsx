@@ -27,6 +27,7 @@ export default function CartPage() {
   const [paymentOption, setPaymentOption] = useState(readPaymentOption);
   const [pendingRemoval, setPendingRemoval] = useState(null);
   const [couponMessage, setCouponMessage] = useState('');
+  const [stockMessage, setStockMessage] = useState('');
   const detailedItems = items.map((item) => ({ item, product: catalog.products.find((product) => product.id === item.productId) })).filter((entry) => entry.product);
   const requestItems = detailedItems.map(({ item }) => ({ productId: item.productId, selectedSize: item.selectedSize, selectedColor: item.selectedColor, quantity: item.quantity }));
 
@@ -42,6 +43,19 @@ export default function CartPage() {
   const updateItems = (next) => { const saved = writeCart(next); setItems(saved); };
   const updateQuantity = (key, quantity) => {
     if (quantity < 1) { setPendingRemoval(key); return; }
+    const target = detailedItems.find(({ item }) => cartKey(item) === key);
+    if (!target) return;
+    if (quantity > 10) {
+      setStockMessage('A maximum of 10 units can be ordered per selection.');
+      return;
+    }
+    const maximum = target.product.preOrder ? 10 : Number(target.product.stock);
+    const otherQuantity = items.filter((item) => item.productId === target.item.productId && cartKey(item) !== key).reduce((total, item) => total + item.quantity, 0);
+    if (quantity + otherQuantity > maximum) {
+      setStockMessage(`Only ${maximum} item${maximum === 1 ? '' : 's'} of ${target.product.name} are available.`);
+      return;
+    }
+    setStockMessage('');
     updateItems(items.map((item) => cartKey(item) === key ? { ...item, quantity: Math.min(10, quantity) } : item));
   };
   const changePayment = (value) => { const option = writePaymentOption(value); setPaymentOption(option); };
@@ -55,6 +69,7 @@ export default function CartPage() {
       {!catalog.loading && !items.length && <section className="cart-empty reveal"><span className="cart-empty__icon" aria-hidden="true">＋</span><span className="section-kicker">YOUR CART IS EMPTY</span><h1>YOUR NEXT PAIR STARTS HERE.</h1><p>Explore the latest KICKZ.LK drops and build your rotation.</p><a className="btn btn--acid" href="/shop">CONTINUE SHOPPING <span>↗</span></a></section>}
       {!catalog.loading && items.length > 0 && <div className="cart-layout reveal">
         <section className="cart-products" aria-labelledby="cart-products-title"><div className="cart-panel-heading"><div><span className="section-kicker">SHOPPING CART</span><h1 id="cart-products-title">YOUR ROTATION</h1></div><span>{items.reduce((sum, item) => sum + item.quantity, 0)} ITEMS</span></div>
+          {stockMessage && <p className="form-message form-message--error" role="alert">{stockMessage}</p>}
           {detailedItems.map(({ item, product }) => <CartItem key={cartKey(item)} product={product} item={item} onQuantityChange={(quantity) => updateQuantity(cartKey(item), quantity)} onRemove={() => setPendingRemoval(cartKey(item))} />)}
         </section>
         <aside className="cart-summary"><span className="section-kicker">ORDER SUMMARY</span>

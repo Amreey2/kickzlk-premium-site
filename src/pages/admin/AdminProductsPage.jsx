@@ -7,7 +7,8 @@ import { handleAdminSessionError } from '../../utils/adminSession';
 import { formatProductPrice, productImage, replaceFailedProductImage } from '../../utils/productPresentation';
 
 const PAGE_SIZE = 12;
-const statusTone = (status) => status === 'Active' ? 'success' : status === 'Out of Stock' ? 'warning' : 'neutral';
+const statusTone = (status) => status === 'Active' ? 'success' : 'neutral';
+const stockTone = (status) => status === 'IN STOCK' ? 'success' : status === 'LOW STOCK' ? 'warning' : 'danger';
 const unique = (values) => [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
 const emptyFilters = { brand: '', category: '', tag: '', status: '', sale: '', preOrder: '' };
 
@@ -54,7 +55,7 @@ export default function AdminProductsPage() {
   };
   const updateStatus = async (product, status) => {
     setPendingId(product.id); setError(''); setMessage('');
-    try { const updated = await productsApi.update(product.slug, { availability: status, stock: status === 'Out of Stock' ? 0 : product.stock }); setProducts((current) => current.map((item) => item.id === product.id ? updated : item)); setMessage(`${product.name} is now ${status.toLowerCase()}.`); }
+    try { const updated = await productsApi.update(product.slug, { availability: status, stock: product.stock }); setProducts((current) => current.map((item) => item.id === product.id ? updated : item)); setMessage(`${product.name} is now ${status.toLowerCase()}.`); }
     catch (requestError) { if (!handleAdminSessionError(requestError)) setError(requestError.message || 'Product status could not be updated.'); }
     finally { setPendingId(''); }
   };
@@ -67,7 +68,7 @@ export default function AdminProductsPage() {
     setPendingId(product.id); setError(''); setMessage('');
     try {
       const hasSale = sale !== null && sale < regular;
-      const updated = await productsApi.update(product.slug, { stock, price: hasSale ? sale : regular, originalPrice: hasSale ? regular : null, availability: stock === 0 && product.status === 'Active' ? 'Out of Stock' : product.availability });
+      const updated = await productsApi.update(product.slug, { stock, price: hasSale ? sale : regular, originalPrice: hasSale ? regular : null, availability: product.status });
       setProducts((current) => current.map((item) => item.id === product.id ? updated : item)); setEditing(null); setMessage(`${product.name} pricing and stock were updated.`);
     } catch (requestError) { if (!handleAdminSessionError(requestError)) setError(requestError.message || 'Quick edit could not be saved.'); }
     finally { setPendingId(''); }
@@ -81,7 +82,7 @@ export default function AdminProductsPage() {
           <label><span>BRAND</span><select value={filters.brand} onChange={(event) => setFilter('brand', event.target.value)}><option value="">All brands</option>{options.brands.map((v) => <option key={v}>{v}</option>)}</select></label>
           <label><span>CATEGORY</span><select value={filters.category} onChange={(event) => setFilter('category', event.target.value)}><option value="">All categories</option>{options.categories.map((v) => <option key={v}>{v}</option>)}</select></label>
           <label><span>PRODUCT TAG</span><select value={filters.tag} onChange={(event) => setFilter('tag', event.target.value)}><option value="">All tags</option>{options.tags.map((v) => <option key={v}>{v}</option>)}</select></label>
-          <label><span>STATUS</span><select value={filters.status} onChange={(event) => setFilter('status', event.target.value)}><option value="">Any status</option><option>Active</option><option>Inactive</option><option>Out of Stock</option></select></label>
+          <label><span>STATUS</span><select value={filters.status} onChange={(event) => setFilter('status', event.target.value)}><option value="">Any status</option><option>Active</option><option>Inactive</option></select></label>
           <label><span>SALE</span><select value={filters.sale} onChange={(event) => setFilter('sale', event.target.value)}><option value="">Any pricing</option><option value="yes">On sale</option><option value="no">Not on sale</option></select></label>
           <label><span>PRE-ORDER</span><select value={filters.preOrder} onChange={(event) => setFilter('preOrder', event.target.value)}><option value="">Any type</option><option value="yes">Pre-order</option><option value="no">Ready stock</option></select></label>
         </div>
@@ -92,8 +93,8 @@ export default function AdminProductsPage() {
         return <tr key={product.id}><td data-label="Product"><div className="admin-product-cell"><img src={productImage(product)} alt="" onError={replaceFailedProductImage} /><div><span>{product.brand}</span><strong>{product.name}</strong></div></div></td>
           <td data-label="SKU"><strong>{product.sku}</strong></td><td data-label="Category">{product.category}</td>
           <td data-label="Pricing">{isEditing ? <div className="admin-quick-fields"><label><span>REGULAR</span><input type="number" value={editing.regularPrice} onChange={(event) => setEditing((c) => ({ ...c, regularPrice: event.target.value }))} /></label><label><span>SALE</span><input type="number" value={editing.salePrice} placeholder="None" onChange={(event) => setEditing((c) => ({ ...c, salePrice: event.target.value }))} /></label></div> : <div className="admin-price-stack">{product.originalPrice && <del>{formatProductPrice(product.originalPrice)}</del>}<strong>{formatProductPrice(product.price)}</strong></div>}</td>
-          <td data-label="Stock">{isEditing ? <div className="admin-quick-fields"><label><span>STOCK</span><input type="number" value={editing.stock} onChange={(event) => setEditing((c) => ({ ...c, stock: event.target.value }))} /></label></div> : <strong>{product.stock}</strong>}</td>
-          <td data-label="Status"><div className="admin-product-status"><AdminStatusBadge tone={statusTone(product.status)}>{product.status}</AdminStatusBadge><select value={product.status} disabled={pendingId === product.id || isEditing} onChange={(event) => updateStatus(product, event.target.value)}><option>Active</option><option>Inactive</option><option>Out of Stock</option></select></div></td>
+          <td data-label="Stock">{isEditing ? <div className="admin-quick-fields"><label><span>STOCK</span><input type="number" value={editing.stock} onChange={(event) => setEditing((c) => ({ ...c, stock: event.target.value }))} /></label></div> : <div className="admin-product-status"><strong>{product.stock}</strong><AdminStatusBadge tone={stockTone(product.stockStatus)}>{product.stockStatus}</AdminStatusBadge></div>}</td>
+          <td data-label="Status"><div className="admin-product-status"><AdminStatusBadge tone={statusTone(product.status)}>{product.status}</AdminStatusBadge><select value={product.status} disabled={pendingId === product.id || isEditing} onChange={(event) => updateStatus(product, event.target.value)}><option>Active</option><option>Inactive</option></select></div></td>
           <td data-label="Actions">{isEditing ? <div className="admin-actions"><button type="button" disabled={pendingId === product.id} onClick={() => save(product)}>SAVE</button><button type="button" onClick={() => setEditing(null)}>CANCEL</button></div> : <div className="admin-actions"><button type="button" onClick={() => beginEdit(product)}>QUICK EDIT</button><a href={`/admin/products/${product.slug}/edit`}>FULL EDIT</a><a href={`/admin/products/${product.slug}/duplicate`}>DUPLICATE</a><button type="button" disabled={pendingId === product.id} onClick={() => deleteProduct(product)}>{pendingId === product.id ? 'WORKING…' : 'DELETE'}</button></div>}</td></tr>;
       })}</tbody></table></div>}
       {filtered.length > PAGE_SIZE && <nav className="admin-pagination" aria-label="Product pages"><button disabled={currentPage === 1} onClick={() => setPage((v) => Math.max(1, v - 1))}>← PREVIOUS</button>{Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => <button className={n === currentPage ? 'is-active' : ''} aria-current={n === currentPage ? 'page' : undefined} key={n} onClick={() => setPage(n)}>{n}</button>)}<button disabled={currentPage === pageCount} onClick={() => setPage((v) => Math.min(pageCount, v + 1))}>NEXT →</button></nav>}

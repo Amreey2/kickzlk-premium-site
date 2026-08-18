@@ -223,7 +223,7 @@ export default class ProductImportService {
       name: data.product_name,
       description: data.description || row.existing?.description || data.product_name,
       price: row.price,
-      availability: data.status,
+      availability: data.status === 'Out of Stock' ? 'Active' : data.status,
       stock: data.status === 'Out of Stock' ? 0 : row.stock,
       deliveryTime: data.delivery_timeline || null,
       sizes: row.sizes.length ? row.sizes : (row.existing?.sizes?.length ? row.existing.sizes : ['One Size']),

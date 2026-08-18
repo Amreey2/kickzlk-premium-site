@@ -67,8 +67,15 @@ export default class ProductModel {
     return rows.map(mapProduct);
   }
 
-  async findById(id) {
+  async findById(id, { connection = null, forUpdate = false } = {}) {
     const numeric = /^\d+$/.test(String(id));
+    if (connection) {
+      const [rows] = await connection.execute(
+        `SELECT p.* FROM products p WHERE p.${numeric ? 'id' : 'slug'} = ? LIMIT 1${forUpdate ? ' FOR UPDATE' : ''}`,
+        [id],
+      );
+      return mapProduct(rows[0]);
+    }
     const rows = await this.database.query(
       numeric
         ? 'SELECT p.*, c.gender AS category_gender FROM products p LEFT JOIN categories c ON c.id = p.category_id WHERE p.id = ? LIMIT 1'

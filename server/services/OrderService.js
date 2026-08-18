@@ -17,12 +17,13 @@ export default class OrderService {
     this.siteSettingService = siteSettingService; this.couponService = couponService;
   }
 
-  async prepareItems(requestedItems) {
+  async prepareItems(requestedItems, connection = null, lockStock = false) {
     if (!Array.isArray(requestedItems) || !requestedItems.length) throw new AppError('At least one order item is required.', 422, 'EMPTY_ORDER');
     const items = [];
     for (const requested of requestedItems) {
-      const product = await this.productModel.findById(requested.productId);
+      const product = await this.productModel.findById(requested.productId, connection ? { connection, forUpdate: lockStock } : undefined);
       if (!product) throw new AppError(`Product ${requested.productId} was not found.`, 404, 'PRODUCT_NOT_FOUND');
+      if (String(product.availability || '').toLowerCase() === 'inactive') throw new AppError(`${product.name} is not currently available for purchase.`, 409, 'PRODUCT_UNAVAILABLE');
       const quantity = Number(requested.quantity || 1);
       if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) throw new AppError('Item quantity must be between 1 and 10.', 422, 'INVALID_QUANTITY');
       const availableSizes = product.sizes || product.size || [];
@@ -31,15 +32,32 @@ export default class OrderService {
       const colors = (product.colorVariations || []).map((color) => String(color).toLowerCase());
       if (selectedColor && colors.length && !colors.includes(selectedColor.toLowerCase())) throw new AppError(`Selected colour is unavailable for ${product.name}.`, 422, 'INVALID_COLOR');
       const price = Number(product.price); const originalPrice = Number(product.originalPrice || 0) > price ? Number(product.originalPrice) : null;
+      const hasManagedStock = product.stock !== undefined && product.stock !== null;
+      const requiresStock = hasManagedStock && !product.preOrder;
       items.push({ productId: product.databaseId || product.id, publicProductId: product.id, categoryId: product.categoryId,
         productName: product.name, selectedColor: selectedColor || null, selectedSize: String(requested.selectedSize), quantity,
-        price, originalPrice, discountAmount: originalPrice ? (originalPrice - price) * quantity : 0 });
+        price, originalPrice, discountAmount: originalPrice ? (originalPrice - price) * quantity : 0,
+        requiresStock, availableStock: requiresStock ? Number(product.stock) : null });
+    }
+    const requestedByProduct = new Map();
+    for (const item of items.filter((value) => value.requiresStock)) {
+      const current = requestedByProduct.get(item.productId) || { quantity: 0, stock: item.availableStock, name: item.productName };
+      current.quantity += item.quantity;
+      requestedByProduct.set(item.productId, current);
+    }
+    for (const value of requestedByProduct.values()) {
+      if (value.quantity > value.stock) {
+        const message = value.stock > 0
+          ? `Only ${value.stock} item${value.stock === 1 ? '' : 's'} of ${value.name} are available. Update your cart and try again.`
+          : `${value.name} is currently out of stock. Update your cart and try again.`;
+        throw new AppError(message, 409, 'INSUFFICIENT_STOCK');
+      }
     }
     return items;
   }
 
   async buildQuote(payload, userId = null, connection = null, lockCoupon = false) {
-    const items = await this.prepareItems(payload.items);
+    const items = await this.prepareItems(payload.items, connection, Boolean(connection));
     const settings = this.siteSettingService ? await this.siteSettingService.paymentSettings() : { advancePercentage: DEFAULT_ADVANCE_PERCENTAGE };
     const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
     const promotion = this.couponService

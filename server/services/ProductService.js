@@ -53,7 +53,7 @@ const normalize = (payload) => {
   sizes: payload.sizes,
   productType: resolveProductType(payload),
   deliveryTime: payload.deliveryTime?.trim() || null,
-  availability: payload.availability?.trim() || 'Available',
+  availability: String(payload.availability || 'Active').trim().toLowerCase() === 'inactive' ? 'Inactive' : 'Active',
   stock: Number(payload.stock || 0),
   metaTitle: String(payload.metaTitle || '').trim() || null,
   metaDescription: String(payload.metaDescription || '').trim() || null,

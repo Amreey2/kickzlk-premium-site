@@ -8,6 +8,7 @@ import CatalogService from '../services/CatalogService.js';
 import ProductImportService, { CSV_COLUMNS } from '../services/ProductImportService.js';
 import ProductImportModel from '../models/ProductImportModel.js';
 import ProductModel from '../models/ProductModel.js';
+import OrderModel from '../models/OrderModel.js';
 import CouponService from '../services/CouponService.js';
 import SiteSettingService from '../services/SiteSettingService.js';
 import { serializeCsv } from '../utils/csv.js';
@@ -199,6 +200,65 @@ describe('order services', () => {
     assert.equal(guestOrder.pendingAmount, 0);
     assert.equal(saved.length, 2);
     assert.equal((await service.searchCustomers('account'))[0].address, 'Main Road');
+  });
+
+  test('enforces general ready-stock limits across cart lines while preserving pre-orders', async () => {
+    const products = new Map([
+      ['ready', { id: 'ready', databaseId: 8, name: 'Ready Pair', price: 25000, size: ['40', '41'], stock: 2, preOrder: false, availability: 'Active' }],
+      ['preorder', { id: 'preorder', databaseId: 9, name: 'Future Pair', price: 30000, size: ['42'], stock: 0, preOrder: true, availability: 'Active' }],
+      ['inactive', { id: 'inactive', databaseId: 10, name: 'Hidden Pair', price: 30000, size: ['42'], stock: 5, preOrder: false, availability: 'Inactive' }],
+    ]);
+    const service = new OrderService({ productModel: { findById: async (id) => products.get(id) }, orderModel: {} });
+    await assert.rejects(
+      () => service.quote({ items: [{ productId: 'ready', selectedSize: '40', quantity: 2 }, { productId: 'ready', selectedSize: '41', quantity: 1 }] }),
+      (error) => error.code === 'INSUFFICIENT_STOCK' && error.status === 409,
+    );
+    const preorder = await service.quote({ items: [{ productId: 'preorder', selectedSize: '42', quantity: 5 }] });
+    assert.equal(preorder.items[0].requiresStock, false);
+    await assert.rejects(
+      () => service.quote({ items: [{ productId: 'inactive', selectedSize: '42', quantity: 1 }] }),
+      (error) => error.code === 'PRODUCT_UNAVAILABLE' && error.status === 409,
+    );
+  });
+
+  test('atomically allows only one order to consume the final ready-stock unit', async () => {
+    let stock = 1;
+    let nextOrderId = 1;
+    const connection = () => ({
+      beginTransaction: async () => undefined,
+      commit: async () => undefined,
+      rollback: async () => undefined,
+      release: () => undefined,
+      execute: async (sql, parameters = []) => {
+        if (sql.startsWith('SELECT * FROM orders WHERE idempotency_key')) return [[]];
+        if (sql.startsWith('UPDATE products SET stock = stock -')) {
+          const quantity = Number(parameters[0]);
+          if (stock < quantity) return [{ affectedRows: 0 }];
+          stock -= quantity;
+          return [{ affectedRows: 1 }];
+        }
+        if (sql.startsWith('INSERT INTO orders')) return [{ insertId: nextOrderId++ }];
+        return [{ affectedRows: 1 }];
+      },
+    });
+    const model = new OrderModel({ pool: { getConnection: async () => connection() } });
+    model.findById = async (id) => ({ id });
+    const data = (key) => ({
+      userId: null, customerName: 'Guest', email: `${key}@example.com`, phoneNumber: '+94770000000',
+      shippingAddress: 'Colombo', shippingCity: 'Colombo', orderNotes: null, idempotencyKey: key,
+      subtotalAmount: 1000, discountAmount: 0, eligibleSubtotalAmount: 0, couponId: null, couponCode: null,
+      couponDiscountType: null, couponDiscountValue: null, totalAmount: 1000, paymentOption: 'advance',
+      advancePercentage: 50, advanceAmount: 500, paidAmount: 0, pendingAmount: 500,
+      paymentMethod: 'Bank Transfer', paymentStatus: 'Payment Pending — 50% Advance', orderStatus: 'Order Placed',
+      items: [{ productId: 77, productName: 'Final Pair', selectedColor: null, selectedSize: '42', quantity: 1, price: 1000, originalPrice: null, discountAmount: 0, requiresStock: true }],
+    });
+    const results = await Promise.allSettled([
+      model.createWithPricing({ idempotencyKey: 'stock-race-order-0001', build: async () => data('stock-race-order-0001') }),
+      model.createWithPricing({ idempotencyKey: 'stock-race-order-0002', build: async () => data('stock-race-order-0002') }),
+    ]);
+    assert.equal(results.filter((result) => result.status === 'fulfilled').length, 1);
+    assert.equal(results.filter((result) => result.status === 'rejected' && result.reason.code === 'INSUFFICIENT_STOCK').length, 1);
+    assert.equal(stock, 0);
   });
 });
 
@@ -453,6 +513,24 @@ describe('bulk product import services', () => {
     const report = await service.failedReport(55);
     assert.match(report.csv, /DUPLICATE_SKU_IN_CSV/);
     assert.match(report.csv, /BRAND_NOT_FOUND/);
+  });
+
+  test('accepts zero stock and rejects negative or fractional CSV stock values', async () => {
+    const service = new ProductImportService({
+      productService: {}, productModel: { findBySku: async () => null },
+      brandModel: { list: async () => [{ id: 1, name: 'Nike', status: 'Active' }] },
+      categoryModel: { list: async () => [{ id: 2, name: 'Lifestyle Sneakers', status: 'Active' }] },
+      importModel: {},
+    });
+    const preview = await service.preview(serializeCsv([
+      CSV_COLUMNS,
+      values({ sku: 'KZ-STOCK-ZERO', stock: '0' }),
+      values({ sku: 'KZ-STOCK-NEG', stock: '-1' }),
+      values({ sku: 'KZ-STOCK-FRACTION', stock: '1.5' }),
+    ]));
+    assert.equal(preview.rows.find((row) => row.sku === 'KZ-STOCK-ZERO').errors.length, 0);
+    assert.equal(preview.rows.find((row) => row.sku === 'KZ-STOCK-NEG').errors.some((error) => error.code === 'INVALID_STOCK'), true);
+    assert.equal(preview.rows.find((row) => row.sku === 'KZ-STOCK-FRACTION').errors.some((error) => error.code === 'INVALID_STOCK'), true);
   });
 });
 

@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { formatOrderNumber } from '../utils/orderNumber.js';
+import AppError from '../utils/AppError.js';
 
 const loadOrderRelations = async (connection, order) => {
   if (!order) return null;
@@ -22,6 +23,21 @@ export default class OrderModel {
       const [duplicates] = await connection.execute('SELECT * FROM orders WHERE idempotency_key = ? LIMIT 1 FOR UPDATE', [idempotencyKey]);
       if (duplicates[0]) { await connection.commit(); return loadOrderRelations(connection, duplicates[0]); }
       const data = await build(connection);
+      const stockRequirements = new Map();
+      for (const item of data.items.filter((value) => value.requiresStock)) {
+        const current = stockRequirements.get(item.productId) || { quantity: 0, name: item.productName };
+        current.quantity += item.quantity;
+        stockRequirements.set(item.productId, current);
+      }
+      for (const [productId, requirement] of stockRequirements) {
+        const [stockUpdate] = await connection.execute(
+          'UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?',
+          [requirement.quantity, productId, requirement.quantity],
+        );
+        if (stockUpdate.affectedRows !== 1) {
+          throw new AppError(`${requirement.name} no longer has enough stock. Update your cart and try again.`, 409, 'INSUFFICIENT_STOCK');
+        }
+      }
       const temporaryReference = `PENDING-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
       const [result] = await connection.execute(
         `INSERT INTO orders

@@ -106,7 +106,6 @@ export default function AdminProductFormPage({ productId, duplicateFrom }) {
     setForm((current) => ({
       ...current,
       [name]: type === 'checkbox' ? checked : value,
-      ...(name === 'status' && value === 'Out of Stock' ? { stock: '0' } : {}),
     }));
     setError('');
     setMessage('');
@@ -208,7 +207,6 @@ export default function AdminProductFormPage({ productId, duplicateFrom }) {
     if (originalPrice !== null && (!Number.isFinite(originalPrice) || originalPrice <= price)) return setError('Original price must be higher than the selling price.');
     if (!sizes.length) return setError('Enter at least one available size.');
     if (!Number.isInteger(stock) || stock < 0) return setError('Stock must be a non-negative whole number.');
-    if (form.status === 'Active' && !form.preOrder && stock === 0) return setError('Active ready-stock products require at least one item in stock.');
     if (!productTags.length) return setError('Enter at least one product tag.');
     if (!preparedVariants.length || preparedVariants.some((variant) => !variant.color)) return setError('Add at least one colour variant with a colour name.');
     if (new Set(preparedVariants.map((variant) => variant.color.toLowerCase())).size !== preparedVariants.length) return setError('Each colour variant must have a unique name.');
@@ -230,7 +228,7 @@ export default function AdminProductFormPage({ productId, duplicateFrom }) {
       description: form.description.trim(),
       sizes,
       preOrder: form.preOrder,
-      stock: form.status === 'Out of Stock' ? 0 : stock,
+      stock,
       availability: form.status,
       deliveryTime: form.deliveryTime.trim(),
       images: images.map((image, index) => imagePayload(image, index, form.name.trim())),
@@ -278,8 +276,8 @@ export default function AdminProductFormPage({ productId, duplicateFrom }) {
         <section className="admin-form-section">
           <div className="admin-form-section__head"><span>02</span><div><strong>AVAILABILITY & DELIVERY</strong><p>Customer-facing status, stock, sizing and fulfilment details.</p></div></div>
           <div className="admin-form-grid">
-            <AdminField label="STATUS" name="status" value={form.status} onChange={updateField} as="select" options={['Active', 'Inactive', 'Out of Stock']} disabled={busy} />
-            <AdminField label="STOCK" name="stock" value={form.stock} onChange={updateField} type="number" placeholder="0" required disabled={busy || form.status === 'Out of Stock'} />
+            <AdminField label="STATUS" name="status" value={form.status === 'Out of Stock' ? 'Active' : form.status} onChange={updateField} as="select" options={['Active', 'Inactive']} disabled={busy} />
+            <AdminField label="STOCK" name="stock" value={form.stock} onChange={updateField} type="number" placeholder="0" required disabled={busy} />
             <AdminField label="DELIVERY TIMELINE" name="deliveryTime" value={form.deliveryTime} onChange={updateField} placeholder="14–28 days" disabled={busy} />
             <AdminField label="AVAILABLE SIZES" name="sizes" value={form.sizes} onChange={updateField} placeholder="EU 40, UK 8, 42" required disabled={busy} />
           </div>
