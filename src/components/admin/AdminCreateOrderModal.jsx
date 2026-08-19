@@ -102,16 +102,36 @@ export default function AdminCreateOrderModal({ open, onClose, onCreated }) {
         <section className="admin-create-order__section">
           <div className="admin-create-order__section-head"><span>02</span><h3>PRODUCTS</h3></div>
           <label className="admin-product-picker"><span>SEARCH PRODUCT, SKU OR BRAND</span><input value={productSearch} onChange={(event) => setProductSearch(event.target.value)} placeholder="Search the live catalogue..." />{productSearch && <div>{matchingProducts.map((product) => <button type="button" key={product.id} onClick={() => addProduct(product)}><strong>{product.name}</strong><span>{product.brand} · {product.sku} · {formatProductPrice(product.price)}</span></button>)}</div>}</label>
-          <div className="admin-create-order__items">{items.map((item) => <article key={item.key}><div><strong>{item.product.name}</strong><span>{item.product.brand} · {item.product.sku}</span><b>{formatProductPrice(item.product.price)}</b></div>{item.product.colorVariations?.length > 0 && <label><span>COLOUR</span><select value={item.selectedColor} onChange={(event) => updateItem(item.key, { selectedColor: event.target.value })}>{item.product.colorVariations.map((color) => <option key={color}>{color}</option>)}</select></label>}<label><span>SIZE</span><select value={item.selectedSize} onChange={(event) => updateItem(item.key, { selectedSize: event.target.value })}>{item.product.sizes.map((size) => <option key={size}>{size}</option>)}</select></label><label><span>QTY</span><input type="number" min="1" max="10" value={item.quantity} onChange={(event) => updateItem(item.key, { quantity: Number(event.target.value) })} /></label><button type="button" onClick={() => { setItems((current) => current.filter((value) => value.key !== item.key)); setQuote(null); }}>REMOVE</button></article>)}</div>
+          <div className="admin-create-order__items">{items.map((item) => <article key={item.key}><div><strong>{item.product.name}</strong><span>{item.product.brand} · {item.product.sku}</span><b>{formatProductPrice(item.product.price)}</b></div>{item.product.colorVariations?.length > 0 && <label><span>COLOUR</span><select value={item.selectedColor} onChange={(event) => updateItem(item.key, { selectedColor: event.target.value })}>{item.product.colorVariations.map((color) => <option key={color}>{color}</option>)}</select></label>}<label><span>SIZE</span><select value={item.selectedSize} onChange={(event) => updateItem(item.key, { selectedSize: event.target.value })}>{item.product.sizes.map((size) => <option key={size}>{size}</option>)}</select></label><label><span>QTY</span><input type="number" min="1" max={item.product.preOrder ? 10 : Math.min(10, item.product.stock)} value={item.quantity} onChange={(event) => updateItem(item.key, { quantity: Number(event.target.value) })} /></label><button type="button" onClick={() => { setItems((current) => current.filter((value) => value.key !== item.key)); setQuote(null); }}>REMOVE</button></article>)}</div>
           {!items.length && <p className="admin-create-order__empty">Search and select products to build this order.</p>}
         </section>
       </div>
 
       <section className="admin-create-order__section admin-create-order__pricing">
         <div className="admin-create-order__section-head"><span>03</span><h3>PRICING & PAYMENT</h3></div>
-        <label><span>COUPON (OPTIONAL)</span><input value={couponCode} onChange={(event) => setCouponCode(event.target.value.toUpperCase())} placeholder="Coupon code" /></label>
-        <div className="admin-create-order__payment"><button type="button" className={paymentOption === PAYMENT_OPTIONS.ADVANCE ? 'active' : ''} onClick={() => setPaymentOption(PAYMENT_OPTIONS.ADVANCE)}>50% / ADVANCE</button><button type="button" className={paymentOption === PAYMENT_OPTIONS.FULL ? 'active' : ''} onClick={() => setPaymentOption(PAYMENT_OPTIONS.FULL)}>FULL PAYMENT</button></div>
-        <dl>{[['Subtotal', quote?.subtotalAmount], ['Discount', quote?.discountAmount], ['Order Total', quote?.totalAmount], ['Pay Now', quote?.advanceAmount], ['Balance', quote?.balanceAmount]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{quote ? formatProductPrice(value) : '—'}</dd></div>)}</dl>
+        <div className="admin-create-order__pricing-controls">
+          <label><span>COUPON (OPTIONAL)</span><input value={couponCode} onChange={(event) => setCouponCode(event.target.value.toUpperCase())} placeholder="Coupon code" /></label>
+          <div className="admin-create-order__payment"><button type="button" className={paymentOption === PAYMENT_OPTIONS.ADVANCE ? 'active' : ''} onClick={() => setPaymentOption(PAYMENT_OPTIONS.ADVANCE)}>50% / ADVANCE</button><button type="button" className={paymentOption === PAYMENT_OPTIONS.FULL ? 'active' : ''} onClick={() => setPaymentOption(PAYMENT_OPTIONS.FULL)}>FULL PAYMENT</button></div>
+        </div>
+        <div className="admin-create-order__line-summary">
+          <span>ORDER LINES</span>
+          {quote?.items?.map((item, index) => <div key={`${item.productId}-${item.selectedSize}-${item.selectedColor || ''}-${index}`}>
+            <strong>{item.productName}</strong>
+            <p><span>{formatProductPrice(item.price)} × {item.quantity}</span><b>= {formatProductPrice(item.price * item.quantity)}</b></p>
+          </div>)}
+          {!quote && <p className="admin-create-order__quote-empty">Select valid products to calculate server pricing.</p>}
+        </div>
+        <div className="admin-create-order__financial-summary">
+          <span>FINANCIAL SUMMARY</span>
+          <dl>
+            <div><dt>Subtotal</dt><dd>{quote ? formatProductPrice(quote.subtotalAmount) : '—'}</dd></div>
+            <div><dt>Discount</dt><dd>{quote ? `− ${formatProductPrice(quote.discountAmount)}` : '—'}</dd></div>
+            <div className="is-total"><dt>Order Total</dt><dd>{quote ? formatProductPrice(quote.totalAmount) : '—'}</dd></div>
+            <div><dt>Payment Option</dt><dd>{quote ? (quote.paymentOption === PAYMENT_OPTIONS.FULL ? 'Full Payment' : `${quote.advancePercentage}% Advance`) : '—'}</dd></div>
+            <div className="is-pay-now"><dt>Advance / Pay Now</dt><dd>{quote ? formatProductPrice(quote.advanceAmount) : '—'}</dd></div>
+            <div><dt>Balance on Delivery</dt><dd>{quote ? formatProductPrice(quote.balanceAmount) : '—'}</dd></div>
+          </dl>
+        </div>
         <p>Payment is not marked as received when this order is created.</p>
       </section>
       {message && <p className="admin-feedback admin-feedback--error" role="alert">{message}</p>}

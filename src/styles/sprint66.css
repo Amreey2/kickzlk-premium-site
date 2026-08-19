@@ -112,12 +112,25 @@
 .admin-create-order__items article > div b { color: var(--acid); font-size: 11px; }
 .admin-create-order__items article > button { min-height: 42px; border: 0; background: transparent; color: #ff9898; font-size: 8px; font-weight: 800; cursor: pointer; }
 .admin-create-order__empty { margin: 13px 0 0; border: 1px dashed var(--line); border-radius: 8px; padding: 18px; color: var(--muted); font-size: 11px; text-align: center; }
-.admin-create-order__pricing { margin-top: 14px; display: grid; grid-template-columns: minmax(180px, .7fr) minmax(240px, 1fr) minmax(300px, 1.25fr); gap: 13px; align-items: end; }
+.admin-create-order__pricing { margin-top: 14px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: 14px; align-items: start; }
 .admin-create-order__pricing .admin-create-order__section-head { grid-column: 1 / -1; margin-bottom: 0; }
-.admin-create-order__pricing dl { margin: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-.admin-create-order__pricing dl div { min-width: 0; display: grid; gap: 4px; }
-.admin-create-order__pricing dt { color: var(--muted); font-size: 8px; }
-.admin-create-order__pricing dd { margin: 0; font-size: 11px; font-weight: 800; overflow-wrap: anywhere; }
+.admin-create-order__pricing-controls { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(180px, .7fr) minmax(280px, 1.3fr); gap: 12px; align-items: end; }
+.admin-create-order__line-summary, .admin-create-order__financial-summary { min-width: 0; height: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 15px; background: rgba(0,0,0,.12); }
+.admin-create-order__line-summary > span, .admin-create-order__financial-summary > span { display: block; margin-bottom: 11px; color: var(--acid); font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+.admin-create-order__line-summary > div { padding: 10px 0; display: grid; gap: 7px; border-top: 1px solid var(--line); }
+.admin-create-order__line-summary > div:first-of-type { border-top: 0; padding-top: 0; }
+.admin-create-order__line-summary strong { font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
+.admin-create-order__line-summary p { margin: 0; display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 11px; }
+.admin-create-order__line-summary b { color: var(--text); white-space: nowrap; }
+.admin-create-order__quote-empty { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.admin-create-order__financial-summary dl { margin: 0; display: grid; }
+.admin-create-order__financial-summary dl div { min-width: 0; padding: 8px 0; display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); }
+.admin-create-order__financial-summary dl div:first-child { border-top: 0; padding-top: 0; }
+.admin-create-order__financial-summary dt { color: var(--muted); font-size: 10px; }
+.admin-create-order__financial-summary dd { margin: 0; color: var(--text); font-size: 11px; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+.admin-create-order__financial-summary .is-total { margin-top: 3px; padding-block: 11px; }
+.admin-create-order__financial-summary .is-total dt, .admin-create-order__financial-summary .is-total dd { color: var(--text); font-size: 13px; }
+.admin-create-order__financial-summary .is-pay-now dd { color: var(--acid); }
 .admin-create-order__pricing > p { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 10px; }
 .admin-create-order__actions { margin-top: 15px; display: flex; justify-content: flex-end; gap: 9px; }
 
@@ -125,7 +138,7 @@
   .checkout-final-column { position: static; }
   .admin-create-order__grid { grid-template-columns: 1fr; }
   .admin-create-order__pricing { grid-template-columns: 1fr 1fr; }
-  .admin-create-order__pricing dl { grid-column: 1 / -1; }
+  .admin-create-order__pricing-controls { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 650px) {
@@ -215,12 +228,12 @@
 
   .account-panel--orders { order: -1; }
 
-  .admin-create-order__fields, .admin-create-order__pricing { grid-template-columns: 1fr; }
-  .admin-create-order__fields .wide, .admin-create-order__pricing .admin-create-order__section-head, .admin-create-order__pricing dl, .admin-create-order__pricing > p { grid-column: auto; }
+  .admin-create-order__fields, .admin-create-order__pricing, .admin-create-order__pricing-controls { grid-template-columns: 1fr; }
+  .admin-create-order__fields .wide, .admin-create-order__pricing .admin-create-order__section-head, .admin-create-order__pricing-controls, .admin-create-order__pricing > p { grid-column: auto; }
   .admin-create-order__items article { grid-template-columns: 1fr 1fr; align-items: end; }
   .admin-create-order__items article > div { grid-column: 1 / -1; }
   .admin-create-order__items article > button { justify-self: start; }
-  .admin-create-order__pricing dl { grid-template-columns: 1fr 1fr; }
+  .admin-create-order__line-summary p { align-items: flex-end; }
   .admin-create-order__actions { display: grid; grid-template-columns: 1fr 1fr; }
   .admin-create-order__actions .btn { width: 100%; padding-inline: 10px; }
 }
