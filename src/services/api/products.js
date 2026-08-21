@@ -14,23 +14,23 @@ const normalizeList = (values) => {
   });
 };
 
-const normalizeImage = (image, index, productName) => {
+const normalizeImage = (image, index, productName, adminAlt = '') => {
   const source = typeof image === 'string' ? { url: image } : (image || {});
   return {
     url: resolveApiAssetUrl(source.url || source.src),
     storageUrl: source.storageUrl || source.url || source.src || '',
-    alt: source.alt || `${productName} sneaker view ${index + 1}`,
+    alt: adminAlt || source.alt || `${productName} sneaker view ${index + 1}`,
     position: Number(source.position || index + 1),
   };
 };
-const normalizeColorVariants = (variants, productName) => (Array.isArray(variants) ? variants : []).map((variant) => {
+const normalizeColorVariants = (variants, productName, adminAlt = '') => (Array.isArray(variants) ? variants : []).map((variant) => {
   const uploadedImages = Array.isArray(variant?.images)
-    ? variant.images.map((image, index) => normalizeImage(image, index, `${productName} ${variant.color || ''}`.trim()))
+    ? variant.images.map((image, index) => normalizeImage(image, index, `${productName} ${variant.color || ''}`.trim(), adminAlt))
     : [];
   const cdnImages = Array.isArray(variant?.cdnImages) ? variant.cdnImages.map(String).filter(Boolean) : [];
   return {
     color: String(variant?.color || '').trim(),
-    images: [...uploadedImages, ...cdnImages.map((url, index) => normalizeImage({ url }, uploadedImages.length + index, `${productName} ${variant.color || ''}`.trim()))],
+    images: [...uploadedImages, ...cdnImages.map((url, index) => normalizeImage({ url }, uploadedImages.length + index, `${productName} ${variant.color || ''}`.trim(), adminAlt))],
     uploadedImages,
     cdnImages,
   };
@@ -44,8 +44,9 @@ const normalizeProduct = (product) => {
     ? 'Inactive'
     : 'Active';
   const stock = Number(product.stock || 0);
+  const imageAltText = String(product.imageAltText || '');
   const uploadedImages = Array.isArray(product.images)
-    ? product.images.map((image, index) => normalizeImage(image, index, product.name))
+    ? product.images.map((image, index) => normalizeImage(image, index, product.name, imageAltText))
     : [];
   const cdnImages = Array.isArray(product.cdnImages) ? product.cdnImages.map(String) : [];
   return {
@@ -61,7 +62,7 @@ const normalizeProduct = (product) => {
     categoryId: Number(product.categoryId || 0),
     price: Number(product.price || 0),
     originalPrice: Number(product.originalPrice || product.compareAtPrice || 0) || null,
-    images: [...uploadedImages, ...cdnImages.map((url, index) => normalizeImage({ url, alt: product.imageAltText }, uploadedImages.length + index, product.name))].sort((a, b) => a.position - b.position),
+    images: [...uploadedImages, ...cdnImages.map((url, index) => normalizeImage({ url }, uploadedImages.length + index, product.name, imageAltText))].sort((a, b) => a.position - b.position),
     uploadedImages,
     cdnImages,
     sizes: Array.isArray(product.sizes) ? product.sizes.map(String) : [],
@@ -74,10 +75,10 @@ const normalizeProduct = (product) => {
     deliveryTime: String(product.deliveryTime || ''),
     productTags: normalizeList(product.productTags),
     colorVariations: normalizeList(product.colorVariations),
-    colorVariants: normalizeColorVariants(product.colorVariants, product.name),
+    colorVariants: normalizeColorVariants(product.colorVariants, product.name, imageAltText),
     metaTitle: String(product.metaTitle || ''),
     metaDescription: String(product.metaDescription || ''),
-    imageAltText: String(product.imageAltText || ''),
+    imageAltText,
     createdAt: String(product.createdAt || product.created_at || ''),
     updatedAt: String(product.updatedAt || product.updated_at || ''),
   };

@@ -19,6 +19,8 @@ import OrderService from '../services/OrderService.js';
 import ProductService from '../services/ProductService.js';
 import ProductImportService from '../services/ProductImportService.js';
 import SiteSettingService from '../services/SiteSettingService.js';
+import SeoService from '../services/SeoService.js';
+import { env } from './env.js';
 
 const userModel = new UserModel(database);
 const adminModel = new AdminModel(database);
@@ -47,3 +49,4 @@ export const services = {
   imageService: new ImageService(),
   siteSettingService,
 };
+services.seoService = new SeoService({ productService, catalogService: services.catalogService, siteUrl: env.siteUrl });

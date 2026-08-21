@@ -16,6 +16,8 @@ import createOrderRoutes from './routes/orderRoutes.js';
 import createProductRoutes from './routes/productRoutes.js';
 import createSiteSettingRoutes from './routes/siteSettingRoutes.js';
 import createUploadRoutes from './routes/uploadRoutes.js';
+import createSeoRoutes from './routes/seoRoutes.js';
+import SeoService from './services/SeoService.js';
 
 const uploads = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'uploads');
 
@@ -35,6 +37,12 @@ export const createApp = ({ services = defaultServices, databaseCheck = testData
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
   app.use(cookieParser());
   app.use('/uploads', express.static(uploads, { maxAge: env.nodeEnv === 'production' ? '7d' : 0 }));
+  const seoService = services.seoService || new SeoService({
+    productService: services.productService,
+    catalogService: services.catalogService,
+    siteUrl: env.siteUrl,
+  });
+  app.use(createSeoRoutes(seoService));
 
   app.get('/api/health', async (request, response) => {
     void request;

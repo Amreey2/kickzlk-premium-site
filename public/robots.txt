@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-confirmation
+Disallow: /track-order
+Disallow: /*?search=
+Disallow: /*?*search=
+Sitemap: https://kickz.lk/sitemap.xml

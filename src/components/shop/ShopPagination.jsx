@@ -7,11 +7,18 @@ const paginationItems = (total, current) => {
 
 export default function ShopPagination({ current, total, onChange }) {
   if (total <= 1) return null;
+  const hrefFor = (page) => {
+    const params = new URLSearchParams(window.location.search);
+    if (page > 1) params.set('page', String(page));
+    else params.delete('page');
+    return `${window.location.pathname}${params.size ? `?${params}` : ''}`;
+  };
+  const selectPage = (event, page) => { event.preventDefault(); onChange(page); };
   return <nav className="shop-pagination" aria-label="Shop pagination">
-    {current > 1 && <button type="button" className="shop-pagination__direction" onClick={() => onChange(current - 1)} aria-label="Previous page">←</button>}
+    {current > 1 && <a href={hrefFor(current - 1)} className="shop-pagination__direction" onClick={(event) => selectPage(event, current - 1)} aria-label="Previous page">←</a>}
     {paginationItems(total, current).map((item, index) => item === 'ellipsis'
       ? <span key={`ellipsis-${index}`} aria-hidden="true">…</span>
-      : <button type="button" className={item === current ? 'active' : ''} aria-current={item === current ? 'page' : undefined} onClick={() => onChange(item)} key={item}>{item}</button>)}
-    {current < total && <button type="button" className="shop-pagination__next" onClick={() => onChange(current + 1)}>NEXT <span>→</span></button>}
+      : <a href={hrefFor(item)} className={item === current ? 'active' : ''} aria-current={item === current ? 'page' : undefined} onClick={(event) => selectPage(event, item)} key={item}>{item}</a>)}
+    {current < total && <a href={hrefFor(current + 1)} className="shop-pagination__next" onClick={(event) => selectPage(event, current + 1)}>NEXT <span>→</span></a>}
   </nav>;
 }

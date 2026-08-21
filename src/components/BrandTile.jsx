@@ -4,7 +4,7 @@ export default function BrandTile({ brand, index = 0, href, onClick }) {
   return (
     <Component
       className="brand-tile"
-      {...(href ? { href } : { type: 'button', onClick })}
+      {...(href ? { href, onClick: onClick ? (event) => { event.preventDefault(); onClick(); } : undefined } : { type: 'button', onClick })}
     >
       {imageMode
         ? <img className="brand-tile__image" src={brand.logoImage} alt={`${brand.name} logo`} />

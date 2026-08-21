@@ -6,6 +6,7 @@ import { MediaSection, TrustpilotSection } from '../components/home/HomeSections
 import PageHero from '../components/PageHero';
 import PageShell from '../components/PageShell';
 import Toast from '../components/Toast';
+import Seo from '../components/Seo';
 import { MobileBuyBar, ProductDetails, ProductGallery, ProductHeading, ProductInfo, Recommendations, SizeGuideModal } from '../components/product/ProductSections';
 import { useProduct, useProducts } from '../hooks/useProducts';
 import useReveal from '../hooks/useReveal';
@@ -13,6 +14,7 @@ import useToast from '../hooks/useToast';
 import { authApi, ordersApi, resolveApiAssetUrl, settingsApi } from '../services/api';
 import { addCartItem, cartCount, readCart } from '../utils/cart';
 import { PAYMENT_OPTIONS, writePaymentOption } from '../utils/paymentOption';
+import { productSeo } from '../utils/seo';
 
 export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }) {
   useReveal();
@@ -83,6 +85,7 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
   if (loading) {
     return (
       <PageShell>
+        <Seo title="Loading Product | KICKZ.LK" description="Loading KICKZ.LK product details." canonicalPath={`/product/${productId}`} noIndex />
         <PageHero kicker="KICKZ.LK CATALOG" title="LOADING PAIR" copy="Retrieving the latest product details from KICKZ.LK." />
       </PageShell>
     );
@@ -92,6 +95,7 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
     const notFound = error?.status === 404;
     return (
       <PageShell>
+        <Seo title={notFound ? 'Product Not Found | KICKZ.LK' : 'Catalogue Unavailable | KICKZ.LK'} description={notFound ? 'This KICKZ.LK product could not be found.' : 'KICKZ.LK product details are temporarily unavailable.'} canonicalPath={`/product/${productId}`} noIndex />
         <PageHero
           kicker="KICKZ.LK CATALOG"
           title={notFound ? 'PAIR NOT FOUND' : 'CATALOG UNAVAILABLE'}
@@ -103,9 +107,11 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
   }
 
   const activeColor = selectedColor || product.colorVariations?.[0] || '';
+  const seo = productSeo(product);
 
   return (
     <>
+      <Seo {...seo} />
       <div className="noise" aria-hidden="true" />
       <Header bagCount={bagCount} cartHref={cartHref} />
       <main className="product-main"><div className="container">

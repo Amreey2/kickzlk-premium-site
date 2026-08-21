@@ -3,7 +3,7 @@ import { productDunk } from '../assets';
 export const formatProductPrice = (price) => `LKR ${Number(price || 0).toLocaleString('en-LK')}`;
 
 export const productImage = (product, index = 0) => product?.images?.[index]?.url || productDunk;
-export const productImageAlt = (product, index = 0) => product?.images?.[index]?.alt || `${product?.brand || ''} ${product?.name || 'KICKZ.LK'} sneaker`;
+export const productImageAlt = (product, index = 0) => product?.imageAltText || product?.images?.[index]?.alt || `${product?.brand || ''} ${product?.name || 'KICKZ.LK'} sneaker`;
 
 export const productGallery = (product, color) => {
   const variant = product?.colorVariants?.find((item) => item.color.toLowerCase() === String(color || '').toLowerCase());

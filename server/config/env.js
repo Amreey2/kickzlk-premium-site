@@ -11,6 +11,7 @@ const number = (value, fallback) => Number.isFinite(Number(value)) ? Number(valu
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: number(process.env.PORT, 5000),
+  siteUrl: String(process.env.SITE_URL || 'https://kickz.lk').replace(/\/$/, ''),
   clientOrigins: (process.env.CLIENT_ORIGIN || 'http://localhost:5173').split(',').map((value) => value.trim()),
   database: {
     host: process.env.DB_HOST || '127.0.0.1',

@@ -44,7 +44,7 @@ function useShopPageSize() {
   return pageSize;
 }
 
-function AdvancedShopCatalog({ onSaved, categoryMode = false, searchTerm }) {
+function AdvancedShopCatalog({ onSaved, categoryMode = false, searchTerm, initialCategory = '' }) {
   const search = (searchTerm ?? new URLSearchParams(window.location.search).get('search') ?? '').trim().toLowerCase();
   const { products, loading, error } = useProducts(search ? { search } : {});
   const [filters, setFilters] = useState(initialFilters);
@@ -77,6 +77,7 @@ function AdvancedShopCatalog({ onSaved, categoryMode = false, searchTerm }) {
 
   const filteredProducts = useMemo(() => products.filter((product) => {
     const has = (selected, values) => selected.length === 0 || selected.some((selection) => values.some((value) => value.toLowerCase() === selection.toLowerCase()));
+    if (initialCategory && product.category.toLowerCase() !== initialCategory.toLowerCase()) return false;
     if (search && ![product.name, product.brand, product.category, product.sku].some((value) => String(value || '').toLowerCase().includes(search))) return false;
     if (filters.onSale && !(product.originalPrice > product.price)) return false;
     if (!has(filters.brands, [product.brand])) return false;
@@ -87,7 +88,7 @@ function AdvancedShopCatalog({ onSaved, categoryMode = false, searchTerm }) {
     if (!priceError && Number.isFinite(minPrice) && product.price < minPrice) return false;
     if (!priceError && Number.isFinite(maxPrice) && product.price > maxPrice) return false;
     return true;
-  }), [filters, maxPrice, minPrice, priceError, products, search]);
+  }), [filters, initialCategory, maxPrice, minPrice, priceError, products, search]);
 
   const activeCount = Number(filters.onSale) + ['brands', 'sizes', 'genders', 'activities', 'colors'].reduce((total, key) => total + filters[key].length, 0)
     + Number(filters.minPrice !== '') + Number(filters.maxPrice !== '');
@@ -123,6 +124,7 @@ function AdvancedShopCatalog({ onSaved, categoryMode = false, searchTerm }) {
     if (filters.activities.length) params.set('activities', filters.activities.join(','));
     if (filters.colors.length) params.set('colors', filters.colors.join(','));
     window.history.replaceState({}, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`);
+    window.dispatchEvent(new Event('kickz:location-change'));
   }, [currentPage, filters, search]);
 
   const changeFilter = (key, value) => { setFilters((current) => ({ ...current, [key]: value })); setPage(1); };
@@ -180,7 +182,7 @@ function NewDropsCatalog({ onSaved }) {
   </div></section>;
 }
 
-export default function ShopCatalog({ initialView = 'all', onSaved, searchTerm }) {
+export default function ShopCatalog({ initialView = 'all', onSaved, searchTerm, initialCategory = '' }) {
   if (initialView === 'new') return <NewDropsCatalog onSaved={onSaved} />;
-  return <AdvancedShopCatalog onSaved={onSaved} categoryMode={initialView === 'categories'} searchTerm={searchTerm} />;
+  return <AdvancedShopCatalog onSaved={onSaved} categoryMode={initialView === 'categories'} searchTerm={searchTerm} initialCategory={initialCategory} />;
 }

@@ -1,6 +1,6 @@
 const customerView = (product) => {
-  const { sku, brandId, categoryId, ...visible } = product;
-  void sku; void brandId; void categoryId;
+  const { brandId, categoryId, ...visible } = product;
+  void brandId; void categoryId;
   return visible;
 };
 

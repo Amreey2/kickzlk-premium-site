@@ -39,12 +39,12 @@ export function ProductGallery({ product, selectedColor }) {
             aria-label={`View ${product.name} image ${index + 1}`}
             onClick={() => selectImage(image.url)}
           >
-            <img src={image.url} alt={image.alt} onError={replaceFailedProductImage} />
+            <img src={image.url} alt={productImageAlt(product, index)} loading="lazy" width="240" height="240" decoding="async" onError={replaceFailedProductImage} />
           </button>
         ))}
       </div>
       <div className="gallery-main">
-        <img className="gallery-active-image" key={`${selectedColor}-${selectedImage}`} src={selectedImage} alt={productImageAlt(product)} onError={replaceFailedProductImage} />
+        <img className="gallery-active-image" key={`${selectedColor}-${selectedImage}`} src={selectedImage} alt={productImageAlt(product)} width="1200" height="1200" decoding="async" onError={replaceFailedProductImage} />
       </div>
     </section>
   );

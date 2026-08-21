@@ -8,7 +8,7 @@ const customer = { id: 7, name: 'Customer', email: 'customer@example.com' };
 const admin = { id: 1, email: 'admin@example.com' };
 const customerToken = createCustomerToken(customer);
 const adminToken = createAdminToken(admin);
-const product = { id: 12, brand: 'Nike', name: 'Dunk Low Premium', price: 47500, size: ['US 8', 'US 9'] };
+const product = { id: 'dunk-low-premium', brand: 'Nike', category: 'Sneakers', name: 'Dunk Low Premium', price: 47500, size: ['US 8', 'US 9'], availability: 'Active', updatedAt: '2026-08-20T00:00:00.000Z' };
 const order = {
   id: 22,
   user_id: null,
@@ -87,6 +87,18 @@ describe('API contract', () => {
   test('health reports a connected database', async () => {
     const response = await request(app()).get('/api/health').expect(200);
     assert.equal(response.body.data.database, 'connected');
+  });
+
+  test('robots and dynamic sitemap expose only public canonical storefront routes', async () => {
+    const instance = app();
+    const robots = await request(instance).get('/robots.txt').expect(200).expect('Content-Type', /text\/plain/);
+    assert.match(robots.text, /Disallow: \/admin/);
+    assert.match(robots.text, /Sitemap: https:\/\/kickz\.lk\/sitemap\.xml/);
+    const sitemap = await request(instance).get('/sitemap.xml').expect(200).expect('Content-Type', /application\/xml/);
+    assert.match(sitemap.text, /https:\/\/kickz\.lk\/product\/dunk-low-premium/);
+    assert.match(sitemap.text, /https:\/\/kickz\.lk\/brand\/nike/);
+    assert.match(sitemap.text, /https:\/\/kickz\.lk\/category\/sneakers/);
+    assert.doesNotMatch(sitemap.text, /\/admin|\/login|\/checkout|\/track-order/);
   });
 
   test('customer registration creates a secure session usable by profile', async () => {

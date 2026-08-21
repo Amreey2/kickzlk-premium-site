@@ -2515,8 +2515,8 @@ body.shop-filter-open { overflow: hidden; }
 .shop-empty h3 { max-width: 540px; margin: 4px 0 0; font: 800 clamp(22px, 2.6vw, 36px)/1 var(--display); }
 .shop-empty p { max-width: 480px; margin: 0 0 12px; color: var(--muted); font-size: 12px; }
 .shop-pagination { margin-top: 48px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; }
-.shop-pagination button { min-width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--muted); font-size: 10px; font-weight: 800; cursor: pointer; }
-.shop-pagination button:hover, .shop-pagination button.active { border-color: var(--acid); background: var(--acid); color: #070707; }
+.shop-pagination a { min-width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 10px; font-weight: 800; cursor: pointer; }
+.shop-pagination a:hover, .shop-pagination a.active { border-color: var(--acid); background: var(--acid); color: #070707; }
 .shop-pagination > span { padding-inline: 3px; color: var(--faint); }
 .shop-pagination .shop-pagination__next { width: auto; border-radius: 999px; padding-inline: 17px; }
 .shop-pagination__next span { margin-left: 7px; }
@@ -2580,7 +2580,7 @@ body.shop-filter-open { overflow: hidden; }
   .shop-product-grid .price-row strong { font-size: clamp(10px, 3.2vw, 13px); }
   .site-main:has(.shop-catalog--advanced) .shop-product-grid .product-card__commerce { display: none; }
   .shop-pagination { margin-top: 36px; gap: 5px; }
-  .shop-pagination button { min-width: 38px; height: 38px; }
+  .shop-pagination a { min-width: 38px; height: 38px; }
   .shop-pagination .shop-pagination__next { padding-inline: 13px; }
   .new-drops-header { margin-bottom: 20px; padding-bottom: 15px; }
   .new-drops-header h2 { font-size: clamp(24px, 8.2vw, 33px); }

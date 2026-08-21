@@ -27,6 +27,8 @@ import AdminProductFormPage from './pages/admin/AdminProductFormPage';
 import AdminProductImportPage from './pages/admin/AdminProductImportPage';
 import AdminProductsPage from './pages/admin/AdminProductsPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import RouteSeo from './components/RouteSeo';
+import NotFoundPage from './pages/NotFoundPage';
 
 const routes = {
   '/': HomePage,
@@ -69,12 +71,19 @@ export default function App() {
     return null;
   }
   const adminProductDuplicate = pathname.match(/^\/admin\/products\/([^/]+)\/duplicate$/);
-  if (adminProductDuplicate) return <AdminProductFormPage duplicateFrom={decodeURIComponent(adminProductDuplicate[1])} />;
+  if (adminProductDuplicate) return <><RouteSeo pathname={pathname} /><AdminProductFormPage duplicateFrom={decodeURIComponent(adminProductDuplicate[1])} /></>;
   const adminProductEdit = pathname.match(/^\/admin\/products\/([^/]+)\/edit$/);
-  if (adminProductEdit) return <AdminProductFormPage productId={decodeURIComponent(adminProductEdit[1])} />;
-  if (pathname.endsWith('/product.html')) return <ProductPage />;
+  if (adminProductEdit) return <><RouteSeo pathname={pathname} /><AdminProductFormPage productId={decodeURIComponent(adminProductEdit[1])} /></>;
+  if (pathname.endsWith('/product.html')) {
+    window.location.replace('/product/air-jordan-1-retro-high-og');
+    return null;
+  }
   if (pathname.startsWith('/product/')) return <ProductPage productId={decodeURIComponent(pathname.slice('/product/'.length))} />;
+  const brandRoute = pathname.match(/^\/brand\/([^/]+)$/);
+  if (brandRoute) return <BrandsPage brandSlug={decodeURIComponent(brandRoute[1])} />;
+  const categoryRoute = pathname.match(/^\/category\/([^/]+)$/);
+  if (categoryRoute) return <CategoriesPage categorySlug={decodeURIComponent(categoryRoute[1])} />;
 
-  const Page = routes[pathname] || (pathname.startsWith('/admin/') ? AdminLoginPage : HomePage);
-  return <Page />;
+  const Page = routes[pathname] || (pathname.startsWith('/admin/') ? AdminLoginPage : NotFoundPage);
+  return <><RouteSeo pathname={pathname} /><Page /></>;
 }

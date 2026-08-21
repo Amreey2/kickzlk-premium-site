@@ -43,8 +43,8 @@ export default function ProductCard({
       <a href={productUrl} className="product-card__visual" aria-label={product.ariaLabel || `View ${product.name}`}>
         {tags.length > 0 && <div className="product-card__badges">{tags.map((tag, index) => <span className={`badge${index === 0 ? ' badge--acid' : ''}`} key={tag.toLowerCase()}>{tag.toUpperCase()}</span>)}</div>}
         {showHeart && <button className={`heart${saved ? ' saved' : ''}`} aria-label="Save product" onClick={toggleSaved}>{saved ? '♥' : '♡'}</button>}
-        <img className="product-card__image product-card__image--primary" src={primaryImage} alt={product.alt || productImageAlt(product)} loading={product.loading || 'lazy'} onError={replaceFailedProductImage} />
-        {hoverImage && !hoverImageFailed && <img className="product-card__image product-card__image--hover" src={hoverImage} alt="" aria-hidden="true" loading="lazy" onError={() => setHoverImageFailed(true)} />}
+        <img className="product-card__image product-card__image--primary" src={primaryImage} alt={product.alt || productImageAlt(product)} loading={product.loading || 'lazy'} width="900" height="900" decoding="async" onError={replaceFailedProductImage} />
+        {hoverImage && !hoverImageFailed && <img className="product-card__image product-card__image--hover" src={hoverImage} alt="" aria-hidden="true" loading="lazy" width="900" height="900" decoding="async" onError={() => setHoverImageFailed(true)} />}
         <span className="product-card__code">{code}</span>
       </a>
       <div className="product-card__body">
