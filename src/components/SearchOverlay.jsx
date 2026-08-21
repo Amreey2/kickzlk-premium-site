@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { productsApi } from '../services/api';
 import { formatProductPrice, productImage, productImageAlt } from '../utils/productPresentation';
+import { trackSearch } from '../utils/analytics';
 
 export default function SearchOverlay({ open, onClose }) {
   const inputRef = useRef(null);
@@ -23,7 +24,7 @@ export default function SearchOverlay({ open, onClose }) {
     let active = true;
     const timer = window.setTimeout(() => {
       setLoading(true); setError('');
-      productsApi.list({ search: query.trim() }).then((items) => { if (active) setResults(items.slice(0, 6)); })
+      productsApi.list({ search: query.trim() }).then((items) => { if (active) { setResults(items.slice(0, 6)); trackSearch(query.trim(), items.length, 'overlay'); } })
         .catch((requestError) => { if (active) { setResults([]); setError(requestError.message); } })
         .finally(() => { if (active) setLoading(false); });
     }, 180);

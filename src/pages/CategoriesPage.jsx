@@ -9,6 +9,7 @@ import useReveal from '../hooks/useReveal';
 import useToast from '../hooks/useToast';
 import { catalogApi } from '../services/api';
 import { breadcrumbSchema, slugifySeo } from '../utils/seo';
+import { trackCatalogSelection } from '../utils/analytics';
 
 export default function CategoriesPage({ categorySlug = '' }) {
   useReveal();
@@ -33,6 +34,7 @@ export default function CategoriesPage({ categorySlug = '' }) {
     window.addEventListener('kickz:location-change', update);
     return () => { window.removeEventListener('popstate', update); window.removeEventListener('kickz:location-change', update); };
   }, []);
+  useEffect(() => { if (category) trackCatalogSelection('category', category.name); }, [category]);
   if (loadingCategory) return <PageShell><Seo title="Loading Category | KICKZ.LK" canonicalPath={`/category/${categorySlug}`} noIndex /><ProductCollectionState loading /></PageShell>;
   if (categoryMissing) return <PageShell><Seo title="Category Not Found | KICKZ.LK" canonicalPath={`/category/${categorySlug}`} noIndex /><PageHero kicker="404" title="CATEGORY NOT FOUND" copy="This category is not available in the active KICKZ.LK catalogue." /></PageShell>;
   return <PageShell>

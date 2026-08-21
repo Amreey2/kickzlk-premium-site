@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import FormField from '../components/account/FormField';
 import BankTransferModal from '../components/checkout/BankTransferModal';
 import CheckoutSummary from '../components/checkout/CheckoutSummary';
@@ -12,6 +12,7 @@ import { authApi, ordersApi, settingsApi } from '../services/api';
 import { clearCart, readCart } from '../utils/cart';
 import { isValidEmail, isValidPhone } from '../utils/validation';
 import { normalizePaymentOption, readPaymentOption, writePaymentOption } from '../utils/paymentOption';
+import { storePurchaseSnapshot, trackBeginCheckout, trackPaymentOption } from '../utils/analytics';
 
 const initialCustomer = { name: '', email: '', phone: '', address: '', city: '', notes: '' };
 const orderKey = () => sessionStorage.getItem('kickz_order_key') || (() => { const key = crypto.randomUUID().replaceAll('-', ''); sessionStorage.setItem('kickz_order_key', key); return key; })();
@@ -27,8 +28,10 @@ export default function CheckoutPage() {
   const [paymentOption, setPaymentOption] = useState(() => normalizePaymentOption(params.get('paymentOption') || readPaymentOption()));
   const [customer, setCustomer] = useState(initialCustomer); const [errors, setErrors] = useState({});
   const [accountCustomer, setAccountCustomer] = useState(false); const [addresses, setAddresses] = useState([]); const [selectedAddress, setSelectedAddress] = useState('');
+  const [authResolved, setAuthResolved] = useState(false);
   const [quote, setQuote] = useState(null); const [settings, setSettings] = useState(null); const [bankOpen, setBankOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false); const [message, setMessage] = useState('');
+  const checkoutTracked = useRef(false);
 
   useEffect(() => { settingsApi.paymentSettings().then(setSettings).catch((error) => setMessage(error.message)); }, []);
   useEffect(() => { if (!requestItems.length) return undefined; let active = true; ordersApi.quote({ items: requestItems, couponCode, paymentOption, email: customer.email }).then((value) => { if (active) setQuote(value); }).catch((error) => { if (active) setMessage(error.message); }); return () => { active = false; }; },  [couponCode, paymentOption, customer.email, JSON.stringify(requestItems)]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -36,22 +39,29 @@ export default function CheckoutPage() {
     let active = true;
     authApi.session().then(async (session) => {
       if (!session.authenticated) {
+        setAuthResolved(true);
         if (params.get('guest') !== '1') window.location.assign(`/checkout/start?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`);
         return;
       }
       const profile = await authApi.profile();
       const saved = await authApi.addresses(); if (!active) return;
       setAccountCustomer(true); setAddresses(saved);
+      setAuthResolved(true);
       const address = saved.find((item) => item.isDefault) || saved[0];
       setSelectedAddress(address ? String(address.id) : '');
       setCustomer({ ...initialCustomer, name: profile.name, email: profile.email, phone: profile.phoneNumber || '', address: address ? [address.addressLine1, address.addressLine2].filter(Boolean).join(', ') : '', city: address?.city || '' });
-    }).catch(() => undefined);
+    }).catch(() => { if (params.get('guest') === '1') setAuthResolved(true); });
     return () => { active = false; };
   }, [params]);
-  const changePayment = (value) => { const option = writePaymentOption(value); setPaymentOption(option); };
+  useEffect(() => {
+    if (!authResolved || !quote || !entries.length || checkoutTracked.current) return;
+    if (accountCustomer && !customer.email) return;
+    checkoutTracked.current = trackBeginCheckout(entries, quote, accountCustomer ? 'logged_in' : 'guest');
+  }, [accountCustomer, authResolved, customer.email, entries, quote]);
+  const changePayment = (value) => { const option = writePaymentOption(value); setPaymentOption(option); trackPaymentOption(option, 'checkout', quote?.totalAmount); };
   const updateField = (event) => { const { name, value } = event.target; setCustomer((current) => ({ ...current, [name]: value })); setErrors((current) => ({ ...current, [name]: '' })); };
   const chooseAddress = (event) => { const id = event.target.value; setSelectedAddress(id); const address = addresses.find((item) => String(item.id) === id); if (address) setCustomer((value) => ({ ...value, name: address.fullName || value.name, phone: address.phoneNumber || value.phone, address: [address.addressLine1, address.addressLine2].filter(Boolean).join(', '), city: address.city })); };
-  const placeOrder = async (event) => { event.preventDefault(); const next = {}; if (customer.name.trim().length < 2) next.name = 'Enter the customer name.'; if (!isValidEmail(customer.email)) next.email = 'Enter a valid email address.'; if (!isValidPhone(customer.phone)) next.phone = 'Enter a valid phone number.'; if (customer.address.trim().length < 5) next.address = 'Enter the delivery address.'; if (customer.city.trim().length < 2) next.city = 'Enter the delivery city.'; setErrors(next); if (Object.keys(next).length || !quote) return; setSubmitting(true); setMessage(''); try { const order = await ordersApi.create({ customerName: customer.name, email: customer.email, phoneNumber: customer.phone, shippingAddress: customer.address, shippingCity: customer.city, orderNotes: customer.notes, items: requestItems, couponCode, paymentOption, idempotencyKey: orderKey() }); sessionStorage.setItem('kickz_last_order', JSON.stringify(order)); sessionStorage.removeItem('kickz_order_key'); sessionStorage.removeItem('kickz_coupon'); clearCart(); window.location.assign(`/order-confirmation?order=${encodeURIComponent(order.order_number)}`); } catch (error) { setMessage(error.message); setSubmitting(false); } };
+  const placeOrder = async (event) => { event.preventDefault(); const next = {}; if (customer.name.trim().length < 2) next.name = 'Enter the customer name.'; if (!isValidEmail(customer.email)) next.email = 'Enter a valid email address.'; if (!isValidPhone(customer.phone)) next.phone = 'Enter a valid phone number.'; if (customer.address.trim().length < 5) next.address = 'Enter the delivery address.'; if (customer.city.trim().length < 2) next.city = 'Enter the delivery city.'; setErrors(next); if (Object.keys(next).length || !quote) return; setSubmitting(true); setMessage(''); try { const order = await ordersApi.create({ customerName: customer.name, email: customer.email, phoneNumber: customer.phone, shippingAddress: customer.address, shippingCity: customer.city, orderNotes: customer.notes, items: requestItems, couponCode, paymentOption, idempotencyKey: orderKey() }); sessionStorage.setItem('kickz_last_order', JSON.stringify(order)); storePurchaseSnapshot({ order, entries, checkoutType: accountCustomer ? 'logged_in' : 'guest' }); sessionStorage.removeItem('kickz_order_key'); sessionStorage.removeItem('kickz_coupon'); clearCart(); window.location.assign(`/order-confirmation?order=${encodeURIComponent(order.order_number)}`); } catch (error) { setMessage(error.message); setSubmitting(false); } };
 
   if (!catalog.loading && !entries.length) return <PageShell><PageHero kicker="CHECKOUT" title="YOUR CART IS EMPTY" copy="Add a pair before starting checkout." /><section className="empty-state section-pad"><a className="btn btn--acid" href="/shop">CONTINUE SHOPPING</a></section></PageShell>;
   return <PageShell>

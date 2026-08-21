@@ -15,6 +15,7 @@ import { authApi, ordersApi, resolveApiAssetUrl, settingsApi } from '../services
 import { addCartItem, cartCount, readCart } from '../utils/cart';
 import { PAYMENT_OPTIONS, writePaymentOption } from '../utils/paymentOption';
 import { productSeo } from '../utils/seo';
+import { trackAddToCart, trackPaymentOption, trackViewItem } from '../utils/analytics';
 
 export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }) {
   useReveal();
@@ -34,6 +35,8 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
   useEffect(() => {
     settingsApi.sizeGuide().then((guide) => setSizeGuide({ ...guide, imageUrl: resolveApiAssetUrl(guide.imageUrl) })).catch(() => setSizeGuide(null));
   }, []);
+
+  useEffect(() => { if (product) trackViewItem(product); }, [product]);
 
   const effectiveSize = selectedSize || (product?.sizes?.length === 1 ? product.sizes[0] : '');
 
@@ -68,6 +71,7 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
         return;
       }
       setBagCount(cartCount(addCartItem({ productId: product.id, selectedSize: effectiveSize, selectedColor: color, quantity: 1 })));
+      trackAddToCart(product, { selectedSize: effectiveSize, selectedColor: color, quantity: 1 });
     }
     setCartHref('/cart');
     if (buyImmediately) {
@@ -81,6 +85,10 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
   };
   const addToBag = () => purchase(false);
   const buyNow = () => purchase(true);
+  const changePayment = (value) => {
+    setPayment(value);
+    trackPaymentOption(value, 'product', paymentQuote?.totalAmount || product?.price);
+  };
 
   if (loading) {
     return (
@@ -119,7 +127,7 @@ export default function ProductPage({ productId = 'air-jordan-1-retro-high-og' }
         <div className="product-layout">
           <ProductHeading product={product} mobile />
           <ProductGallery key={activeColor || 'legacy-gallery'} product={product} selectedColor={activeColor} />
-          <ProductInfo product={product} selectedSize={effectiveSize} setSelectedSize={(size) => { setSelectedSize(size); setAddedToCart(false); }} selectedColor={activeColor} setSelectedColor={(color) => { setSelectedColor(color); setAddedToCart(false); }} payment={payment} setPayment={setPayment} paymentQuote={paymentQuote} addToBag={addToBag} buyNow={buyNow} openSizeGuide={() => setSizeGuideOpen(true)} />
+          <ProductInfo product={product} selectedSize={effectiveSize} setSelectedSize={(size) => { setSelectedSize(size); setAddedToCart(false); }} selectedColor={activeColor} setSelectedColor={(color) => { setSelectedColor(color); setAddedToCart(false); }} payment={payment} setPayment={changePayment} paymentQuote={paymentQuote} addToBag={addToBag} buyNow={buyNow} openSizeGuide={() => setSizeGuideOpen(true)} />
         </div>
       </div></main>
       <ProductDetails product={product} />

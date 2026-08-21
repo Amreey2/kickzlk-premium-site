@@ -11,6 +11,7 @@ import { catalogApi } from '../services/api';
 import BrandTile from '../components/BrandTile';
 import Seo from '../components/Seo';
 import { breadcrumbSchema, slugifySeo } from '../utils/seo';
+import { trackCatalogSelection } from '../utils/analytics';
 
 export default function BrandsPage({ brandSlug = '' }) {
   useReveal();
@@ -33,6 +34,7 @@ export default function BrandsPage({ brandSlug = '' }) {
   const selectedBrandData = brands.find((brand) => brand.name === selectedBrand);
   const brandMissing = Boolean(brandSlug && !brandsLoading && !selectedBrandData);
   const selectBrand = (brand) => {
+    trackCatalogSelection('brand', brand.name);
     setSelectedBrand(brand.name);
     window.history.pushState({}, '', `/brand/${slugifySeo(brand.name)}`);
     window.dispatchEvent(new Event('kickz:location-change'));

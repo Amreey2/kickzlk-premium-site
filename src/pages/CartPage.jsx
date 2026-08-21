@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import CartItem from '../components/checkout/CartItem';
 import ConfirmRemoveModal from '../components/checkout/ConfirmRemoveModal';
 import PaymentOptionSelector from '../components/checkout/PaymentOptionSelector';
@@ -11,6 +11,7 @@ import { authApi, ordersApi } from '../services/api';
 import { cartKey, readCart, writeCart } from '../utils/cart';
 import { formatProductPrice } from '../utils/productPresentation';
 import { readPaymentOption, writePaymentOption } from '../utils/paymentOption';
+import { trackAddToCart, trackPaymentOption, trackPromotion, trackRemoveFromCart, trackViewCart } from '../utils/analytics';
 
 export default function CartPage() {
   useReveal();
@@ -28,6 +29,8 @@ export default function CartPage() {
   const [pendingRemoval, setPendingRemoval] = useState(null);
   const [couponMessage, setCouponMessage] = useState('');
   const [stockMessage, setStockMessage] = useState('');
+  const cartViewTracked = useRef(false);
+  const promotionTracked = useRef('');
   const detailedItems = items.map((item) => ({ item, product: catalog.products.find((product) => product.id === item.productId) })).filter((entry) => entry.product);
   const requestItems = detailedItems.map(({ item }) => ({ productId: item.productId, selectedSize: item.selectedSize, selectedColor: item.selectedColor, quantity: item.quantity }));
 
@@ -39,6 +42,18 @@ export default function CartPage() {
     });
     return () => { active = false; };
   }, [couponCode, paymentOption, JSON.stringify(requestItems)]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!quote || !detailedItems.length || cartViewTracked.current) return;
+    cartViewTracked.current = trackViewCart(detailedItems, quote.totalAmount);
+  }, [detailedItems, quote]);
+
+  useEffect(() => {
+    if (!quote?.couponCode || Number(quote.discountAmount) <= 0) return;
+    const key = `${quote.couponCode}:${quote.discountAmount}`;
+    if (promotionTracked.current === key) return;
+    if (trackPromotion(quote)) promotionTracked.current = key;
+  }, [quote]);
 
   const updateItems = (next) => { const saved = writeCart(next); setItems(saved); };
   const updateQuantity = (key, quantity) => {
@@ -57,11 +72,20 @@ export default function CartPage() {
     }
     setStockMessage('');
     updateItems(items.map((item) => cartKey(item) === key ? { ...item, quantity: Math.min(10, quantity) } : item));
+    const difference = quantity - target.item.quantity;
+    if (difference > 0) trackAddToCart(target.product, { ...target.item, quantity: difference });
+    if (difference < 0) trackRemoveFromCart(target.product, { ...target.item, quantity: Math.abs(difference) });
   };
-  const changePayment = (value) => { const option = writePaymentOption(value); setPaymentOption(option); };
+  const changePayment = (value) => { const option = writePaymentOption(value); setPaymentOption(option); trackPaymentOption(option, 'cart', quote?.totalAmount); };
   const continueCheckout = async () => { if (!quote) return; const session = await authApi.session(); window.location.assign(session.authenticated ? '/checkout' : '/checkout/start?next=%2Fcheckout'); };
   const applyCoupon = (event) => { event.preventDefault(); const code = couponInput.trim().toUpperCase(); sessionStorage.setItem('kickz_coupon', code); setCouponCode(code); setCouponMessage(code ? 'Checking coupon…' : 'Enter a coupon code.'); };
   const removeCoupon = () => { sessionStorage.removeItem('kickz_coupon'); setCouponInput(''); setCouponCode(''); setCouponMessage('Coupon removed.'); };
+  const confirmRemoval = () => {
+    const target = detailedItems.find(({ item }) => cartKey(item) === pendingRemoval);
+    if (target) trackRemoveFromCart(target.product, target.item);
+    updateItems(items.filter((item) => cartKey(item) !== pendingRemoval));
+    setPendingRemoval(null);
+  };
 
   return <PageShell><PageHero kicker="YOUR SELECTION" title="YOUR CART" copy="Review your sneakers, selections and order total before checkout." />
     <section className="cart-section section-pad"><div className="container">
@@ -79,5 +103,5 @@ export default function CartPage() {
           <button className="btn btn--acid cart-checkout-button" type="button" disabled={!quote} onClick={continueCheckout}>CONTINUE TO CHECKOUT <span>→</span></button><a className="cart-continue" href="/shop">CONTINUE SHOPPING</a>
         </aside>
       </div>}
-    </div></section>{pendingRemoval && <ConfirmRemoveModal productName={detailedItems.find(({ item }) => cartKey(item) === pendingRemoval)?.product.name || 'This item'} onCancel={() => setPendingRemoval(null)} onConfirm={() => { updateItems(items.filter((item) => cartKey(item) !== pendingRemoval)); setPendingRemoval(null); }} />}</PageShell>;
+    </div></section>{pendingRemoval && <ConfirmRemoveModal productName={detailedItems.find(({ item }) => cartKey(item) === pendingRemoval)?.product.name || 'This item'} onCancel={() => setPendingRemoval(null)} onConfirm={confirmRemoval} />}</PageShell>;
 }

@@ -5,6 +5,7 @@ import PageHero from '../components/PageHero';
 import PageShell from '../components/PageShell';
 import useReveal from '../hooks/useReveal';
 import { ordersApi, settingsApi } from '../services/api';
+import { trackPurchase } from '../utils/analytics';
 
 export default function OrderConfirmationPage() {
   useReveal();
@@ -19,6 +20,7 @@ export default function OrderConfirmationPage() {
     if (order || !orderNumber || !storedOrder?.email) return;
     ordersApi.get(orderNumber, { email: storedOrder.email }).then(setOrder).catch((requestError) => setError(requestError.message));
   }, [order, orderNumber, storedOrder?.email]);
+  useEffect(() => { if (order) trackPurchase(order); }, [order]);
   if (!order) return <PageShell><PageHero kicker="ORDER STATUS" title={error ? 'CONFIRMATION UNAVAILABLE' : 'LOADING ORDER'} copy={error || 'Retrieving your secure order confirmation.'} /></PageShell>;
   return <PageShell><PageHero kicker="ORDER RECEIVED" title="ORDER CONFIRMED" copy="Your order is recorded. Complete the required bank transfer using your KZ order number as the reference." />
     <section className="confirmation-section section-pad"><div className="container"><div className="confirmation-success"><span className="confirmation-mark">✓</span><div><h2>THANK YOU. YOUR ORDER NUMBER IS {order.order_number}.</h2><p>Save this number for payment communication and order tracking.</p></div></div><OrderDetails order={order} onViewBank={() => setBankOpen(true)} /><div className="confirmation-actions"><a className="btn btn--acid" href={`/track-order?order=${encodeURIComponent(order.order_number)}`}>VIEW / TRACK ORDER <span>→</span></a><a className="btn btn--ghost" href="/shop">CONTINUE SHOPPING</a></div></div></section>

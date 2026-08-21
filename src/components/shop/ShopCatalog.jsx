@@ -4,6 +4,7 @@ import ProductCard from '../ProductCard';
 import ProductCollectionState from '../ProductCollectionState';
 import ShopFilters from './ShopFilters';
 import ShopPagination from './ShopPagination';
+import { trackProductFilter, trackSearch } from '../../utils/analytics';
 
 const emptyFilters = { onSale: false, brands: [], minPrice: '', maxPrice: '', sizes: [], genders: [], activities: [], colors: [] };
 const listParam = (params, key) => (params.get(key) || '').split(',').map((value) => value.trim()).filter(Boolean);
@@ -127,10 +128,21 @@ function AdvancedShopCatalog({ onSaved, categoryMode = false, searchTerm, initia
     window.dispatchEvent(new Event('kickz:location-change'));
   }, [currentPage, filters, search]);
 
-  const changeFilter = (key, value) => { setFilters((current) => ({ ...current, [key]: value })); setPage(1); };
+  useEffect(() => {
+    if (loading || search.length < 2) return undefined;
+    const timer = window.setTimeout(() => trackSearch(search, products.length, 'shop'), 500);
+    return () => window.clearTimeout(timer);
+  }, [loading, products.length, search]);
+
+  const changeFilter = (key, value) => {
+    setFilters((current) => ({ ...current, [key]: value })); setPage(1);
+    if (key === 'onSale') trackProductFilter('sale', 'on_sale', value);
+  };
   const toggleValue = (key, value) => {
+    const selected = !filters[key].includes(value);
     setFilters((current) => ({ ...current, [key]: current[key].includes(value) ? current[key].filter((item) => item !== value) : [...current[key], value] }));
     setPage(1);
+    trackProductFilter(key, value, selected);
   };
   const clearFilters = () => { setFilters(emptyFilters); setPage(1); };
   const changePage = (nextPage) => {

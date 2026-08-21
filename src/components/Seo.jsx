@@ -53,6 +53,7 @@ export default function Seo({
       script.text = JSON.stringify(value).replace(/</g, '\\u003c');
       document.head.appendChild(script);
     });
+    window.dispatchEvent(new Event('kickz:seo-ready'));
   }, [canonicalPath, description, image, jsonLd, noIndex, title, type]);
 
   return null;
