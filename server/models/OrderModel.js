@@ -13,35 +13,6 @@ const loadOrderRelations = async (connection, order) => {
   return { ...order, items, status_history: history };
 };
 
-const loadOrdersRelations = async (connection, orders) => {
-  if (!orders.length) return [];
-  const ids = orders.map((order) => Number(order.id));
-  const placeholders = ids.map(() => '?').join(', ');
-  const [items] = await connection.execute(
-    `SELECT oi.*, p.sku, p.images AS product_images, p.cdn_images AS product_cdn_images
-     FROM order_items oi LEFT JOIN products p ON p.id = oi.product_id
-     WHERE oi.order_id IN (${placeholders}) ORDER BY oi.order_id, oi.id`, ids,
-  );
-  const [history] = await connection.execute(
-    `SELECT * FROM order_status_history WHERE order_id IN (${placeholders}) ORDER BY order_id, created_at, id`, ids,
-  );
-  const itemsByOrder = new Map();
-  const historyByOrder = new Map();
-  for (const item of items) {
-    const values = itemsByOrder.get(Number(item.order_id)) || [];
-    values.push(item); itemsByOrder.set(Number(item.order_id), values);
-  }
-  for (const entry of history) {
-    const values = historyByOrder.get(Number(entry.order_id)) || [];
-    values.push(entry); historyByOrder.set(Number(entry.order_id), values);
-  }
-  return orders.map((order) => ({
-    ...order,
-    items: itemsByOrder.get(Number(order.id)) || [],
-    status_history: historyByOrder.get(Number(order.id)) || [],
-  }));
-};
-
 export default class OrderModel {
   constructor(database) { this.database = database; }
 
@@ -115,7 +86,7 @@ export default class OrderModel {
   async findByUserId(userId) {
     const orders = await this.database.query('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [userId]);
     const connection = await this.database.pool.getConnection();
-    try { return await loadOrdersRelations(connection, orders); }
+    try { const values = []; for (const order of orders) values.push(await loadOrderRelations(connection, order)); return values; }
     finally { connection.release(); }
   }
   async findByIdempotencyKey(key) {
@@ -127,7 +98,7 @@ export default class OrderModel {
   async findAll() {
     const orders = await this.database.query('SELECT * FROM orders ORDER BY created_at DESC');
     const connection = await this.database.pool.getConnection();
-    try { return await loadOrdersRelations(connection, orders); }
+    try { const values = []; for (const order of orders) values.push(await loadOrderRelations(connection, order)); return values; }
     finally { connection.release(); }
   }
   async updateStatus(id, status, note) {

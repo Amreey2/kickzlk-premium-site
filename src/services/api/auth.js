@@ -14,5 +14,4 @@ export const authApi = {
   forgotPassword: (email) => apiRequest('/auth/forgot-password', { method: 'POST', body: { email } }),
   resetPassword: (token, password) => apiRequest('/auth/reset-password', { method: 'POST', body: { token, password } }),
   adminLogin: (data) => apiRequest('/admin/login', { method: 'POST', body: data }),
-  adminLogout: () => apiRequest('/admin/logout', { method: 'POST' }),
 };

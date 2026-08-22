@@ -41,21 +41,6 @@ const indexExists = async (table, index) => {
   return rows.length > 0;
 };
 
-const constraintExists = async (table, constraint) => {
-  const [rows] = await connection.execute(
-    'SELECT 1 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = ? AND TABLE_NAME = ? AND CONSTRAINT_NAME = ? LIMIT 1',
-    [env.database.name, table, constraint],
-  );
-  return rows.length > 0;
-};
-
-const assertNoOrphans = async ({ childTable, childColumn, parentTable, message }) => {
-  const [rows] = await connection.query(
-    `SELECT COUNT(*) AS total FROM \`${childTable}\` child LEFT JOIN \`${parentTable}\` parent ON parent.id = child.\`${childColumn}\` WHERE child.\`${childColumn}\` IS NOT NULL AND parent.id IS NULL`,
-  );
-  if (Number(rows[0]?.total || 0) > 0) throw new Error(message);
-};
-
 const slugify = (value, id) => {
   const base = String(value).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   return `${base || 'product'}-${id}`;
@@ -135,34 +120,18 @@ try {
   if (!(await indexExists('products', 'uq_products_slug'))) await connection.query('ALTER TABLE products ADD UNIQUE KEY uq_products_slug (slug)');
   if (!(await indexExists('products', 'uq_products_sku'))) await connection.query('ALTER TABLE products ADD UNIQUE KEY uq_products_sku (sku)');
   if (!(await indexExists('products', 'idx_products_brand_id'))) await connection.query('ALTER TABLE products ADD KEY idx_products_brand_id (brand_id)');
-  if (!(await indexExists('products', 'idx_products_availability_created'))) await connection.query('ALTER TABLE products ADD KEY idx_products_availability_created (availability, created_at, id)');
-  if (!(await constraintExists('products', 'fk_products_brand'))) {
-    await assertNoOrphans({ childTable: 'products', childColumn: 'brand_id', parentTable: 'brands', message: 'Cannot add the product-brand constraint because orphaned brand references exist. Resolve them before retrying.' });
-    await connection.query('ALTER TABLE products ADD CONSTRAINT fk_products_brand FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE SET NULL');
-  }
-  if (!(await indexExists('categories', 'uq_categories_name'))) {
-    const [duplicates] = await connection.query('SELECT name FROM categories GROUP BY name HAVING COUNT(*) > 1 LIMIT 1');
-    if (duplicates.length) throw new Error(`Cannot add category-name uniqueness because duplicate category "${duplicates[0].name}" exists. Resolve it before retrying.`);
-    await connection.query('ALTER TABLE categories ADD UNIQUE KEY uq_categories_name (name)');
-  }
   await connection.query("UPDATE orders SET tracking_number = CONCAT('KZTRK-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 8, '0')) WHERE tracking_number IS NULL OR tracking_number = ''");
   await connection.query("UPDATE orders SET order_number = CONCAT('KZ-', LPAD(CAST(id AS CHAR), GREATEST(5, CHAR_LENGTH(CAST(id AS CHAR))), '0'))");
   await connection.query('UPDATE orders SET subtotal_amount = total_amount + discount_amount WHERE subtotal_amount = 0');
   await connection.query('UPDATE orders SET eligible_subtotal_amount = subtotal_amount WHERE eligible_subtotal_amount = 0 AND coupon_code IS NOT NULL');
-  await connection.query("UPDATE orders SET payment_option = CASE WHEN pending_amount = 0 AND total_amount > 0 THEN 'full' ELSE 'advance' END WHERE payment_option IS NULL OR payment_option NOT IN ('advance', 'full')");
-  await connection.query("UPDATE orders SET advance_percentage = CASE WHEN payment_option = 'full' THEN 100 ELSE 50 END, advance_amount = CASE WHEN payment_option = 'full' THEN total_amount ELSE ROUND(total_amount * 0.5) END, pending_amount = CASE WHEN payment_option = 'full' THEN 0 ELSE total_amount - ROUND(total_amount * 0.5) END WHERE advance_amount = 0 AND paid_amount = 0 AND payment_status IN ('Payment Pending', 'Pending', 'Unpaid')");
-  await connection.query("UPDATE orders SET payment_status = CASE WHEN payment_status IN ('Payment Confirmed', 'Deposit Paid') THEN CASE WHEN payment_option = 'full' THEN 'Full Payment Confirmed' ELSE '50% Payment Confirmed' END WHEN payment_status = 'Paid' THEN 'Full Payment Confirmed' ELSE CASE WHEN payment_option = 'full' THEN 'Payment Pending — Full Amount' ELSE 'Payment Pending — 50% Advance' END END WHERE payment_status IN ('Payment Confirmed', 'Deposit Paid', 'Paid', 'Payment Pending', 'Pending', 'Unpaid')");
+  await connection.query("UPDATE orders SET payment_option = CASE WHEN pending_amount = 0 AND total_amount > 0 THEN 'full' ELSE 'advance' END");
+  await connection.query("UPDATE orders SET advance_percentage = CASE WHEN payment_option = 'full' THEN 100 ELSE 50 END, advance_amount = CASE WHEN payment_option = 'full' THEN total_amount ELSE ROUND(total_amount * 0.5) END, pending_amount = CASE WHEN payment_option = 'full' THEN 0 ELSE total_amount - ROUND(total_amount * 0.5) END");
+  await connection.query("UPDATE orders SET payment_status = CASE WHEN payment_status IN ('Payment Confirmed', 'Deposit Paid', 'Paid') THEN CASE WHEN payment_option = 'full' THEN 'Full Payment Confirmed' ELSE '50% Payment Confirmed' END ELSE CASE WHEN payment_option = 'full' THEN 'Payment Pending — Full Amount' ELSE 'Payment Pending — 50% Advance' END END");
   await connection.query("UPDATE orders SET order_status = CASE WHEN order_status IN ('Pending', 'Order Placed', 'Payment Pending') THEN CASE WHEN payment_option = 'full' THEN 'Payment Pending — Full Amount' ELSE 'Payment Pending — 50% Advance' END WHEN order_status = 'Payment Confirmed' THEN CASE WHEN payment_option = 'full' THEN 'Full Payment Confirmed' ELSE '50% Payment Confirmed' END ELSE order_status END");
-  await connection.query("UPDATE orders SET paid_amount = CASE WHEN payment_status = 'Full Payment Confirmed' THEN total_amount WHEN payment_status = '50% Payment Confirmed' THEN advance_amount ELSE paid_amount END WHERE payment_status IN ('Full Payment Confirmed', '50% Payment Confirmed')");
+  await connection.query("UPDATE orders SET paid_amount = CASE WHEN payment_status = 'Full Payment Confirmed' THEN total_amount WHEN payment_status = '50% Payment Confirmed' THEN advance_amount ELSE 0 END");
   await connection.query("UPDATE site_settings SET setting_value = JSON_SET(setting_value, '$.advancePercentage', 50) WHERE setting_key = 'payment_settings' AND CAST(JSON_UNQUOTE(JSON_EXTRACT(setting_value, '$.advancePercentage')) AS DECIMAL(5,2)) = 30");
   await connection.query('ALTER TABLE orders MODIFY tracking_number VARCHAR(50) NOT NULL');
   if (!(await indexExists('orders', 'idx_orders_coupon'))) await connection.query('ALTER TABLE orders ADD KEY idx_orders_coupon (coupon_id)');
-  if (!(await indexExists('orders', 'idx_orders_created'))) await connection.query('ALTER TABLE orders ADD KEY idx_orders_created (created_at, id)');
-  if (!(await indexExists('order_status_history', 'idx_status_history_order_created'))) await connection.query('ALTER TABLE order_status_history ADD KEY idx_status_history_order_created (order_id, created_at, id)');
-  if (!(await constraintExists('orders', 'fk_orders_coupon'))) {
-    await assertNoOrphans({ childTable: 'orders', childColumn: 'coupon_id', parentTable: 'coupons', message: 'Cannot add the order-coupon constraint because orphaned coupon references exist. Resolve them before retrying.' });
-    await connection.query('ALTER TABLE orders ADD CONSTRAINT fk_orders_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE SET NULL');
-  }
   if (!(await indexExists('orders', 'uq_orders_tracking'))) await connection.query('ALTER TABLE orders ADD UNIQUE KEY uq_orders_tracking (tracking_number)');
   if (!(await indexExists('orders', 'uq_orders_idempotency'))) await connection.query('ALTER TABLE orders ADD UNIQUE KEY uq_orders_idempotency (idempotency_key)');
 

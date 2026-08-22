@@ -3,14 +3,6 @@ import { DEFAULT_ADVANCE_PERCENTAGE, PAYMENT_OPTIONS } from '../utils/orderPrici
 import { calculatePaymentAmounts } from './PromotionPricingService.js';
 import { assertEmail, assertPhone, requireFields } from '../utils/validation.js';
 
-const boundedText = (value, { field, min = 0, max }) => {
-  const normalized = String(value || '').trim();
-  if (normalized.length < min || normalized.length > max) {
-    throw new AppError(`${field} must contain ${min ? `${min}–` : 'no more than '}${max} characters.`, 422, 'INVALID_ORDER_DETAILS');
-  }
-  return normalized;
-};
-
 export const orderStatuses = [
   'Order Placed',
   'Payment Pending — 50% Advance', '50% Payment Confirmed',
@@ -27,7 +19,6 @@ export default class OrderService {
 
   async prepareItems(requestedItems, connection = null, lockStock = false) {
     if (!Array.isArray(requestedItems) || !requestedItems.length) throw new AppError('At least one order item is required.', 422, 'EMPTY_ORDER');
-    if (requestedItems.length > 50) throw new AppError('An order cannot contain more than 50 product lines.', 422, 'TOO_MANY_ORDER_ITEMS');
     const items = [];
     for (const requested of requestedItems) {
       const product = await this.productModel.findById(requested.productId, connection ? { connection, forUpdate: lockStock } : undefined);
@@ -87,23 +78,15 @@ export default class OrderService {
   async create(payload, userId = null, { initialOrderStatus } = {}) {
     requireFields(payload, ['customerName', 'email', 'phoneNumber', 'shippingAddress', 'shippingCity', 'idempotencyKey']);
     assertEmail(payload.email); assertPhone(payload.phoneNumber);
-    const customerName = boundedText(payload.customerName, { field: 'Customer name', min: 2, max: 150 });
-    const phoneNumber = boundedText(payload.phoneNumber, { field: 'Phone number', min: 7, max: 30 });
-    const shippingAddress = boundedText(payload.shippingAddress, { field: 'Shipping address', min: 5, max: 2000 });
-    const shippingCity = boundedText(payload.shippingCity, { field: 'Shipping city', min: 2, max: 120 });
-    const orderNotes = payload.orderNotes ? boundedText(payload.orderNotes, { field: 'Order notes', max: 2000 }) : null;
     const idempotencyKey = String(payload.idempotencyKey).trim();
     if (!/^[a-zA-Z0-9_-]{16,100}$/.test(idempotencyKey)) throw new AppError('Order submission reference is invalid.', 422, 'INVALID_IDEMPOTENCY_KEY');
     const existing = await this.orderModel.findByIdempotencyKey(idempotencyKey);
     if (existing) return existing;
-    const canLoadAccount = Boolean(userId && this.userModel?.findById);
-    const account = canLoadAccount ? await this.userModel.findById(userId) : null;
-    if (canLoadAccount && !account) throw new AppError('The authenticated customer account was not found.', 401, 'CUSTOMER_NOT_FOUND');
-    const identity = { userId, email: String(account?.email || payload.email).trim().toLowerCase() };
+    const identity = { userId, email: String(payload.email).trim().toLowerCase() };
     if (!this.orderModel.createWithPricing) {
       const quote = await this.buildQuote({ ...payload, email: identity.email }, userId);
       const paymentStatus = quote.paymentOption === PAYMENT_OPTIONS.FULL ? 'Payment Pending — Full Amount' : 'Payment Pending — ' + quote.advancePercentage + '% Advance';
-      return this.orderModel.create({ userId, customerName, email: identity.email, phoneNumber, shippingAddress, shippingCity, orderNotes, idempotencyKey, subtotalAmount: quote.subtotalAmount, eligibleSubtotalAmount: quote.eligibleSubtotalAmount, discountAmount: quote.discountAmount, couponId: quote.couponId, couponCode: quote.couponCode, couponDiscountType: quote.couponDiscountType, couponDiscountValue: quote.couponDiscountValue, totalAmount: quote.totalAmount, paymentOption: quote.paymentOption, advancePercentage: quote.advancePercentage, advanceAmount: quote.advanceAmount, paidAmount: 0, pendingAmount: quote.balanceAmount, paymentMethod: quote.paymentMethod, paymentStatus, orderStatus: initialOrderStatus || paymentStatus, items: quote.items });
+      return this.orderModel.create({ userId, customerName: String(payload.customerName).trim(), email: identity.email, phoneNumber: String(payload.phoneNumber).trim(), shippingAddress: String(payload.shippingAddress).trim(), shippingCity: String(payload.shippingCity).trim(), orderNotes: payload.orderNotes?.trim() || null, idempotencyKey, subtotalAmount: quote.subtotalAmount, eligibleSubtotalAmount: quote.eligibleSubtotalAmount, discountAmount: quote.discountAmount, couponId: quote.couponId, couponCode: quote.couponCode, couponDiscountType: quote.couponDiscountType, couponDiscountValue: quote.couponDiscountValue, totalAmount: quote.totalAmount, paymentOption: quote.paymentOption, advancePercentage: quote.advancePercentage, advanceAmount: quote.advanceAmount, paidAmount: 0, pendingAmount: quote.balanceAmount, paymentMethod: quote.paymentMethod, paymentStatus, orderStatus: initialOrderStatus || paymentStatus, items: quote.items });
     }
     return this.orderModel.createWithPricing({
       idempotencyKey,
@@ -112,8 +95,9 @@ export default class OrderService {
         const paymentStatus = quote.paymentOption === PAYMENT_OPTIONS.FULL
           ? 'Payment Pending — Full Amount' : `Payment Pending — ${quote.advancePercentage}% Advance`;
         return {
-          userId, customerName, email: identity.email,
-          phoneNumber, shippingAddress, shippingCity, orderNotes, idempotencyKey,
+          userId, customerName: String(payload.customerName).trim(), email: identity.email,
+          phoneNumber: String(payload.phoneNumber).trim(), shippingAddress: String(payload.shippingAddress).trim(),
+          shippingCity: String(payload.shippingCity).trim(), orderNotes: payload.orderNotes?.trim() || null, idempotencyKey,
           subtotalAmount: quote.subtotalAmount, eligibleSubtotalAmount: quote.eligibleSubtotalAmount,
           discountAmount: quote.discountAmount, couponId: quote.couponId, couponCode: quote.couponCode,
           couponDiscountType: quote.couponDiscountType, couponDiscountValue: quote.couponDiscountValue,
@@ -128,9 +112,7 @@ export default class OrderService {
 
   async searchCustomers(query) {
     if (!this.userModel?.search) return [];
-    const normalizedQuery = String(query || '').trim().slice(0, 120);
-    if (normalizedQuery.length < 2) return [];
-    const rows = await this.userModel.search(normalizedQuery);
+    const rows = await this.userModel.search(query);
     return rows.map((row) => ({
       id: Number(row.id), name: row.name, email: row.email, phoneNumber: row.phone_number || '',
       address: row.address_line_1 ? [row.address_line_1, row.address_line_2].filter(Boolean).join(', ') : '',
@@ -167,7 +149,6 @@ export default class OrderService {
   async updateStatus(id, status, note) {
     const order = await this.orderModel.findById(id);
     if (!order) throw new AppError('Order was not found.', 404, 'ORDER_NOT_FOUND');
-    if (order.order_status === status) return order;
     const percentage = Number(order.advance_percentage || DEFAULT_ADVANCE_PERCENTAGE);
     const paymentStates = order.payment_option === PAYMENT_OPTIONS.FULL
       ? ['Payment Pending — Full Amount', 'Full Payment Confirmed']

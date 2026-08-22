@@ -57,8 +57,6 @@ export default class ProductModel {
     if (filters.category) { clauses.push('p.category = ?'); values.push(filters.category); }
     if (filters.brand) { clauses.push('p.brand = ?'); values.push(filters.brand); }
     if (filters.productType) { clauses.push('p.product_type = ?'); values.push(filters.productType); }
-    if (filters.availability) { clauses.push('p.availability = ?'); values.push(filters.availability); }
-    if (filters.excludeAvailability) { clauses.push('p.availability <> ?'); values.push(filters.excludeAvailability); }
     if (filters.search) {
       clauses.push('(p.sku LIKE ? OR p.name LIKE ? OR p.brand LIKE ?)');
       const term = `%${filters.search}%`;

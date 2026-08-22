@@ -8,14 +8,13 @@ export const createOrderController = (service) => ({
   }),
   get: async (request, response) => {
     const order = await service.get(request.params.id);
-    const guestLookupFailed = () => new AppError('Order number or checkout email could not be verified.', 404, 'ORDER_NOT_FOUND');
-    if (!order) throw request.user ? new AppError('Order was not found.', 404, 'ORDER_NOT_FOUND') : guestLookupFailed();
+    if (!order) throw new AppError('Order was not found.', 404, 'ORDER_NOT_FOUND');
     if (request.user) {
       if (String(order.user_id) !== String(request.user.sub)) throw new AppError('This order does not belong to the authenticated customer.', 403, 'ORDER_FORBIDDEN');
     } else {
       const email = String(request.query.email || '').trim().toLowerCase();
       if (!email || email !== String(order.email).toLowerCase()) {
-        throw guestLookupFailed();
+        throw new AppError('Guest order verification is required.', 401, 'GUEST_ORDER_VERIFICATION_REQUIRED');
       }
     }
     response.json({ success: true, data: order });

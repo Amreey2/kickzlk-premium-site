@@ -22,7 +22,6 @@ export default function createAdminRoutes({ authService, orderService, catalogSe
   const settings = createSiteSettingController(siteSettingService);
   const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 15, standardHeaders: 'draft-8', legacyHeaders: false });
   router.post('/login', limiter, asyncHandler(auth.adminLogin));
-  router.post('/logout', requireAdmin, asyncHandler(auth.adminLogout));
   router.get('/brands', requireAdmin, asyncHandler(catalog.brands));
   router.post('/brands', requireAdmin, asyncHandler(catalog.createBrand));
   router.put('/brands/:id', requireAdmin, asyncHandler(catalog.updateBrand));

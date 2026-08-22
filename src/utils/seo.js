@@ -1,4 +1,4 @@
-import logoIcon from '../assets/logo-icon.webp';
+import logoIcon from '../assets/logo-icon.png';
 import { productImage, productImageAlt } from './productPresentation';
 
 export const SITE_ORIGIN = String(import.meta.env.VITE_SITE_URL || 'https://kickz.lk').replace(/\/$/, '');

@@ -43,7 +43,7 @@ export function HeroSection() {
         </div>
         <div className="hero-visual reveal delay-120" ref={visualRef} onMouseMove={handleMove} onMouseLeave={handleLeave}>
           <div className="hero-orbit hero-orbit--one" /><div className="hero-orbit hero-orbit--two" /><div className="hero-glow" />
-          <img className="hero-shoe" ref={shoeRef} src={heroJordanCinematic} alt="Premium red and black high-top sneaker in cinematic studio lighting" width="1536" height="1024" decoding="async" fetchPriority="high" />
+          <img className="hero-shoe" ref={shoeRef} src={heroJordanCinematic} alt="Premium red and black high-top sneaker in cinematic studio lighting" />
         </div>
         <div className="hero-badges reveal delay-220" aria-label="Trust badges">
           <div><strong>100%</strong><span>Authentic</span></div>

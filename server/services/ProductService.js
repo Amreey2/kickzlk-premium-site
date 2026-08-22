@@ -99,17 +99,9 @@ export default class ProductService {
 
   list(filters) { return this.productModel.findAll(filters); }
 
-  listPublic(filters) { return this.productModel.findAll({ ...filters, excludeAvailability: 'Inactive' }); }
-
   async get(id) {
     const product = await this.productModel.findById(id);
     if (!product) throw new AppError('Product was not found.', 404, 'PRODUCT_NOT_FOUND');
-    return product;
-  }
-
-  async getPublic(id) {
-    const product = await this.productModel.findById(id);
-    if (!product || String(product.availability).toLowerCase() === 'inactive') throw new AppError('Product was not found.', 404, 'PRODUCT_NOT_FOUND');
     return product;
   }
 
