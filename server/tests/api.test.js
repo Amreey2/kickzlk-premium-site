@@ -37,7 +37,9 @@ const services = () => ({
   },
   productService: {
     list: async () => [product],
+    listPublic: async () => [product],
     get: async () => product,
+    getPublic: async () => product,
     create: async (payload) => ({ id: 13, ...payload }),
     update: async (id, payload) => ({ id: Number(id), ...payload }),
     delete: async () => undefined,
@@ -87,6 +89,23 @@ describe('API contract', () => {
   test('health reports a connected database', async () => {
     const response = await request(app()).get('/api/health').expect(200);
     assert.equal(response.body.data.database, 'connected');
+    assert.ok(response.headers['x-request-id']);
+    assert.equal(response.headers['x-content-type-options'], 'nosniff');
+  });
+
+  test('rejects unapproved CORS origins and prevents private response caching', async () => {
+    const instance = app();
+    const blocked = await request(instance).get('/api/products').set('Origin', 'https://evil.example').expect(403);
+    assert.equal(blocked.body.error.code, 'CORS_ORIGIN_DENIED');
+    const session = await request(instance).get('/api/auth/session').expect(200);
+    assert.match(session.headers['cache-control'], /no-store/);
+  });
+
+  test('accepts safe request IDs and replaces unsafe values', async () => {
+    const safe = await request(app()).get('/api/health').set('x-request-id', 'release-check.123').expect(200);
+    assert.equal(safe.headers['x-request-id'], 'release-check.123');
+    const unsafe = await request(app()).get('/api/health').set('x-request-id', 'contains spaces').expect(200);
+    assert.match(unsafe.headers['x-request-id'], /^[a-f0-9-]{36}$/i);
   });
 
   test('robots and dynamic sitemap expose only public canonical storefront routes', async () => {
@@ -107,6 +126,7 @@ describe('API contract', () => {
       name: 'Customer', email: customer.email, phoneNumber: '+94771234567', password: 'StrongPassword1',
     }).expect(201);
     assert.match(response.headers['set-cookie'][0], /customer_token=.*HttpOnly/);
+    assert.equal(response.body.data.token, undefined);
     assert.equal((await agent.get('/api/auth/profile').expect(200)).body.data.id, customer.id);
   });
 
@@ -129,11 +149,14 @@ describe('API contract', () => {
       email: customer.email, password: 'StrongPassword1',
     }).expect(200);
     assert.match(customerLogin.headers['set-cookie'][0], /customer_token=.*HttpOnly/);
+    assert.equal(customerLogin.body.data.token, undefined);
 
     const adminLogin = await request(instance).post('/api/admin/login').send({
       email: admin.email, password: 'AdminPassword1',
     }).expect(200);
     assert.match(adminLogin.headers['set-cookie'][0], /admin_token=.*HttpOnly/);
+    assert.equal(adminLogin.body.data.token, undefined);
+    await request(instance).post('/api/admin/logout').set('Authorization', `Bearer ${adminToken}`).expect(204);
     assert.equal((await request(instance).get('/api/auth/session').expect(200)).body.data.authenticated, false);
     assert.equal((await request(instance).get('/api/auth/session').set('Authorization', `Bearer ${customerToken}`).expect(200)).body.data.authenticated, true);
   });
@@ -148,6 +171,18 @@ describe('API contract', () => {
       .send(product)
       .expect(201);
     assert.equal(response.body.data.name, product.name);
+  });
+
+  test('image uploads reject spoofed MIME content and remain administrator-only', async () => {
+    const instance = app();
+    await request(instance).post('/api/uploads/products')
+      .attach('images', Buffer.from('not an image'), { filename: 'payload.png', contentType: 'image/png' })
+      .expect(401);
+    const rejected = await request(instance).post('/api/uploads/products')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .attach('images', Buffer.from('not an image'), { filename: 'payload.png', contentType: 'image/png' })
+      .expect(422);
+    assert.equal(rejected.body.error.code, 'INVALID_IMAGE_CONTENT');
   });
 
   test('live brands are public while brand management is administrator-only', async () => {
@@ -216,9 +251,9 @@ describe('API contract', () => {
       shippingAddress: 'Colombo', items: [{ productId: 12, selectedSize: 'US 9', quantity: 1 }],
     };
     assert.equal((await request(instance).post('/api/orders').send(payload).expect(201)).body.data.user_id, null);
-    await request(instance).get(`/api/orders/${order.order_number}`).expect(401);
-    await request(instance).get(`/api/orders/${order.order_number}`).query({ email: 'wrong@example.com' }).expect(401);
-    await request(instance).get(`/api/orders/${order.order_number}`).query({ phone: order.phone_number }).expect(401);
+    await request(instance).get(`/api/orders/${order.order_number}`).expect(404);
+    await request(instance).get(`/api/orders/${order.order_number}`).query({ email: 'wrong@example.com' }).expect(404);
+    await request(instance).get(`/api/orders/${order.order_number}`).query({ phone: order.phone_number }).expect(404);
     const tracked = await request(instance).get(`/api/orders/${order.order_number}`).query({ email: order.email }).expect(200);
     assert.equal(tracked.body.data.order_number, order.order_number);
     await request(instance).get('/api/orders/KZ-99999').query({ email: order.email }).expect(404);

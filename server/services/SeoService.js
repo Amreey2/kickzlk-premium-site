@@ -23,14 +23,13 @@ export default class SeoService {
 
   async sitemap() {
     const [products, brands, categories] = await Promise.all([
-      this.productService.list({}),
+      this.productService.listPublic({}),
       this.catalogService.listBrands(true),
       this.catalogService.listCategories(true),
     ]);
     const urls = [
       ...['/', '/shop', '/new-drops', '/categories', '/brands', '/about', '/contact'].map((path) => ({ path })),
-      ...products.filter((product) => String(product.availability).toLowerCase() === 'active'
-        && brands.some((brand) => brand.name === product.brand)
+      ...products.filter((product) => brands.some((brand) => brand.name === product.brand)
         && categories.some((category) => category.name === product.category))
         .map((product) => ({ path: `/product/${product.id}`, updatedAt: product.updatedAt || product.createdAt })),
       ...brands.map((brand) => ({ path: `/brand/${slugify(brand.name)}`, updatedAt: brand.updatedAt || brand.createdAt })),

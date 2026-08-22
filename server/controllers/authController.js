@@ -16,12 +16,12 @@ export const createAuthController = (service) => ({
   register: async (request, response) => {
     const result = await service.register(request.body);
     response.cookie('customer_token', result.token, cookie(7 * 24 * 60 * 60 * 1000));
-    response.status(201).json({ success: true, data: result });
+    response.status(201).json({ success: true, data: { user: result.user } });
   },
   login: async (request, response) => {
     const result = await service.login(request.body);
     response.cookie('customer_token', result.token, cookie(7 * 24 * 60 * 60 * 1000));
-    response.json({ success: true, data: result });
+    response.json({ success: true, data: { user: result.user } });
   },
   profile: async (request, response) => {
     response.json({ success: true, data: await service.profile(request.user.sub) });
@@ -56,6 +56,11 @@ export const createAuthController = (service) => ({
   adminLogin: async (request, response) => {
     const result = await service.adminLogin(request.body);
     response.cookie('admin_token', result.token, cookie(8 * 60 * 60 * 1000));
-    response.json({ success: true, data: result });
+    response.json({ success: true, data: { admin: result.admin } });
+  },
+  adminLogout: async (request, response) => {
+    void request;
+    response.clearCookie('admin_token', cookie(0));
+    response.status(204).send();
   },
 });

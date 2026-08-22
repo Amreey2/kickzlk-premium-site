@@ -15,6 +15,10 @@ import { serializeCsv } from '../utils/csv.js';
 import { ensureProductColorVariantsColumn } from '../scripts/migrations/ensure-product-color-variants.js';
 import { formatOrderNumber } from '../utils/orderNumber.js';
 
+test('CSV exports neutralize spreadsheet formula injection', () => {
+  assert.equal(serializeCsv([['sku', '=HYPERLINK("https://evil.example")']]), 'sku,"\'=HYPERLINK(""https://evil.example"")"');
+});
+
 describe('authentication services', () => {
   test('registration hashes passwords and returns a customer JWT', async () => {
     let created;
@@ -271,6 +275,22 @@ describe('catalogue product services', () => {
     colorVariants: [{ color: 'Black', images: [{ url: '/uploads/black.jpg' }], cdnImages: ['https://cdn.example.com/black.jpg'] }],
     metaTitle: 'Air Jordan 1 Sri Lanka', metaDescription: 'Shop the Air Jordan 1 at KICKZ.LK.', imageAltText: 'Black and red Air Jordan 1',
   };
+
+  test('public catalogue reads enforce active products while admin reads retain all statuses', async () => {
+    let receivedFilters;
+    const inactive = { id: 'hidden-pair', availability: 'Inactive' };
+    const service = new ProductService({
+      productModel: {
+        findAll: async (filters) => { receivedFilters = filters; return []; },
+        findById: async () => inactive,
+      },
+      brandModel: {}, categoryModel: {},
+    });
+    await service.listPublic({ search: 'hidden' });
+    assert.deepEqual(receivedFilters, { search: 'hidden', excludeAvailability: 'Inactive' });
+    await assert.rejects(() => service.getPublic('hidden-pair'), (error) => error.code === 'PRODUCT_NOT_FOUND' && error.status === 404);
+    assert.equal((await service.get('hidden-pair')).availability, 'Inactive');
+  });
 
   test('creates products only with unique SKUs and valid catalogue relations', async () => {
     let saved;

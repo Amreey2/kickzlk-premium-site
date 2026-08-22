@@ -2,13 +2,13 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 
 export const createCustomerToken = (user) => jwt.sign(
-  { sub: String(user.id), type: 'customer', email: user.email },
+  { sub: String(user.id), type: 'customer' },
   env.jwt.customerSecret,
   { expiresIn: env.jwt.customerExpiresIn, issuer: 'kickz.lk' },
 );
 
 export const createAdminToken = (admin) => jwt.sign(
-  { sub: String(admin.id), type: 'admin', email: admin.email },
+  { sub: String(admin.id), type: 'admin' },
   env.jwt.adminSecret,
   { expiresIn: env.jwt.adminExpiresIn, issuer: 'kickz.lk-admin' },
 );

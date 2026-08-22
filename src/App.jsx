@@ -1,34 +1,38 @@
-import HomePage from './pages/HomePage';
-import AccountPage from './pages/AccountPage';
-import AboutPage from './pages/AboutPage';
-import BrandsPage from './pages/BrandsPage';
-import CartPage from './pages/CartPage';
-import CategoriesPage from './pages/CategoriesPage';
-import CheckoutPage from './pages/CheckoutPage';
-import ContactPage from './pages/ContactPage';
-import CheckoutChoicePage from './pages/CheckoutChoicePage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import LoginPage from './pages/LoginPage';
-import NewDropsPage from './pages/NewDropsPage';
-import ProductPage from './pages/ProductPage';
-import RegisterPage from './pages/RegisterPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import OrderConfirmationPage from './pages/OrderConfirmationPage';
-import OrderTrackingPage from './pages/OrderTrackingPage';
-import ShopPage from './pages/ShopPage';
-import AdminCustomersPage from './pages/admin/AdminCustomersPage';
-import AdminCouponsPage from './pages/admin/AdminCouponsPage';
-import AdminBrandsPage from './pages/admin/AdminBrandsPage';
-import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
-import AdminDashboardPage from './pages/admin/AdminDashboardPage';
-import AdminLoginPage from './pages/admin/AdminLoginPage';
-import AdminOrdersPage from './pages/admin/AdminOrdersPage';
-import AdminProductFormPage from './pages/admin/AdminProductFormPage';
-import AdminProductImportPage from './pages/admin/AdminProductImportPage';
-import AdminProductsPage from './pages/admin/AdminProductsPage';
-import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import { lazy, Suspense } from 'react';
 import RouteSeo from './components/RouteSeo';
-import NotFoundPage from './pages/NotFoundPage';
+
+const HomePage = lazy(() => import('./pages/HomePage'));
+const AccountPage = lazy(() => import('./pages/AccountPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const BrandsPage = lazy(() => import('./pages/BrandsPage'));
+const CartPage = lazy(() => import('./pages/CartPage'));
+const CategoriesPage = lazy(() => import('./pages/CategoriesPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const CheckoutChoicePage = lazy(() => import('./pages/CheckoutChoicePage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const NewDropsPage = lazy(() => import('./pages/NewDropsPage'));
+const ProductPage = lazy(() => import('./pages/ProductPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage'));
+const OrderTrackingPage = lazy(() => import('./pages/OrderTrackingPage'));
+const ShopPage = lazy(() => import('./pages/ShopPage'));
+const AdminCustomersPage = lazy(() => import('./pages/admin/AdminCustomersPage'));
+const AdminCouponsPage = lazy(() => import('./pages/admin/AdminCouponsPage'));
+const AdminBrandsPage = lazy(() => import('./pages/admin/AdminBrandsPage'));
+const AdminCategoriesPage = lazy(() => import('./pages/admin/AdminCategoriesPage'));
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
+const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'));
+const AdminOrdersPage = lazy(() => import('./pages/admin/AdminOrdersPage'));
+const AdminProductFormPage = lazy(() => import('./pages/admin/AdminProductFormPage'));
+const AdminProductImportPage = lazy(() => import('./pages/admin/AdminProductImportPage'));
+const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
+const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
+const deferred = (content) => <Suspense fallback={null}>{content}</Suspense>;
 
 const routes = {
   '/': HomePage,
@@ -71,19 +75,19 @@ export default function App() {
     return null;
   }
   const adminProductDuplicate = pathname.match(/^\/admin\/products\/([^/]+)\/duplicate$/);
-  if (adminProductDuplicate) return <><RouteSeo pathname={pathname} /><AdminProductFormPage duplicateFrom={decodeURIComponent(adminProductDuplicate[1])} /></>;
+  if (adminProductDuplicate) return <><RouteSeo pathname={pathname} />{deferred(<AdminProductFormPage duplicateFrom={decodeURIComponent(adminProductDuplicate[1])} />)}</>;
   const adminProductEdit = pathname.match(/^\/admin\/products\/([^/]+)\/edit$/);
-  if (adminProductEdit) return <><RouteSeo pathname={pathname} /><AdminProductFormPage productId={decodeURIComponent(adminProductEdit[1])} /></>;
+  if (adminProductEdit) return <><RouteSeo pathname={pathname} />{deferred(<AdminProductFormPage productId={decodeURIComponent(adminProductEdit[1])} />)}</>;
   if (pathname.endsWith('/product.html')) {
     window.location.replace('/product/air-jordan-1-retro-high-og');
     return null;
   }
-  if (pathname.startsWith('/product/')) return <ProductPage productId={decodeURIComponent(pathname.slice('/product/'.length))} />;
+  if (pathname.startsWith('/product/')) return deferred(<ProductPage productId={decodeURIComponent(pathname.slice('/product/'.length))} />);
   const brandRoute = pathname.match(/^\/brand\/([^/]+)$/);
-  if (brandRoute) return <BrandsPage brandSlug={decodeURIComponent(brandRoute[1])} />;
+  if (brandRoute) return deferred(<BrandsPage brandSlug={decodeURIComponent(brandRoute[1])} />);
   const categoryRoute = pathname.match(/^\/category\/([^/]+)$/);
-  if (categoryRoute) return <CategoriesPage categorySlug={decodeURIComponent(categoryRoute[1])} />;
+  if (categoryRoute) return deferred(<CategoriesPage categorySlug={decodeURIComponent(categoryRoute[1])} />);
 
   const Page = routes[pathname] || (pathname.startsWith('/admin/') ? AdminLoginPage : NotFoundPage);
-  return <><RouteSeo pathname={pathname} /><Page /></>;
+  return <><RouteSeo pathname={pathname} />{deferred(<Page />)}</>;
 }

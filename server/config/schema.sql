@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS categories (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE KEY uq_categories_name (name),
   KEY idx_categories_filters (status, brand, type, gender, collection)
 );
 
@@ -130,6 +131,8 @@ CREATE TABLE IF NOT EXISTS products (
   KEY idx_products_brand (brand),
   KEY idx_products_category (category),
   KEY idx_products_type (product_type),
+  KEY idx_products_availability_created (availability, created_at, id),
+  CONSTRAINT fk_products_brand FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE SET NULL,
   CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
@@ -220,6 +223,7 @@ CREATE TABLE IF NOT EXISTS orders (
   KEY idx_orders_email (email),
   KEY idx_orders_status (order_status),
   KEY idx_orders_coupon (coupon_id),
+  KEY idx_orders_created (created_at, id),
   CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES customers(id) ON DELETE SET NULL,
   CONSTRAINT fk_orders_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE SET NULL
 );
@@ -249,6 +253,7 @@ CREATE TABLE IF NOT EXISTS order_status_history (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_status_history_order (order_id),
+  KEY idx_status_history_order_created (order_id, created_at, id),
   CONSTRAINT fk_status_history_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 

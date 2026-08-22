@@ -22,7 +22,8 @@ export const parseCsv = (input) => {
 
 const escape = (value) => {
   const string = String(value ?? '');
-  return /[",\r\n]/.test(string) ? `"${string.replace(/"/g, '""')}"` : string;
+  const safe = /^[\s]*[=+\-@]/.test(string) ? `'${string}` : string;
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 };
 
 export const serializeCsv = (rows) => rows.map((row) => row.map(escape).join(',')).join('\r\n');

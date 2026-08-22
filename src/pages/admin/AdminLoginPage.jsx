@@ -39,7 +39,7 @@ export default function AdminLoginPage() {
     <div className="admin-login-page">
       <div className="noise" aria-hidden="true" />
       <main className="admin-login-card">
-        <div className="admin-login-brand"><img src={logoWordmarkWhite} alt="KICKZ.LK" /><span>PRIVATE ADMIN</span></div>
+        <div className="admin-login-brand"><img src={logoWordmarkWhite} alt="KICKZ.LK" width="1586" height="325" /><span>PRIVATE ADMIN</span></div>
         <span className="admin-kicker">SECURE CONTROL ROOM</span>
         <h1>ADMIN<br />ACCESS.</h1>
         <p>Secure access for catalog, orders, customers and storefront settings.</p>

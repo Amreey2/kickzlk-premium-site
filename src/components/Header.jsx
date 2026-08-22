@@ -54,7 +54,7 @@ export default function Header({ bagCount = 0, cartHref = '/cart' }) {
     <header className={`site-header${hasScrolled ? ' site-header--scrolled' : ''}`} id="top">
       <div className="container header__inner">
         <a href="/" className="brand" aria-label="KICKZ.LK home">
-          <img src={logoWordmarkWhite} alt="KICKZ.LK" />
+          <img src={logoWordmarkWhite} alt="KICKZ.LK" width="1586" height="325" />
         </a>
         <nav className="desktop-nav" aria-label="Primary navigation">
           {navItems.map(([href, label]) => (
